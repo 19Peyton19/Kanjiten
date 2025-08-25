@@ -377,15 +377,129 @@ app.get('/api/progress', authenticateUser, async (req, res) => {
     }
 });
 
+// Bulk update kanji progress endpoint
+app.post('/api/progress/bulk-update', authenticateUser, async (req, res) => {
+    try {
+        const { kanjiProgressData } = req.body;
+        
+        if (!kanjiProgressData || !Array.isArray(kanjiProgressData)) {
+            return res.status(400).json({ error: 'Invalid kanji progress data' });
+        }
+
+        log('INFO', `Bulk updating progress for ${kanjiProgressData.length} kanji for user ${req.user.id}`);
+
+        // Transform the data to match database schema
+        const progressRecords = kanjiProgressData.map(([kanjiId, progressData]) => ({
+            user_id: req.user.id,
+            kanji_id: parseInt(kanjiId),
+            learned: progressData.learned || false,
+            in_review: progressData.inReview || false,
+            srs_interval: progressData.interval || 1,
+            ease_factor: progressData.ease || 2.5,
+            consecutive_correct: progressData.consecutiveCorrect || 0,
+            total_reviews: progressData.totalReviews || 0,
+            correct_reviews: progressData.correctReviews || 0,
+            last_review: progressData.lastReview || null,
+            next_review: progressData.nextReview || null,
+            mnemonic: progressData.mnemonic || null,
+            updated_at: new Date().toISOString()
+        }));
+
+        // Use upsert to insert or update records
+        const { error } = await supabase
+            .from('user_kanji_progress')
+            .upsert(progressRecords, {
+                onConflict: 'user_id,kanji_id'
+            });
+
+        if (error) {
+            log('ERROR', 'Failed to bulk update progress', error);
+            return res.status(500).json({ error: 'Failed to update progress' });
+        }
+
+        log('SUCCESS', `Bulk updated ${kanjiProgressData.length} kanji progress records`);
+        res.json({ success: true, updated: kanjiProgressData.length });
+        
+    } catch (error) {
+        log('ERROR', 'Bulk progress update error', error);
+        res.status(500).json({ error: 'Failed to update progress' });
+    }
+});
 // Add these routes to your backend
 app.get('/api/settings', authenticateUser, async (req, res) => {
-  // Return user settings - you'll need to implement this
-  res.json({ settings: {} });
+    try {
+        const { data, error } = await supabase
+            .from('user_settings')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+            log('ERROR', 'Failed to get user settings', error);
+            return res.status(500).json({ error: 'Failed to get settings' });
+        }
+
+        // If no settings exist, return defaults
+        const defaultSettings = {
+            profileName: req.user.username || 'User',
+            maxLevel: 10,
+            jlptLevel: 'all',
+            maxInterval: 180,
+            showProgress: true,
+            showDrawing: true
+        };
+
+        const settings = data ? {
+            profileName: data.profile_name || defaultSettings.profileName,
+            maxLevel: data.max_level || defaultSettings.maxLevel,
+            jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
+            maxInterval: data.max_interval || defaultSettings.maxInterval,
+            showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
+            showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing
+        } : defaultSettings;
+
+        res.json({ success: true, settings });
+        
+    } catch (error) {
+        log('ERROR', 'Settings get error', error);
+        res.status(500).json({ error: 'Failed to get settings' });
+    }
 });
 
+// Save user settings endpoint
 app.put('/api/settings', authenticateUser, async (req, res) => {
-  // Save user settings - you'll need to implement this  
-  res.json({ success: true });
+    try {
+        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing } = req.body;
+        
+        const settingsData = {
+            user_id: req.user.id,
+            profile_name: profileName,
+            max_level: maxLevel,
+            jlpt_level: jlptLevel,
+            max_interval: maxInterval,
+            show_progress: showProgress,
+            show_drawing: showDrawing,
+            updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+            .from('user_settings')
+            .upsert(settingsData, {
+                onConflict: 'user_id'
+            });
+
+        if (error) {
+            log('ERROR', 'Failed to save settings', error);
+            return res.status(500).json({ error: 'Failed to save settings' });
+        }
+
+        log('SUCCESS', 'Settings saved successfully', { userId: req.user.id });
+        res.json({ success: true });
+        
+    } catch (error) {
+        log('ERROR', 'Settings save error', error);
+        res.status(500).json({ error: 'Failed to save settings' });
+    }
 });
 // Update kanji progress endpoint
 app.post('/api/progress/update', authenticateUser, async (req, res) => {
