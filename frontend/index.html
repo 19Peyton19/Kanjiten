@@ -1,5 +1,4 @@
-
-  <!DOCTYPE html>
+ <!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -2543,7 +2542,7 @@ const API_CONFIG = {
   }
 }
         
-async function signUp() {
+ async function signUp() {
   const email = document.getElementById('email').value.trim();
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
@@ -2555,43 +2554,33 @@ async function signUp() {
   signUpBtn.disabled = true;
   signUpBtn.textContent = 'Creating account...';
 
-  // Clear any previous error messages
-  showAuthStatus('', 'success');
+  if (!email || !username || !password) {
+    showAuthStatus('Please enter email, username, and password', 'error');
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
+
+  if (username.length < 3) {
+    showAuthStatus('Username must be at least 3 characters long', 'error');
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
+
+  if (!isPasswordValid(password)) {
+    showAuthStatus(
+      'Password must be at least 8 characters with uppercase, lowercase, number, and special character',
+      'error'
+    );
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
 
   try {
-    // Validation
-    if (!email || !username || !password) {
-      throw new Error('Please enter email, username, and password');
-    }
+    const response = await apiCall('/auth/register', 'POST', { username, password, email });
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new Error('Please enter a valid email address');
-    }
-
-    // Username validation (match backend requirements)
-    if (username.length < 3 || username.length > 50) {
-      throw new Error('Username must be 3-50 characters');
-    }
-
-    // Password validation (match backend exactly)
-    if (!isPasswordValid(password)) {
-      throw new Error('Password must be 8-30 characters with uppercase, lowercase, digit, and symbol (!@#$%^&*(),.?":{}|<>)');
-    }
-
-    console.log('Attempting to register with:', { username, email: email.substring(0, 3) + '***' });
-    
-    // Make the API call
-    const response = await apiCall('/auth/register', 'POST', { 
-      username, 
-      password, 
-      email 
-    });
-
-    console.log('Registration response:', response);
-
-    // Check if response indicates success
     if (response.success && response.session) {
       gameState.user = {
         username: response.user?.username || username,
@@ -2600,10 +2589,9 @@ async function signUp() {
       };
       gameState.isSignedIn = true;
       gameState.isAnonymous = false;
-      gameState.authToken = response.session.access_token;
+      gameState.authToken = response.session.access_token; // Use access_token from session
       gameState.settings.profileName = gameState.user.username;
 
-      // Store token
       if (gameState.authToken) {
         localStorage.setItem('authToken', gameState.authToken);
       }
@@ -2611,110 +2599,22 @@ async function signUp() {
       showAuthStatus('Account created successfully!', 'success');
       
       // Update UI
-      updateNavigationUI();
+      document.getElementById('signOutBtn').style.display = 'block';
+      document.getElementById('signInBtn').style.display = 'none';
 
-      // Navigate to dashboard after delay
       setTimeout(async () => {
         loadScene('dashboardScene');
-        try {
-          await loadGameData();
-        } catch (error) {
-          console.error('Failed to load game data after signup:', error);
-          // Don't fail the signup process for this
-        }
+        await loadGameData();
       }, 1000);
     } else {
-      // Handle various response scenarios
-      const errorMessage = response.message || response.error || 'Registration failed - invalid response from server';
-      throw new Error(errorMessage);
+      throw new Error('Invalid response from server');
     }
   } catch (error) {
     console.error('Sign up error:', error);
-    
-    // Parse error message for better user feedback
-    let errorMessage = error.message;
-    
-    if (errorMessage.includes('duplicate key value') || errorMessage.includes('already exists')) {
-      errorMessage = 'An account with this email or username already exists';
-    } else if (errorMessage.includes('connection') || errorMessage.includes('fetch')) {
-      errorMessage = 'Unable to connect to server. Please check your internet connection.';
-    } else if (errorMessage.includes('400')) {
-      errorMessage = 'Invalid registration data. Please check your inputs.';
-    } else if (errorMessage.includes('500')) {
-      errorMessage = 'Server error. Please try again later.';
-    }
-    
-    showAuthStatus(`Sign up failed: ${errorMessage}`, 'error');
+    showAuthStatus(`Sign up failed: ${error.message}`, 'error');
   } finally {
     signUpBtn.disabled = false;
     signUpBtn.textContent = originalText;
-  }
-}
-
-// Enhanced apiCall function with better error handling
-async function apiCall(endpoint, method = 'GET', data = null) {
-  console.log(`Making API call: ${method} ${API_CONFIG.baseURL}${endpoint}`);
-  console.log('Request data:', data ? JSON.stringify(data) : 'none');
-  
-  const config = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
-
-  if (gameState.authToken) {
-    config.headers['Authorization'] = `Bearer ${gameState.authToken}`;
-  }
-
-  if (data && method !== 'GET') {
-    config.body = JSON.stringify(data);
-  }
-
-  const url = method === 'GET' && data
-    ? `${API_CONFIG.baseURL}${endpoint}?${new URLSearchParams(data)}`
-    : `${API_CONFIG.baseURL}${endpoint}`;
-
-  try {
-    console.log('Fetching URL:', url);
-    console.log('Config:', config);
-    
-    const response = await fetch(url, config);
-    
-    console.log('Response status:', response.status);
-    
-    // Handle different content types
-    const contentType = response.headers.get('content-type');
-    let result;
-    
-    if (contentType && contentType.includes('application/json')) {
-      result = await response.json();
-    } else {
-      const text = await response.text();
-      console.log('Non-JSON response:', text);
-      
-      // Try to parse as JSON anyway (some servers don't set proper content-type)
-      try {
-        result = JSON.parse(text);
-      } catch (parseError) {
-        throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`);
-      }
-    }
-
-    // Check if the response indicates an error
-    if (!response.ok) {
-      const errorMessage = result.error || result.message || `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(errorMessage);
-    }
-
-    return result;
-  } catch (error) {
-    console.error('API call error:', error);
-    
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('Unable to connect to server. Please check your connection.');
-    }
-    throw error;
   }
 }
 async function signInAnonymous() {
@@ -2893,11 +2793,10 @@ async function handleAuthFallback(email, username, password, isSignUp = false) {
     };
   }
 
- function isPasswordValid(password) {
-  // Must match the backend regex exactly
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,30}$/;
-  return passwordRegex.test(password);
-}
+  function isPasswordValid(password) {
+    if (!password || password.length < 8 || password.length > 128) {
+      return false;
+    }
     
 
     const hasUpper = /[A-Z]/.test(password);
