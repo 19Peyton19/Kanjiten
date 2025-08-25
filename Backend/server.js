@@ -516,7 +516,7 @@ async function startServer() {
             log('SUCCESS', 'Connected to Supabase');
         }
         
-        app.listen(PORT, () => {
+        app.listen(PORT,'0.0.0.0', () => {
             log('SUCCESS', `Server running on port ${PORT}`);
             log('INFO', `Health check: http://localhost:${PORT}/api/health`);
             log('INFO', `Database test: http://localhost:${PORT}/api/test-db`);
