@@ -3014,13 +3014,16 @@ await apiCall('/progress/bulk-update', 'POST', {
           }
         }
 
-  async function loadGameData() {
+async function loadGameData() {
     if (gameState.isAnonymous || !gameState.authToken) {
       // For anonymous users, still try to load from localStorage
       const savedData = localStorage.getItem('kanjiMasterSave');
       if (savedData) {
         try {
           const data = JSON.parse(savedData);
+          if (data.settings) {
+            gameState.settings = { ...gameState.settings, ...data.settings };
+          }
           if (data.kanjiData) {
             data.kanjiData.forEach(([id, kanjiData]) => {
               if (gameState.kanjiData.has(id)) {
@@ -3042,13 +3045,14 @@ await apiCall('/progress/bulk-update', 'POST', {
     }
 
     try {
-const progressResponse = await apiCall('/progress', 'GET');
-
       // Initialize with base kanji data first
       if (gameState.kanjiData.size === 0) {
         initializeKanjiData();
       }
 
+      // Load user progress
+      const progressResponse = await apiCall('/progress', 'GET');
+      
       // Merge with user progress
       if (progressResponse.progress && progressResponse.progress.length > 0) {
         progressResponse.progress.forEach((userKanji) => {
@@ -3072,11 +3076,8 @@ const progressResponse = await apiCall('/progress', 'GET');
       }
 
       // Load user settings
-      const settingsResponse = await apiCall(
-        API_CONFIG.endpoints.settings,
-        'GET'
-      );
-      if (settingsResponse.settings) {
+      const settingsResponse = await apiCall('/settings', 'GET');
+      if (settingsResponse.success && settingsResponse.settings) {
         gameState.settings = {
           ...gameState.settings,
           ...settingsResponse.settings,
@@ -3084,6 +3085,10 @@ const progressResponse = await apiCall('/progress', 'GET');
       }
 
       console.log('Data loaded successfully from server');
+      
+      // Update UI elements that depend on settings
+      updateDashboard();
+      
     } catch (error) {
       console.error('Failed to load from database:', error);
       
