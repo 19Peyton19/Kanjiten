@@ -41,7 +41,7 @@ function log(level, message, data = null) {
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://localhost:3000'],
+    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://localhost:3000', 'https://kanjitenstudy.netlify.app/'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -377,6 +377,16 @@ app.get('/api/progress', authenticateUser, async (req, res) => {
     }
 });
 
+// Add these routes to your backend
+app.get('/api/settings', authenticateUser, async (req, res) => {
+  // Return user settings - you'll need to implement this
+  res.json({ settings: {} });
+});
+
+app.put('/api/settings', authenticateUser, async (req, res) => {
+  // Save user settings - you'll need to implement this  
+  res.json({ success: true });
+});
 // Update kanji progress endpoint
 app.post('/api/progress/update', authenticateUser, async (req, res) => {
     try {
