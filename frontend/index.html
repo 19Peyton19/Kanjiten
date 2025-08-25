@@ -2579,13 +2579,6 @@ const API_CONFIG = {
     return;
   }
 
-  if (!isValidEmail(email)) {
-    showAuthStatus('Please enter a valid email address', 'error');
-    signUpBtn.disabled = false;
-    signUpBtn.textContent = originalText;
-    return;
-  }
-
   try {
     const response = await apiCall('/auth/register', 'POST', { username, password, email });
 
@@ -2805,6 +2798,7 @@ async function handleAuthFallback(email, username, password, isSignUp = false) {
     if (!password || password.length < 8 || password.length > 128) {
       return false;
     }
+    
 
     const hasUpper = /[A-Z]/.test(password);
     const hasLower = /[a-z]/.test(password);
