@@ -2484,247 +2484,287 @@ const API_CONFIG = {
       throw error;
     }
   }
-  async function signIn() {
-   const email = document.getElementById('email').value.trim();
-const username = document.getElementById('username').value.trim();
-const password = document.getElementById('password').value;
-    const signInBtn = document.querySelector('.btn-primary[onclick="signIn()"]');
+ async function signIn() {
+  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const signInBtn = document.querySelector('.btn-primary[onclick="signIn()"]');
 
-    if (!signInBtn) return;
+  if (!signInBtn) return;
 
-    const originalText = signInBtn.textContent;
-    signInBtn.disabled = true;
-    signInBtn.textContent = 'Signing in...';
+  const originalText = signInBtn.textContent;
+  signInBtn.disabled = true;
+  signInBtn.textContent = 'Signing in...';
 
-if (!email || !username || !password) {
-  showAuthStatus('Please enter email, username, and password', 'error');
-  return;
-}
-    try {
-     const response = await apiCall('/auth/login', 'POST', { email, password });
-      if (response.success || response.user) {
-    gameState.user = {
-      username: response.user?.username || username,
-      id: response.user?.id,
-      isAnonymous: false,
-  };
-        gameState.isSignedIn = true;
-gameState.authToken = response.session?.access_token || response.sessionId || response.token;
-        gameState.settings.profileName = gameState.user.username;
+  if (!email || !password) {
+    showAuthStatus('Please enter email and password', 'error');
+    signInBtn.disabled = false;
+    signInBtn.textContent = originalText;
+    return;
+  }
 
-        if (gameState.authToken) {
-          localStorage.setItem('authToken', gameState.authToken);
-        }
+  try {
+    const response = await apiCall('/auth/login', 'POST', { email, password });
+    
+    if (response.success && response.session) {
+      gameState.user = {
+        username: response.user?.username || 'User',
+        id: response.user?.id,
+        isAnonymous: response.user?.isAnonymous || false,
+      };
+      gameState.isSignedIn = true;
+      gameState.isAnonymous = response.user?.isAnonymous || false;
+      gameState.authToken = response.session.access_token; // Use access_token from session
+      gameState.settings.profileName = gameState.user.username;
 
-        showAuthStatus('Sign in successful!', 'success');
-
-        setTimeout(async () => {
-          loadScene('dashboardScene');
-          document.getElementById('signOutBtn').style.display = 'block';
-          await loadGameData();
-        }, 1000);
-      } else {
-        throw new Error('Invalid response from server');
+      if (gameState.authToken) {
+        localStorage.setItem('authToken', gameState.authToken);
       }
+
+      showAuthStatus('Sign in successful!', 'success');
+      
+      // Update UI
+      document.getElementById('signOutBtn').style.display = 'block';
+      document.getElementById('signInBtn').style.display = 'none';
+
+      setTimeout(async () => {
+        loadScene('dashboardScene');
+        await loadGameData();
+      }, 1000);
+    } else {
+      throw new Error('Invalid response from server');
+    }
   } catch (error) {
     console.error('Authentication error:', error);
-    
-    // If it's a connection error, try fallback
-    if (error.message.includes('Unable to connect to server')) {
-      try {
-        console.log('Attempting fallback authentication...');
-        const fallbackResponse = await handleAuthFallback(username, password, false); // true for signUp
-        
-        // Handle the fallback response the same way as a real response
-        gameState.user = {
-          username: fallbackResponse.user.username,
-          id: fallbackResponse.user.id,
-          isAnonymous: false,
-        };
-        gameState.isSignedIn = true;
-        gameState.authToken = fallbackResponse.token;
-        gameState.settings.profileName = gameState.user.username;
-
-        localStorage.setItem('authToken', gameState.authToken);
-        showAuthStatus('Signed in using offline mode', 'success');
-
-        setTimeout(() => {
-          loadScene('dashboardScene');
-          document.getElementById('signOutBtn').style.display = 'block';
-        }, 1000);
-        
-        return;
-      } catch (fallbackError) {
-        showAuthStatus(`Authentication failed: ${fallbackError.message}`, 'error');
-      }
-    } else {
-      showAuthStatus(`Authentication failed: ${error.message}`, 'error');
-    }
-  }finally {
-      signInBtn.disabled = false;
-      signInBtn.textContent = originalText;
-    }
+    showAuthStatus(`Sign in failed: ${error.message}`, 'error');
+  } finally {
+    signInBtn.disabled = false;
+    signInBtn.textContent = originalText;
   }
-  async function signUp() {
-   const email = document.getElementById('email').value.trim();
-const username = document.getElementById('username').value.trim();
-const password = document.getElementById('password').value;
-    const signUpBtn = document.querySelector('.btn-secondary[onclick="signUp()"]');
-
-    if (!signUpBtn) return;
-
-    const originalText = signUpBtn.textContent;
-    signUpBtn.disabled = true;
-    signUpBtn.textContent = 'Creating account...';
-
-if (!email || !username || !password) {
-  showAuthStatus('Please enter email, username, and password', 'error');
-  return;
 }
+        
+ async function signUp() {
+  const email = document.getElementById('email').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const signUpBtn = document.querySelector('.btn-secondary[onclick="signUp()"]');
 
-    if (username.length < 3) {
-      showAuthStatus('Username must be at least 3 characters long', 'error');
-      signUpBtn.disabled = false;
-      signUpBtn.textContent = originalText;
-      return;
-    }
+  if (!signUpBtn) return;
 
-    if (!isPasswordValid(password)) {
-      showAuthStatus(
-        'Password must be at least 8 characters with uppercase, lowercase, number, and special character',
-        'error'
-      );
-      signUpBtn.disabled = false;
-      signUpBtn.textContent = originalText;
-      return;
-    }
+  const originalText = signUpBtn.textContent;
+  signUpBtn.disabled = true;
+  signUpBtn.textContent = 'Creating account...';
 
-    if (!isValidEmail(email)) {
-  showAuthStatus('Please enter a valid email address', 'error');
-  signUpBtn.disabled = false;
-  signUpBtn.textContent = originalText;
-  return;
-}
+  if (!email || !username || !password) {
+    showAuthStatus('Please enter email, username, and password', 'error');
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
 
-    try {
-   const response = await apiCall('/auth/register', 'POST', { username, password, email });
+  if (username.length < 3) {
+    showAuthStatus('Username must be at least 3 characters long', 'error');
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
 
-      if (response.success || response.user) {
+  if (!isPasswordValid(password)) {
+    showAuthStatus(
+      'Password must be at least 8 characters with uppercase, lowercase, number, and special character',
+      'error'
+    );
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    showAuthStatus('Please enter a valid email address', 'error');
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
+    return;
+  }
+
+  try {
+    const response = await apiCall('/auth/register', 'POST', { username, password, email });
+
+    if (response.success && response.session) {
       gameState.user = {
-      username: response.user?.username || username,
-      id: response.user?.id,
-      isAnonymous: false,
-  };
-        gameState.isSignedIn = true;
-gameState.authToken = response.session?.access_token || response.sessionId || response.token;
-        gameState.settings.profileName = gameState.user.username;
+        username: response.user?.username || username,
+        id: response.user?.id,
+        isAnonymous: false,
+      };
+      gameState.isSignedIn = true;
+      gameState.isAnonymous = false;
+      gameState.authToken = response.session.access_token; // Use access_token from session
+      gameState.settings.profileName = gameState.user.username;
 
-        if (gameState.authToken) {
-          localStorage.setItem('authToken', gameState.authToken);
-        }
-
-        showAuthStatus('Account created successfully!', 'success');
-
-        setTimeout(async () => {
-          loadScene('dashboardScene');
-          document.getElementById('signOutBtn').style.display = 'block';
-          await loadGameData();
-        }, 1000);
-      } else {
-        throw new Error('Invalid response from server');
+      if (gameState.authToken) {
+        localStorage.setItem('authToken', gameState.authToken);
       }
-    } catch (error) {
-      console.error('Sign up error:', error);
-      showAuthStatus(`Sign up failed: ${error.message}`, 'error');
-    } finally {
-      signUpBtn.disabled = false;
-      signUpBtn.textContent = originalText;
+
+      showAuthStatus('Account created successfully!', 'success');
+      
+      // Update UI
+      document.getElementById('signOutBtn').style.display = 'block';
+      document.getElementById('signInBtn').style.display = 'none';
+
+      setTimeout(async () => {
+        loadScene('dashboardScene');
+        await loadGameData();
+      }, 1000);
+    } else {
+      throw new Error('Invalid response from server');
     }
+  } catch (error) {
+    console.error('Sign up error:', error);
+    showAuthStatus(`Sign up failed: ${error.message}`, 'error');
+  } finally {
+    signUpBtn.disabled = false;
+    signUpBtn.textContent = originalText;
   }
-        async function signInAnonymous() {
-          try {
-            const response = await apiCall(
-              API_CONFIG.endpoints.auth + '/anonymous',
-              'POST',
-              {}
-            );
+}
+async function signInAnonymous() {
+  const signInBtn = document.querySelector('.btn-secondary[onclick="signInAnonymous()"]');
+  
+  if (!signInBtn) return;
 
-            gameState.user = {
-              username: response.user.username,
-              id: response.user.id,
-              isAnonymous: true,
-            };
-            gameState.isSignedIn = true;
-            gameState.isAnonymous = true;
-            gameState.authToken = response.sessionId;
-            gameState.settings.profileName = 'Guest';
+  const originalText = signInBtn.textContent;
+  signInBtn.disabled = true;
+  signInBtn.textContent = 'Creating guest session...';
 
-            localStorage.setItem('authToken', response.sessionId);
-            showAuthStatus('Signed in as guest!', 'success');
+  try {
+    const response = await apiCall('/auth/anonymous', 'POST', {});
 
-            setTimeout(() => {
-              loadScene('dashboardScene');
-              document.getElementById('signOutBtn').style.display = 'block';
-            }, 1000);
-          } catch (error) {
-            console.error('Anonymous sign in error:', error);
-            showAuthStatus(
-              'Failed to sign in as guest: ' + error.message,
-              'error'
-            );
-          }
-        }
+    if (response.success && response.session) {
+      gameState.user = {
+        username: response.user.username,
+        id: response.user.id,
+        isAnonymous: true,
+      };
+      gameState.isSignedIn = true;
+      gameState.isAnonymous = true;
+      gameState.authToken = response.session.access_token; // Use access_token from session
+      gameState.settings.profileName = 'Guest';
 
-        async function validateTokenAndAutoLogin(token) {
-          try {
-            // Try to get user settings to validate token
-            const settingsResponse = await apiCall('/settings', 'GET');
+      if (gameState.authToken) {
+        localStorage.setItem('authToken', gameState.authToken);
+      }
 
-            // If successful, we have a valid token
-            gameState.isSignedIn = true;
-            gameState.settings = {
-              ...gameState.settings,
-              ...settingsResponse.settings,
-            };
+      showAuthStatus('Signed in as guest!', 'success');
+      
+      // Update UI
+      document.getElementById('signOutBtn').style.display = 'block';
+      document.getElementById('signInBtn').style.display = 'none';
+      document.getElementById('guestNotice').style.display = 'block';
 
-            loadScene('dashboardScene');
-            document.getElementById('signOutBtn').style.display = 'block';
-            await loadGameData();
-          } catch (error) {
-            console.error('Token validation failed:', error);
-            localStorage.removeItem('authToken');
-            loadScene('loginScene');
-          }
-        }
+      setTimeout(() => {
+        loadScene('dashboardScene');
+      }, 1000);
+    } else {
+      throw new Error('Invalid response from server');
+    }
+  } catch (error) {
+    console.error('Anonymous sign in error:', error);
+    showAuthStatus('Failed to sign in as guest: ' + error.message, 'error');
+  } finally {
+    signInBtn.disabled = false;
+    signInBtn.textContent = originalText;
+  }
+}
+async function validateTokenAndAutoLogin(token) {
+  try {
+    gameState.authToken = token;
+    
+    // Try to get user settings to validate token
+    const settingsResponse = await apiCall('/settings', 'GET');
 
-        async function signOut() {
-          if (!gameState.isAnonymous) {
-            await saveGameData();
+    // If successful, we have a valid token
+    gameState.isSignedIn = true;
+    gameState.settings = {
+      ...gameState.settings,
+      ...settingsResponse.settings,
+    };
 
-            try {
-              await apiCall(API_CONFIG.endpoints.auth + '/logout', 'POST');
-            } catch (error) {
-              console.log('Logout API call failed:', error);
-            }
-          }
+    // Update UI
+    document.getElementById('signOutBtn').style.display = 'block';
+    document.getElementById('signInBtn').style.display = 'none';
+    
+    loadScene('dashboardScene');
+    await loadGameData();
+  } catch (error) {
+    console.error('Token validation failed:', error);
+    localStorage.removeItem('authToken');
+    
+    // Reset state
+    gameState.authToken = null;
+    gameState.isSignedIn = false;
+    gameState.isAnonymous = false;
+    gameState.user = null;
+    
+    // Show sign in UI
+    document.getElementById('signOutBtn').style.display = 'none';
+    document.getElementById('signInBtn').style.display = 'block';
+    
+    loadScene('loginScene');
+  }
+}// 6. Fix the signOut function:
+async function signOut() {
+  try {
+    if (gameState.authToken) {
+      // Save data before signing out (if not anonymous)
+      if (!gameState.isAnonymous) {
+        await saveGameData();
+      }
 
-          localStorage.removeItem('authToken');
+      // Call logout endpoint
+      try {
+        await apiCall('/auth/logout', 'POST');
+      } catch (error) {
+        console.log('Logout API call failed:', error);
+        // Continue with local logout even if API call fails
+      }
+    }
+  } catch (error) {
+    console.error('Error during sign out:', error);
+  } finally {
+    // Always perform local cleanup
+    localStorage.removeItem('authToken');
 
-          gameState.user = null;
-          gameState.isSignedIn = false;
-          gameState.isAnonymous = false;
-          gameState.authToken = null;
+    // Reset game state
+    gameState.user = null;
+    gameState.isSignedIn = false;
+    gameState.isAnonymous = false;
+    gameState.authToken = null;
 
-          loadScene('loginScene');
-          document.getElementById('signOutBtn').style.display = 'none';
-          document.getElementById('backBtn').style.display = 'none';
-        }
-
-        function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+    // Update UI
+    document.getElementById('signOutBtn').style.display = 'none';
+    document.getElementById('signInBtn').style.display = 'block';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('guestNotice').style.display = 'none';
+    
+    loadScene('loginScene');
+  }
 }
 
+// 7. Add a new function to update dashboard UI:
+function updateNavigationUI() {
+  if (gameState.isSignedIn) {
+    document.getElementById('signOutBtn').style.display = 'block';
+    document.getElementById('signInBtn').style.display = 'none';
+    
+    if (gameState.isAnonymous) {
+      document.getElementById('guestNotice').style.display = 'block';
+    } else {
+      document.getElementById('guestNotice').style.display = 'none';
+    }
+  } else {
+    document.getElementById('signOutBtn').style.display = 'none';
+    document.getElementById('signInBtn').style.display = 'block';
+    document.getElementById('guestNotice').style.display = 'none';
+  }
+}
 async function handleAuthFallback(email, username, password, isSignUp = false) {
     // This is a fallback for development/testing when server is not available
     console.warn('Using fallback authentication - not suitable for production');
@@ -3327,18 +3367,19 @@ const progressResponse = await apiCall('/progress', 'GET');
           return exactMatches.length > 0 ? exactMatches : kanji.variations;
         }
 
-        // Initialize the application
-        function initializeApp() {
-          initializeKanjiData();
-          startAutoSave();
+function initializeApp() {
+  initializeKanjiData();
+  startAutoSave();
 
-          const storedToken = localStorage.getItem('authToken');
-          if (storedToken) {
-            validateTokenAndAutoLogin(storedToken);
-          } else {
-            loadScene('loginScene');
-          }
-        }
+  const storedToken = localStorage.getItem('authToken');
+  if (storedToken) {
+    gameState.authToken = storedToken;
+    validateTokenAndAutoLogin(storedToken);
+  } else {
+    loadScene('loginScene');
+    updateNavigationUI();
+  }
+}
 
       // Replace all placeholder functions with these implementations:
 
