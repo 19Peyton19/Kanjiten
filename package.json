@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node backend/server/server.js",
+    "start": "node Backend/server/server.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
