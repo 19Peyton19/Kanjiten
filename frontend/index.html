@@ -5618,28 +5618,30 @@ const API_CONFIG = {
         }
 
         // Utility function to make API calls
-  async function apiCall(endpoint, method = 'GET', data = null) {
-    console.log(`Making API call: ${method} ${API_CONFIG.baseURL}${endpoint}`);
-    
-    const config = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
+ 
+async function apiCall(endpoint, method = 'GET', data = null, retries = 1) {
+  console.log(`Making API call: ${method} ${API_CONFIG.baseURL}${endpoint}`);
+  
+  const config = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
 
-    if (gameState.authToken) {
-      config.headers['Authorization'] = `Bearer ${gameState.authToken}`;
-    }
+  if (gameState.authToken) {
+    config.headers['Authorization'] = `Bearer ${gameState.authToken}`;
+  }
 
-    if (data && method !== 'GET') {
-      config.body = JSON.stringify(data);
-    }
+  if (data && method !== 'GET') {
+    config.body = JSON.stringify(data);
+  }
 
-    const url = method === 'GET' && data
-      ? `${API_CONFIG.baseURL}${endpoint}?${new URLSearchParams(data)}`
-      : `${API_CONFIG.baseURL}${endpoint}`;
+  const url = method === 'GET' && data
+    ? `${API_CONFIG.baseURL}${endpoint}?${new URLSearchParams(data)}`
+    : `${API_CONFIG.baseURL}${endpoint}`;
 
+  for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, config);
       
@@ -5660,18 +5662,43 @@ const API_CONFIG = {
           }
         }
         
+        // If unauthorized, clear auth state
+        if (response.status === 401) {
+          localStorage.removeItem('authToken');
+          gameState.authToken = null;
+          gameState.isSignedIn = false;
+          gameState.user = null;
+          
+          // Only redirect to login if we're not already there
+          if (gameState.currentScene !== 'loginScene') {
+            loadScene('loginScene');
+            updateNavigationUI();
+          }
+        }
+        
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
       return result;
+      
     } catch (error) {
+      console.error(`API call attempt ${attempt + 1} failed:`, error);
+      
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Unable to connect to server. Please check your connection.');
+        if (attempt < retries) {
+          console.log(`Retrying in ${1000 * (attempt + 1)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+          continue;
+        }
+        throw new Error('Unable to connect to server. Please check your connection and try again.');
       }
+      
+      // Don't retry for non-network errors
       throw error;
     }
   }
+}
  async function signIn() {
   const email = document.getElementById('email').value.trim();
   const username = document.getElementById('username').value.trim();
@@ -5868,12 +5895,22 @@ async function validateTokenAndAutoLogin(token) {
       ...settingsResponse.settings,
     };
 
+    // Set a basic user object (we'll get more details when loading game data)
+    gameState.user = {
+      username: gameState.settings.profileName || 'User',
+    };
+
     // Update UI
     document.getElementById('signOutBtn').style.display = 'block';
     document.getElementById('signInBtn').style.display = 'none';
     
     loadScene('dashboardScene');
-    await loadGameData();
+    
+    // Load game data after the scene has loaded
+    setTimeout(async () => {
+      await loadGameData();
+    }, 100);
+    
   } catch (error) {
     console.error('Token validation failed:', error);
     localStorage.removeItem('authToken');
@@ -5890,7 +5927,7 @@ async function validateTokenAndAutoLogin(token) {
     
     loadScene('loginScene');
   }
-}// 6. Fix the signOut function:
+}he signOut function:
 async function signOut() {
   try {
     if (gameState.authToken) {
@@ -6072,18 +6109,40 @@ async function handleAuthFallback(email, username, password, isSignUp = false) {
     }
   }
         // Dashboard Functions
-        function updateDashboard() {
-          document.getElementById('welcomeName').textContent =
-            gameState.settings.profileName || 'User';
+ 
+function updateDashboard() {
+  // Check if we're actually on the dashboard scene
+  if (gameState.currentScene !== 'dashboardScene') {
+    console.warn('updateDashboard called but not on dashboard scene');
+    return;
+  }
 
-          const stats = calculateStats();
-          document.getElementById('kanjiLearned').textContent =
-            stats.kanjiLearned;
-          document.getElementById('reviewsDue').textContent = stats.reviewsDue;
-          document.getElementById('accuracy').textContent = stats.accuracy + '%';
+  // Check if required elements exist
+  const welcomeName = document.getElementById('welcomeName');
+  const kanjiLearned = document.getElementById('kanjiLearned');
+  const reviewsDue = document.getElementById('reviewsDue');
+  const accuracy = document.getElementById('accuracy');
 
-          updateLevelProgress();
-        }
+  if (!welcomeName || !kanjiLearned || !reviewsDue || !accuracy) {
+    console.warn('Dashboard elements not ready, deferring update');
+    // Try again after a short delay
+    setTimeout(() => {
+      if (gameState.currentScene === 'dashboardScene') {
+        updateDashboard();
+      }
+    }, 100);
+    return;
+  }
+
+  welcomeName.textContent = gameState.settings.profileName || 'User';
+
+  const stats = calculateStats();
+  kanjiLearned.textContent = stats.kanjiLearned;
+  reviewsDue.textContent = stats.reviewsDue;
+  accuracy.textContent = stats.accuracy + '%';
+
+  updateLevelProgress();
+}
 
         function calculateStats() {
           let kanjiLearned = 0;
@@ -6114,88 +6173,111 @@ async function handleAuthFallback(email, username, password, isSignUp = false) {
           return { kanjiLearned, reviewsDue, accuracy };
         }
 
-        function updateLevelProgress() {
-          const progressDiv = document.getElementById('levelProgress');
-          let html = '';
+function updateLevelProgress() {
+  // Check if the element exists before trying to update it
+  const progressDiv = document.getElementById('levelProgress');
+  if (!progressDiv) {
+    console.warn('levelProgress element not found, skipping update');
+    return;
+  }
 
-          for (let level = 10; level >= 1; level--) {
-            const levelKanji = Array.from(gameState.kanjiData.values()).filter(
-              (k) => k.level === level
-            );
-            const learnedCount = levelKanji.filter((k) => k.learned).length;
-            const totalCount = levelKanji.length;
-            const percentage =
-              totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
+  let html = '';
 
-            html += `
-              <div style="margin: 10px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                  <span>Level ${level}</span>
-                  <span>${learnedCount}/${totalCount}</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill" style="width: ${percentage}%"></div>
-                </div>
-              </div>
-            `;
-          }
+  for (let level = 10; level >= 1; level--) {
+    const levelKanji = Array.from(gameState.kanjiData.values()).filter(
+      (k) => k.level === level
+    );
+    const learnedCount = levelKanji.filter((k) => k.learned).length;
+    const totalCount = levelKanji.length;
+    const percentage =
+      totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
 
-          progressDiv.innerHTML = html;
-        }
+    html += `
+      <div style="margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span>Level ${level}</span>
+          <span>${learnedCount}/${totalCount}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${percentage}%"></div>
+        </div>
+      </div>
+    `;
+  }
 
+  progressDiv.innerHTML = html;
+}
         // Data Management
-        async function saveGameData() {
-          if (gameState.isAnonymous || !gameState.authToken) return;
+      save function with better error handling
+async function saveGameData() {
+  if (gameState.isAnonymous || !gameState.authToken) {
+    // For anonymous users, save to localStorage
+    const saveData = {
+      settings: gameState.settings,
+      kanjiData: Array.from(gameState.kanjiData.entries()),
+      lastSave: new Date().toISOString(),
+    };
+    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+    return;
+  }
 
-          try {
-            // Prepare kanji progress data
-            const kanjiProgressData = Array.from(
-              gameState.kanjiData.entries()
-            ).map(([id, kanji]) => [
-              id,
-              {
-                learned: kanji.learned,
-                inReview: kanji.inReview,
-                interval: kanji.interval,
-                ease: kanji.ease,
-                consecutiveCorrect: kanji.consecutiveCorrect,
-                totalReviews: kanji.totalReviews,
-                correctReviews: kanji.correctReviews,
-                lastReview: kanji.lastReview
-                  ? kanji.lastReview.toISOString()
-                  : null,
-                nextReview: kanji.nextReview
-                  ? kanji.nextReview.toISOString()
-                  : null,
-                mnemonic: kanji.mnemonic || '',
-              },
-            ]);
+  try {
+    // Prepare kanji progress data
+    const kanjiProgressData = Array.from(
+      gameState.kanjiData.entries()
+    ).map(([id, kanji]) => [
+      id,
+      {
+        learned: kanji.learned,
+        inReview: kanji.inReview,
+        interval: kanji.interval,
+        ease: kanji.ease,
+        consecutiveCorrect: kanji.consecutiveCorrect,
+        totalReviews: kanji.totalReviews,
+        correctReviews: kanji.correctReviews,
+        lastReview: kanji.lastReview
+          ? kanji.lastReview.toISOString()
+          : null,
+        nextReview: kanji.nextReview
+          ? kanji.nextReview.toISOString()
+          : null,
+        mnemonic: kanji.mnemonic || '',
+      },
+    ]);
 
-await apiCall('/progress/bulk-update', 'POST', {
-  kanjiProgressData,
-});
-            // Save settings
-            await apiCall('/settings', 'PUT', gameState.settings);
+    // Save progress to server
+    await apiCall('/progress/bulk-update', 'POST', {
+      kanjiProgressData,
+    });
 
-            // Also save to localStorage as backup
-            const saveData = {
-              settings: gameState.settings,
-              kanjiData: Array.from(gameState.kanjiData.entries()),
-              lastSave: new Date().toISOString(),
-            };
-            localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-          } catch (error) {
-            console.error('Failed to save to server:', error);
-            // Fall back to localStorage only
-            const saveData = {
-              settings: gameState.settings,
-              kanjiData: Array.from(gameState.kanjiData.entries()),
-              lastSave: new Date().toISOString(),
-            };
-            localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-          }
-        }
+    // Save settings to server
+    await apiCall('/settings', 'PUT', gameState.settings);
 
+    console.log('Data saved successfully to server');
+    
+    // Also save to localStorage as backup
+    const saveData = {
+      settings: gameState.settings,
+      kanjiData: Array.from(gameState.kanjiData.entries()),
+      lastSave: new Date().toISOString(),
+    };
+    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+    
+  } catch (error) {
+    console.error('Failed to save to server:', error);
+    
+    // If server save fails, still save locally
+    const saveData = {
+      settings: gameState.settings,
+      kanjiData: Array.from(gameState.kanjiData.entries()),
+      lastSave: new Date().toISOString(),
+    };
+    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+    
+    // Don't throw the error - we still saved locally
+    console.log('Data saved to localStorage as backup');
+  }
+}
 async function loadGameData() {
     if (gameState.isAnonymous || !gameState.authToken) {
       // For anonymous users, still try to load from localStorage
@@ -6268,8 +6350,10 @@ async function loadGameData() {
 
       console.log('Data loaded successfully from server');
       
-      // Update UI elements that depend on settings
-      updateDashboard();
+      // Only update UI if we're on the dashboard scene
+      if (gameState.currentScene === 'dashboardScene') {
+        updateDashboard();
+      }
       
     } catch (error) {
       console.error('Failed to load from database:', error);
@@ -6301,7 +6385,8 @@ async function loadGameData() {
         }
       }
     }
-  }
+}
+
         // Study Functions
         function startReview() {
           if (gameState.kanjiData.size === 0) {
