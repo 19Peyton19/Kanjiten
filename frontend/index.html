@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -209,7 +209,7 @@
 
         .dashboard-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(2, 1fr);
           gap: 20px;
           margin-top: 30px;
         }
@@ -220,6 +220,11 @@
           border-radius: 15px;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
           transition: transform 0.3s ease;
+          text-align: center;
+          min-height: 300px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
         }
 
         .dashboard-card:hover {
@@ -326,6 +331,7 @@
         .study-interface {
           text-align: center;
           padding: 40px;
+          position: relative;
         }
 
         .question-card {
@@ -359,18 +365,17 @@
           margin: 30px 0;
         }
 
-        .drawing-canvas {
-          border: 3px solid #e1e8ed;
-          border-radius: 15px;
-          margin: 20px auto;
-          display: block;
-          background: white;
-          cursor: crosshair;
-        }
-
-        .drawing-controls {
-          text-align: center;
-          margin: 20px 0;
+        .study-mode-controls {
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(255, 255, 255, 0.95);
+          padding: 15px 20px;
+          border-radius: 25px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+          backdrop-filter: blur(10px);
+          z-index: 100;
         }
 
         .variation-item {
@@ -660,11 +665,6 @@
               </button>
             </div>
           </div>
-
-          <div style="margin-top: 40px">
-            <h3>Level Progress</h3>
-            <div id="levelProgress"></div>
-          </div>
         </div>
 
         <!-- Decks Scene -->
@@ -693,8 +693,6 @@
 
         <!-- Study Scene -->
         <div class="scene" id="studyScene">
-          <h2>📖 Study Session</h2>
-
           <div style="text-align: center; margin-bottom: 20px">
             <div>Progress: <span id="studyProgress">0/0</span></div>
             <div class="progress-bar">
@@ -703,16 +701,6 @@
                 id="studyProgressBar"
                 style="width: 0%"
               ></div>
-            </div>
-
-            <div style="margin: 15px 0">
-              <label for="studyQuestionMode">Question Mode: </label>
-              <select id="studyQuestionMode" onchange="updateStudyQuestionMode()">
-                <option value="meaning-first">
-                  Show Reading + Meaning → Word
-                </option>
-                <option value="kanji-first">Show Word → Reading + Meaning</option>
-              </select>
             </div>
           </div>
 
@@ -754,24 +742,16 @@
                 </button>
               </div>
             </div>
+          </div>
 
-            <div id="drawingSection" style="display: none">
-              <h4>Practice Writing</h4>
-              <canvas
-                id="drawingCanvas"
-                class="drawing-canvas"
-                width="300"
-                height="300"
-              ></canvas>
-              <div class="drawing-controls">
-                <button class="btn btn-secondary" onclick="clearCanvas()">
-                  Clear
-                </button>
-                <button class="btn btn-secondary" onclick="toggleEraser()">
-                  Eraser
-                </button>
-              </div>
-            </div>
+          <div class="study-mode-controls">
+            <label for="studyQuestionMode">Question Mode: </label>
+            <select id="studyQuestionMode" onchange="updateStudyQuestionMode()">
+              <option value="meaning-first">
+                Show Reading + Meaning → Word
+              </option>
+              <option value="kanji-first">Show Word → Reading + Meaning</option>
+            </select>
           </div>
         </div>
 
@@ -937,8 +917,6 @@
 
         <!-- Cram Study Scene -->
         <div class="scene" id="cramStudyScene">
-          <h2>🎯 Cram Session</h2>
-
           <div style="text-align: center; margin-bottom: 20px">
             <div>
               Progress: <span id="cramProgress">0/0</span> | Correct:
@@ -983,6 +961,16 @@
                 </button>
               </div>
             </div>
+          </div>
+
+          <div class="study-mode-controls">
+            <label for="cramQuestionMode2">Question Mode: </label>
+            <select id="cramQuestionMode2" onchange="updateCramQuestionMode()">
+              <option value="meaning-first">
+                Show Reading + Meaning → Word
+              </option>
+              <option value="kanji-first">Show Word → Reading + Meaning</option>
+            </select>
           </div>
         </div>
 
