@@ -208,10 +208,10 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
             .from('profiles')
             .select('id')
             .eq('username', username)
-            .single();
+            .maybeSingle(); // Use maybeSingle() instead of single()
 
         // If we get data back, username exists
-        if (existingProfile && !checkError) {
+        if (existingProfile) {
             log('WARN', 'Registration failed: Username already exists', { username });
             return res.status(400).json({ 
                 success: false, 
@@ -219,8 +219,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
             });
         }
 
-        // Only proceed if no rows found (PGRST116 error is expected when no match)
-        if (checkError && checkError.code !== 'PGRST116') {
+        // Handle unexpected database errors
+        if (checkError) {
             log('ERROR', 'Database error checking username', checkError);
             return res.status(500).json({ 
                 success: false, 
@@ -268,20 +268,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
         log('INFO', 'User created with Supabase Auth, creating profile');
 
-        // Wait a moment for the database trigger to create the profile
-        // (if you have a trigger) or create it manually
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Verify profile was created or create it manually
-        let { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', authData.user.id)
-            .single();
-
-        if (profileError && profileError.code === 'PGRST116') {
-            // Profile doesn't exist, create it
-            log('INFO', 'Creating user profile manually');
+        // Create profile immediately, don't wait for trigger
+        try {
             const { data: newProfile, error: createProfileError } = await supabase
                 .from('profiles')
                 .insert([{
@@ -289,47 +277,61 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
                     username: username,
                     email: email,
                     is_anonymous: false,
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    last_login: new Date().toISOString()
                 }])
                 .select()
                 .single();
 
             if (createProfileError) {
                 log('ERROR', 'Failed to create user profile', createProfileError);
-                // Try to clean up the auth user if profile creation fails
+                
+                // Clean up the auth user if profile creation fails
                 try {
                     await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+                    log('INFO', 'Cleaned up auth user after profile creation failure');
                 } catch (cleanupError) {
                     log('ERROR', 'Failed to cleanup user after profile creation failure', cleanupError);
                 }
+                
                 return res.status(500).json({ 
                     success: false, 
                     error: 'Failed to create user profile' 
                 });
             }
 
-            profile = newProfile;
-        } else if (profileError) {
-            log('ERROR', 'Error checking user profile', profileError);
+            log('SUCCESS', 'User and profile created successfully', { 
+                userId: authData.user.id, 
+                username: newProfile.username 
+            });
+
+            // Return success response
+            res.json({
+                success: true,
+                user: {
+                    id: authData.user.id,
+                    username: newProfile.username,
+                    email: authData.user.email,
+                    isAnonymous: false
+                },
+                session: authData.session
+            });
+
+        } catch (profileError) {
+            log('ERROR', 'Profile creation failed', profileError);
+            
+            // Clean up auth user
+            try {
+                await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+            } catch (cleanupError) {
+                log('ERROR', 'Cleanup failed', cleanupError);
+            }
+            
             return res.status(500).json({ 
                 success: false, 
-                error: 'Failed to verify user profile' 
+                error: 'Failed to create user profile' 
             });
         }
-
-        log('SUCCESS', 'User created successfully', { userId: authData.user.id, username });
-
-        // Return success response
-        res.json({
-            success: true,
-            user: {
-                id: authData.user.id,
-                username: profile.username,
-                email: authData.user.email,
-                isAnonymous: false
-            },
-            session: authData.session
-        });
         
     } catch (error) {
         log('ERROR', 'Registration error', error);
@@ -339,7 +341,6 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         });
     }
 });
-
 // Login endpoint using Supabase Auth
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     log('INFO', 'Login attempt started');
