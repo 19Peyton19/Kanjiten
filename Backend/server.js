@@ -446,7 +446,8 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
             jlptLevel: 'all',
             maxInterval: 180,
             showProgress: true,
-            showDrawing: true
+            showDrawing: true,
+            defaultQuestionMode: 'meaning-first'
         };
 
         const settings = data ? {
@@ -455,7 +456,8 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
             jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
             maxInterval: data.max_interval || defaultSettings.maxInterval,
             showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
-            showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing
+            showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
+             defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode
         } : defaultSettings;
 
         res.json({ success: true, settings });
@@ -466,7 +468,7 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
     }
 });
 
-// Save user settings endpoint
+// Save user  endpoint
 app.put('/api/settings', authenticateUser, async (req, res) => {
     try {
         const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing } = req.body;
@@ -479,6 +481,7 @@ app.put('/api/settings', authenticateUser, async (req, res) => {
             max_interval: maxInterval,
             show_progress: showProgress,
             show_drawing: showDrawing,
+            default_question_mode: defaultQuestionMode,
             updated_at: new Date().toISOString()
         };
 
@@ -568,6 +571,99 @@ app.get('/api/test-db', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// Get custom words for a kanji
+app.get('/api/custom-words/:kanjiId', authenticateUser, async (req, res) => {
+    try {
+        const { kanjiId } = req.params;
+        
+        const { data, error } = await supabase
+            .from('user_custom_words')
+            .select('*')
+            .eq('user_id', req.user.id)
+            .eq('kanji_id', parseInt(kanjiId))
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            log('ERROR', 'Failed to get custom words', error);
+            return res.status(500).json({ error: 'Failed to get custom words' });
+        }
+
+        res.json({ success: true, words: data || [] });
+    } catch (error) {
+        log('ERROR', 'Custom words get error', error);
+        res.status(500).json({ error: 'Failed to get custom words' });
+    }
+});
+
+// Add custom word
+app.post('/api/custom-words', authenticateUser, async (req, res) => {
+    try {
+        const { kanjiId, word, reading, meaning, wordType, jlptLevel } = req.body;
+        
+        // Check if user already has 3 words for this kanji
+        const { count, error: countError } = await supabase
+            .from('user_custom_words')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', req.user.id)
+            .eq('kanji_id', kanjiId);
+
+        if (countError) {
+            return res.status(500).json({ error: 'Failed to check word count' });
+        }
+
+        if (count >= 3) {
+            return res.status(400).json({ error: 'Maximum 3 custom words per kanji' });
+        }
+
+        const { data, error } = await supabase
+            .from('user_custom_words')
+            .insert({
+                user_id: req.user.id,
+                kanji_id: parseInt(kanjiId),
+                word,
+                reading,
+                meaning,
+                word_type: wordType,
+                jlpt_level: jlptLevel
+            })
+            .select()
+            .single();
+
+        if (error) {
+            log('ERROR', 'Failed to add custom word', error);
+            return res.status(500).json({ error: 'Failed to add custom word' });
+        }
+
+        res.json({ success: true, word: data });
+    } catch (error) {
+        log('ERROR', 'Custom word add error', error);
+        res.status(500).json({ error: 'Failed to add custom word' });
+    }
+});
+
+// Delete custom word
+app.delete('/api/custom-words/:wordId', authenticateUser, async (req, res) => {
+    try {
+        const { wordId } = req.params;
+        
+        const { error } = await supabase
+            .from('user_custom_words')
+            .delete()
+            .eq('id', wordId)
+            .eq('user_id', req.user.id);
+
+        if (error) {
+            log('ERROR', 'Failed to delete custom word', error);
+            return res.status(500).json({ error: 'Failed to delete custom word' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        log('ERROR', 'Custom word delete error', error);
+        res.status(500).json({ error: 'Failed to delete custom word' });
     }
 });
 
