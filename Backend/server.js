@@ -130,7 +130,6 @@ async function authenticateUser(req, res, next) {
 }
 
 // Register endpoint using Supabase Auth
-// Improved register endpoint with better error handling and profile creation
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     log('INFO', 'Registration attempt started');
     
@@ -140,45 +139,23 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         // Input validation
         if (!username) {
             log('WARN', 'Registration failed: Missing username');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Username is required' 
-            });
+            return res.status(400).json({ error: 'Username is required' });
         }
         
         if (!password) {
             log('WARN', 'Registration failed: Missing password');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Password is required' 
-            });
+            return res.status(400).json({ error: 'Password is required' });
         }
         
         if (!email) {
             log('WARN', 'Registration failed: Missing email');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Email is required' 
-            });
+            return res.status(400).json({ error: 'Email is required' });
         }
         
         // Username validation
         if (username.length < 3 || username.length > 50) {
             log('WARN', 'Registration failed: Invalid username length');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Username must be 3-50 characters' 
-            });
-        }
-        
-        // Check for valid username characters (alphanumeric + underscore)
-        const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/;
-        if (!usernameRegex.test(username)) {
-            log('WARN', 'Registration failed: Invalid username characters');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Username can only contain letters, numbers, and underscores' 
-            });
+            return res.status(400).json({ error: 'Username must be 3-50 characters' });
         }
         
         // Password validation
@@ -186,18 +163,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
         if (!passwordRegex.test(password)) {
             log('WARN', 'Registration failed: Password validation failed');
             return res.status(400).json({ 
-                success: false, 
                 error: 'Password must be 8-30 characters with uppercase, lowercase, digit, and symbol' 
-            });
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            log('WARN', 'Registration failed: Invalid email format');
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Please enter a valid email address' 
             });
         }
         
@@ -208,24 +174,11 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
             .from('profiles')
             .select('id')
             .eq('username', username)
-            .maybeSingle(); // Use maybeSingle() instead of single()
+            .single();
 
-        // If we get data back, username exists
-        if (existingProfile) {
+        if (existingProfile && !checkError) {
             log('WARN', 'Registration failed: Username already exists', { username });
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Username already exists' 
-            });
-        }
-
-        // Handle unexpected database errors
-        if (checkError) {
-            log('ERROR', 'Database error checking username', checkError);
-            return res.status(500).json({ 
-                success: false, 
-                error: 'Database error during username check' 
-            });
+            return res.status(400).json({ error: 'Username already exists' });
         }
 
         log('INFO', 'Username available, creating user account');
@@ -243,104 +196,33 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 
         if (signUpError) {
             log('ERROR', 'Supabase signup error', signUpError);
-            
-            // Handle specific Supabase errors
-            let errorMessage = signUpError.message;
-            if (signUpError.message.includes('already registered')) {
-                errorMessage = 'An account with this email already exists';
-            } else if (signUpError.message.includes('password')) {
-                errorMessage = 'Password does not meet requirements';
-            }
-            
-            return res.status(400).json({ 
-                success: false, 
-                error: errorMessage 
-            });
+            return res.status(400).json({ error: signUpError.message });
         }
 
         if (!authData.user) {
             log('ERROR', 'No user returned from signup');
-            return res.status(500).json({ 
-                success: false, 
-                error: 'User creation failed' 
-            });
+            return res.status(500).json({ error: 'User creation failed' });
         }
 
-        log('INFO', 'User created with Supabase Auth, creating profile');
+        log('SUCCESS', 'User created successfully', { userId: authData.user.id, username });
 
-        // Create profile immediately, don't wait for trigger
-        try {
-            const { data: newProfile, error: createProfileError } = await supabase
-                .from('profiles')
-                .insert([{
-                    id: authData.user.id,
-                    username: username,
-                    email: email,
-                    is_anonymous: false,
-                    created_at: new Date().toISOString(),
-                    last_login: new Date().toISOString()
-                }])
-                .select()
-                .single();
-
-            if (createProfileError) {
-                log('ERROR', 'Failed to create user profile', createProfileError);
-                
-                // Clean up the auth user if profile creation fails
-                try {
-                    await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-                    log('INFO', 'Cleaned up auth user after profile creation failure');
-                } catch (cleanupError) {
-                    log('ERROR', 'Failed to cleanup user after profile creation failure', cleanupError);
-                }
-                
-                return res.status(500).json({ 
-                    success: false, 
-                    error: 'Failed to create user profile' 
-                });
-            }
-
-            log('SUCCESS', 'User and profile created successfully', { 
-                userId: authData.user.id, 
-                username: newProfile.username 
-            });
-
-            // Return success response
-            res.json({
-                success: true,
-                user: {
-                    id: authData.user.id,
-                    username: newProfile.username,
-                    email: authData.user.email,
-                    isAnonymous: false
-                },
-                session: authData.session
-            });
-
-        } catch (profileError) {
-            log('ERROR', 'Profile creation failed', profileError);
-            
-            // Clean up auth user
-            try {
-                await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-            } catch (cleanupError) {
-                log('ERROR', 'Cleanup failed', cleanupError);
-            }
-            
-            return res.status(500).json({ 
-                success: false, 
-                error: 'Failed to create user profile' 
-            });
-        }
+        res.json({
+            success: true,
+            user: {
+                id: authData.user.id,
+                username,
+                email,
+                isAnonymous: false
+            },
+            session: authData.session
+        });
         
     } catch (error) {
         log('ERROR', 'Registration error', error);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Registration failed. Please try again.' 
-        });
+        res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
 });
+
 // Login endpoint using Supabase Auth
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     log('INFO', 'Login attempt started');
