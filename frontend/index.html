@@ -586,6 +586,14 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter password" />
               </div>
+
+              <div class="input-group">
+  <label for="defaultQuestionMode">Default Question Mode</label>
+  <select id="defaultQuestionMode">
+    <option value="meaning-first">Show Reading + Meaning → Word</option>
+    <option value="kanji-first">Show Word → Reading + Meaning</option>
+  </select>
+</div>
   
               <div style="text-align: center">
                 <button class="btn btn-primary" onclick="signIn()">Sign In</button>
@@ -704,16 +712,6 @@
                   id="studyProgressBar"
                   style="width: 0%"
                 ></div>
-              </div>
-  
-              <div style="margin: 15px 0">
-                <label for="studyQuestionMode">Question Mode: </label>
-                <select id="studyQuestionMode" onchange="updateStudyQuestionMode()">
-                  <option value="meaning-first">
-                    Show Reading + Meaning → Word
-                  </option>
-                  <option value="kanji-first">Show Word → Reading + Meaning</option>
-                </select>
               </div>
             </div>
   
@@ -856,6 +854,46 @@
   
             <div id="kanjiVariations" style="margin-top: 30px">
               <h3>Words using this kanji</h3>
+                <button class="btn btn-secondary" onclick="toggleAddWordForm()" id="addWordBtn">Add Word</button>
+                <div id="addWordForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+    <h4>Add Custom Word</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div>
+        <label>Word:</label>
+        <input type="text" id="customWord" placeholder="e.g., 一番" />
+      </div>
+      <div>
+        <label>Reading:</label>
+        <input type="text" id="customReading" placeholder="e.g., いちばん" />
+      </div>
+      <div style="grid-column: span 2;">
+        <label>Meaning:</label>
+        <input type="text" id="customMeaning" placeholder="e.g., number one, first" />
+      </div>
+      <div>
+        <label>Type:</label>
+        <select id="customType">
+          <option value="on">On'yomi</option>
+          <option value="kun">Kun'yomi</option>
+        </select>
+      </div>
+      <div>
+        <label>JLPT Level:</label>
+        <select id="customJlpt">
+          <option value="N5">N5</option>
+          <option value="N4">N4</option>
+          <option value="N3">N3</option>
+          <option value="N2">N2</option>
+          <option value="N1">N1</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top: 15px;">
+      <button class="btn btn-primary" onclick="addCustomWord()">Add Word</button>
+      <button class="btn btn-secondary" onclick="toggleAddWordForm()">Cancel</button>
+    </div>
+  </div>
+  
               <div id="variationsList"></div>
             </div>
           </div>
@@ -5605,6 +5643,7 @@
               maxInterval: 180,
               showProgress: true,
               showDrawing: true,
+              defaultQuestionMode: 'meaning-first',
             },
             kanjiData: new Map(),
             reviewQueue: [],
@@ -5941,7 +5980,147 @@
       loadScene('loginScene');
     }
   }
+
+          async function toggleAddWordForm() {
+  const form = document.getElementById('addWordForm');
+  const btn = document.getElementById('addWordBtn');
   
+  if (form.style.display === 'none') {
+    // Check word count first
+    const customWords = await getCustomWords(gameState.selectedKanji.id);
+    if (customWords.length >= 3) {
+      alert('Maximum 3 custom words per kanji allowed');
+      return;
+    }
+    
+    form.style.display = 'block';
+    btn.textContent = 'Cancel';
+    
+    // Clear form
+    document.getElementById('customWord').value = '';
+    document.getElementById('customReading').value = '';
+    document.getElementById('customMeaning').value = '';
+    document.getElementById('customType').value = 'on';
+    document.getElementById('customJlpt').value = 'N5';
+  } else {
+    form.style.display = 'none';
+    btn.textContent = 'Add Word';
+  }
+}
+
+async function addCustomWord() {
+  if (!gameState.selectedKanji) return;
+  
+  const word = document.getElementById('customWord').value.trim();
+  const reading = document.getElementById('customReading').value.trim();
+  const meaning = document.getElementById('customMeaning').value.trim();
+  const wordType = document.getElementById('customType').value;
+  const jlptLevel = document.getElementById('customJlpt').value;
+  
+  if (!word || !reading || !meaning) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  try {
+    const response = await apiCall('/custom-words', 'POST', {
+      kanjiId: gameState.selectedKanji.id,
+      word,
+      reading,
+      meaning,
+      wordType,
+      jlptLevel
+    });
+    
+    if (response.success) {
+      alert('Word added successfully!');
+      toggleAddWordForm(); // Close form
+      await displayVariations(gameState.selectedKanji); // Refresh list
+    }
+  } catch (error) {
+    alert('Failed to add word: ' + error.message);
+  }
+}
+
+async function deleteCustomWord(wordId) {
+  if (!confirm('Are you sure you want to delete this word?')) return;
+  
+  try {
+    await apiCall(`/custom-words/${wordId}`, 'DELETE');
+    alert('Word deleted successfully!');
+    await displayVariations(gameState.selectedKanji); // Refresh list
+  } catch (error) {
+    alert('Failed to delete word: ' + error.message);
+  }
+}
+
+async function getCustomWords(kanjiId) {
+  if (!gameState.isSignedIn || gameState.isAnonymous) return [];
+  
+  try {
+    const response = await apiCall(`/custom-words/${kanjiId}`, 'GET');
+    return response.success ? response.words : [];
+  } catch (error) {
+    console.error('Failed to get custom words:', error);
+    return [];
+  }
+}
+
+async function displayVariations(kanji) {
+  const variationsDiv = document.getElementById('variationsList');
+  
+  // Get built-in variations
+  const builtInVariations = kanji.variations || [];
+  
+  // Get custom variations
+  const customWords = await getCustomWords(kanji.id);
+  
+  if (builtInVariations.length === 0 && customWords.length === 0) {
+    variationsDiv.innerHTML = '<p>No variations available for this kanji.</p>';
+    return;
+  }
+  
+  let html = '';
+  
+  // Display built-in variations
+  if (builtInVariations.length > 0) {
+    html += '<h4>Built-in Words</h4>';
+    html += builtInVariations.map(variation => `
+      <div class="variation-item">
+        <div style="font-size: 20px; font-weight: bold;">${variation.word}</div>
+        <div style="color: #666;">${variation.reading}</div>
+        <div>${variation.meaning}</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+          <span style="font-size: 12px; color: #999;">${variation.type === 'on' ? "On'yomi" : "Kun'yomi"}</span>
+          <span style="font-size: 12px; color: #667eea; font-weight: bold;">${variation.jlpt}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // Display custom variations
+  if (customWords.length > 0) {
+    html += '<h4>Your Custom Words</h4>';
+    html += customWords.map(word => `
+      <div class="variation-item" style="border-left: 4px solid #28a745;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="flex: 1;">
+            <div style="font-size: 20px; font-weight: bold;">${word.word}</div>
+            <div style="color: #666;">${word.reading}</div>
+            <div>${word.meaning}</div>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+              <span style="font-size: 12px; color: #999;">${word.word_type === 'on' ? "On'yomi" : "Kun'yomi"}</span>
+              <span style="font-size: 12px; color: #667eea; font-weight: bold;">${word.jlpt_level}</span>
+            </div>
+          </div>
+          <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 10px;" onclick="deleteCustomWord('${word.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  variationsDiv.innerHTML = html;
+}
   // 7. Add a new function to update dashboard UI:
   function updateNavigationUI() {
     if (gameState.isSignedIn) {
@@ -6383,7 +6562,7 @@
               showingAnswer: false,
               correct: 0,
               total: kanji.length,
-              questionMode: gameState.studySession.questionMode || 'meaning-first',
+              questionMode: gameState.settings.defaultQuestionMode,
             };
   
             loadScene('studyScene');
@@ -6395,13 +6574,7 @@
             displayCurrentQuestion();
           }
   
-          function updateStudyQuestionMode() {
-            const mode = document.getElementById('studyQuestionMode').value;
-            gameState.studySession.questionMode = mode;
-            if (gameState.studySession.kanji.length > 0) {
-              displayCurrentQuestion();
-            }
-          }
+
   
           function displayCurrentQuestion() {
             const session = gameState.studySession;
@@ -6683,6 +6856,7 @@
       document.getElementById('maxInterval').value = gameState.settings.maxInterval;
       document.getElementById('showProgress').checked = gameState.settings.showProgress;
       document.getElementById('showDrawing').checked = gameState.settings.showDrawing;
+       document.getElementById('defaultQuestionMode').value = gameState.settings.defaultQuestionMode;
     }
   
     function showKanjiDetail(kanjiId) {
@@ -6865,6 +7039,7 @@
       gameState.settings.maxInterval = parseInt(document.getElementById('maxInterval').value);
       gameState.settings.showProgress = document.getElementById('showProgress').checked;
       gameState.settings.showDrawing = document.getElementById('showDrawing').checked;
+      gameState.settings.defaultQuestionMode = document.getElementById('defaultQuestionMode').value; 
   
       try {
         if (gameState.isSignedIn && !gameState.isAnonymous && gameState.authToken) {
@@ -6984,30 +7159,6 @@
       btn.disabled = count === 0;
     }
   
-    function displayVariations(kanji) {
-      const variationsDiv = document.getElementById('variationsList');
-  
-      if (!kanji.variations || kanji.variations.length === 0) {
-        variationsDiv.innerHTML = '<p>No variations available for this kanji.</p>';
-        return;
-      }
-  
-      const html = kanji.variations
-        .map(variation => `
-          <div class="variation-item">
-            <div style="font-size: 20px; font-weight: bold;">${variation.word}</div>
-            <div style="color: #666;">${variation.reading}</div>
-            <div>${variation.meaning}</div>
-            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-              <span style="font-size: 12px; color: #999;">${variation.type === 'on' ? "On'yomi" : "Kun'yomi"}</span>
-              <span style="font-size: 12px; color: #667eea; font-weight: bold;">${variation.jlpt}</span>
-            </div>
-          </div>
-        `)
-        .join('');
-  
-      variationsDiv.innerHTML = html;
-    }
   
     function displayCramQuestion() {
       const session = gameState.cramSession;
