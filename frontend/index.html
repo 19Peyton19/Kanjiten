@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -209,7 +210,7 @@
 
         .dashboard-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 20px;
           margin-top: 30px;
         }
@@ -220,11 +221,6 @@
           border-radius: 15px;
           box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
           transition: transform 0.3s ease;
-          text-align: center;
-          min-height: 300px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
         }
 
         .dashboard-card:hover {
@@ -331,7 +327,6 @@
         .study-interface {
           text-align: center;
           padding: 40px;
-          position: relative;
         }
 
         .question-card {
@@ -365,17 +360,18 @@
           margin: 30px 0;
         }
 
-        .study-mode-controls {
-          position: fixed;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.95);
-          padding: 15px 20px;
-          border-radius: 25px;
-          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-          backdrop-filter: blur(10px);
-          z-index: 100;
+        .drawing-canvas {
+          border: 3px solid #e1e8ed;
+          border-radius: 15px;
+          margin: 20px auto;
+          display: block;
+          background: white;
+          cursor: crosshair;
+        }
+
+        .drawing-controls {
+          text-align: center;
+          margin: 20px 0;
         }
 
         .variation-item {
@@ -665,6 +661,11 @@
               </button>
             </div>
           </div>
+
+          <div style="margin-top: 40px">
+            <h3>Level Progress</h3>
+            <div id="levelProgress"></div>
+          </div>
         </div>
 
         <!-- Decks Scene -->
@@ -693,6 +694,8 @@
 
         <!-- Study Scene -->
         <div class="scene" id="studyScene">
+          <h2>📖 Study Session</h2>
+
           <div style="text-align: center; margin-bottom: 20px">
             <div>Progress: <span id="studyProgress">0/0</span></div>
             <div class="progress-bar">
@@ -701,6 +704,16 @@
                 id="studyProgressBar"
                 style="width: 0%"
               ></div>
+            </div>
+
+            <div style="margin: 15px 0">
+              <label for="studyQuestionMode">Question Mode: </label>
+              <select id="studyQuestionMode" onchange="updateStudyQuestionMode()">
+                <option value="meaning-first">
+                  Show Reading + Meaning → Word
+                </option>
+                <option value="kanji-first">Show Word → Reading + Meaning</option>
+              </select>
             </div>
           </div>
 
@@ -742,16 +755,24 @@
                 </button>
               </div>
             </div>
-          </div>
 
-          <div class="study-mode-controls">
-            <label for="studyQuestionMode">Question Mode: </label>
-            <select id="studyQuestionMode" onchange="updateStudyQuestionMode()">
-              <option value="meaning-first">
-                Show Reading + Meaning → Word
-              </option>
-              <option value="kanji-first">Show Word → Reading + Meaning</option>
-            </select>
+            <div id="drawingSection" style="display: none">
+              <h4>Practice Writing</h4>
+              <canvas
+                id="drawingCanvas"
+                class="drawing-canvas"
+                width="300"
+                height="300"
+              ></canvas>
+              <div class="drawing-controls">
+                <button class="btn btn-secondary" onclick="clearCanvas()">
+                  Clear
+                </button>
+                <button class="btn btn-secondary" onclick="toggleEraser()">
+                  Eraser
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -917,6 +938,8 @@
 
         <!-- Cram Study Scene -->
         <div class="scene" id="cramStudyScene">
+          <h2>🎯 Cram Session</h2>
+
           <div style="text-align: center; margin-bottom: 20px">
             <div>
               Progress: <span id="cramProgress">0/0</span> | Correct:
@@ -961,16 +984,6 @@
                 </button>
               </div>
             </div>
-          </div>
-
-          <div class="study-mode-controls">
-            <label for="cramQuestionMode2">Question Mode: </label>
-            <select id="cramQuestionMode2" onchange="updateCramQuestionMode()">
-              <option value="meaning-first">
-                Show Reading + Meaning → Word
-              </option>
-              <option value="kanji-first">Show Word → Reading + Meaning</option>
-            </select>
           </div>
         </div>
 
@@ -1460,4089 +1473,888 @@
               },
             ],
           },
-
-           {
-    id: 7,
-    character: '上',
-    readings: ['じょう', 'うえ', 'あ'],
-    meanings: ['above', 'up', 'top'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '上',
-        reading: 'うえ',
-        meaning: 'above, top',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '上手',
-        reading: 'じょうず',
-        meaning: 'skillful',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '上がる',
-        reading: 'あがる',
-        meaning: 'to rise, go up',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '上達',
-        reading: 'じょうたつ',
-        meaning: 'improvement',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '上司',
-        reading: 'じょうし',
-        meaning: 'boss',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '上品',
-        reading: 'じょうひん',
-        meaning: 'elegant',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '上級',
-        reading: 'じょうきゅう',
-        meaning: 'advanced level',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '上昇',
-        reading: 'じょうしょう',
-        meaning: 'rise, ascent',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '上位',
-        reading: 'じょうい',
-        meaning: 'high rank',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '上空',
-        reading: 'じょうくう',
-        meaning: 'sky above',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 8,
-    character: '下',
-    readings: ['か', 'げ', 'した', 'さ', 'お'],
-    meanings: ['below', 'down', 'under'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '下',
-        reading: 'した',
-        meaning: 'below, under',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '下手',
-        reading: 'へた',
-        meaning: 'unskillful',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '下がる',
-        reading: 'さがる',
-        meaning: 'to fall, go down',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '下着',
-        reading: 'したぎ',
-        meaning: 'underwear',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '下降',
-        reading: 'かこう',
-        meaning: 'descent',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '地下',
-        reading: 'ちか',
-        meaning: 'underground',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '下級',
-        reading: 'かきゅう',
-        meaning: 'lower grade',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '下位',
-        reading: 'かい',
-        meaning: 'lower rank',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '下旬',
-        reading: 'げじゅん',
-        meaning: 'last third of month',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '下僕',
-        reading: 'げぼく',
-        meaning: 'servant',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 9,
-    character: '中',
-    readings: ['ちゅう', 'なか'],
-    meanings: ['middle', 'inside', 'center'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '中',
-        reading: 'なか',
-        meaning: 'inside, middle',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '中学校',
-        reading: 'ちゅうがっこう',
-        meaning: 'middle school',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '中国',
-        reading: 'ちゅうごく',
-        meaning: 'China',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '一日中',
-        reading: 'いちにちじゅう',
-        meaning: 'all day long',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '中心',
-        reading: 'ちゅうしん',
-        meaning: 'center',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '中央',
-        reading: 'ちゅうおう',
-        meaning: 'central',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '中断',
-        reading: 'ちゅうだん',
-        meaning: 'interruption',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '中級',
-        reading: 'ちゅうきゅう',
-        meaning: 'intermediate level',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '中立',
-        reading: 'ちゅうりつ',
-        meaning: 'neutrality',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '中枢',
-        reading: 'ちゅうすう',
-        meaning: 'center, pivot',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 10,
-    character: '九',
-    readings: ['きゅう', 'く', 'ここの'],
-    meanings: ['nine'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '九つ',
-        reading: 'ここのつ',
-        meaning: 'nine things',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '九日',
-        reading: 'ここのか',
-        meaning: 'nine days, 9th day',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '九時',
-        reading: 'くじ',
-        meaning: 'nine o\'clock',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '九月',
-        reading: 'くがつ',
-        meaning: 'September',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '九分',
-        reading: 'きゅうふん',
-        meaning: 'nine minutes',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '九回',
-        reading: 'きゅうかい',
-        meaning: 'nine times',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '九十',
-        reading: 'きゅうじゅう',
-        meaning: 'ninety',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '九百',
-        reading: 'きゅうひゃく',
-        meaning: 'nine hundred',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '九州',
-        reading: 'きゅうしゅう',
-        meaning: 'Kyushu (island)',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '九死一生',
-        reading: 'きゅうしいっしょう',
-        meaning: 'narrow escape',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 11,
-    character: '人',
-    readings: ['じん', 'にん', 'ひと'],
-    meanings: ['person', 'people'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '人',
-        reading: 'ひと',
-        meaning: 'person',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '日本人',
-        reading: 'にほんじん',
-        meaning: 'Japanese person',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '人気',
-        reading: 'にんき',
-        meaning: 'popularity',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '一人',
-        reading: 'ひとり',
-        meaning: 'one person',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '人口',
-        reading: 'じんこう',
-        meaning: 'population',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '人生',
-        reading: 'じんせい',
-        meaning: 'life',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '人格',
-        reading: 'じんかく',
-        meaning: 'personality',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '人類',
-        reading: 'じんるい',
-        meaning: 'mankind',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '人材',
-        reading: 'じんざい',
-        meaning: 'human resources',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '人事',
-        reading: 'じんじ',
-        meaning: 'personnel affairs',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 12,
-    character: '休',
-    readings: ['きゅう', 'やす'],
-    meanings: ['rest', 'vacation'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '休む',
-        reading: 'やすむ',
-        meaning: 'to rest',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '休み',
-        reading: 'やすみ',
-        meaning: 'rest, vacation',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '休憩',
-        reading: 'きゅうけい',
-        meaning: 'break, rest',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '休日',
-        reading: 'きゅうじつ',
-        meaning: 'holiday',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '休暇',
-        reading: 'きゅうか',
-        meaning: 'vacation',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '休息',
-        reading: 'きゅうそく',
-        meaning: 'rest, repose',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '休業',
-        reading: 'きゅうぎょう',
-        meaning: 'suspension of business',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '休学',
-        reading: 'きゅうがく',
-        meaning: 'temporary absence from school',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '休戦',
-        reading: 'きゅうせん',
-        meaning: 'armistice',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '休眠',
-        reading: 'きゅうみん',
-        meaning: 'dormancy',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 13,
-    character: '先',
-    readings: ['せん', 'さき'],
-    meanings: ['previous', 'ahead', 'before'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '先生',
-        reading: 'せんせい',
-        meaning: 'teacher',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '先',
-        reading: 'さき',
-        meaning: 'ahead, future',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '先月',
-        reading: 'せんげつ',
-        meaning: 'last month',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '先週',
-        reading: 'せんしゅう',
-        meaning: 'last week',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '先輩',
-        reading: 'せんぱい',
-        meaning: 'senior',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '優先',
-        reading: 'ゆうせん',
-        meaning: 'priority',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '先進',
-        reading: 'せんしん',
-        meaning: 'advanced',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '先頭',
-        reading: 'せんとう',
-        meaning: 'head, front',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '先祖',
-        reading: 'せんぞ',
-        meaning: 'ancestor',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '先天的',
-        reading: 'せんてんてき',
-        meaning: 'innate',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 14,
-    character: '入',
-    readings: ['にゅう', 'はい', 'い'],
-    meanings: ['enter', 'insert'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '入る',
-        reading: 'はいる',
-        meaning: 'to enter',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '入れる',
-        reading: 'いれる',
-        meaning: 'to put in',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '入学',
-        reading: 'にゅうがく',
-        meaning: 'school entrance',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '入口',
-        reading: 'いりぐち',
-        meaning: 'entrance',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '収入',
-        reading: 'しゅうにゅう',
-        meaning: 'income',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '導入',
-        reading: 'どうにゅう',
-        meaning: 'introduction',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '侵入',
-        reading: 'しんにゅう',
-        meaning: 'invasion',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '入院',
-        reading: 'にゅういん',
-        meaning: 'hospitalization',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '入念',
-        reading: 'にゅうねん',
-        meaning: 'careful',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '参入',
-        reading: 'さんにゅう',
-        meaning: 'entry, participation',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 15,
-    character: '八',
-    readings: ['はち', 'や', 'やっ'],
-    meanings: ['eight'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '八つ',
-        reading: 'やっつ',
-        meaning: 'eight things',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '八日',
-        reading: 'ようか',
-        meaning: 'eight days, 8th day',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '八時',
-        reading: 'はちじ',
-        meaning: 'eight o\'clock',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '八月',
-        reading: 'はちがつ',
-        meaning: 'August',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '八分',
-        reading: 'はっぷん',
-        meaning: 'eight minutes',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '八回',
-        reading: 'はちかい',
-        meaning: 'eight times',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '八十',
-        reading: 'はちじゅう',
-        meaning: 'eighty',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '八百',
-        reading: 'はっぴゃく',
-        meaning: 'eight hundred',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '八方',
-        reading: 'はっぽう',
-        meaning: 'all directions',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '八面六臂',
-        reading: 'はちめんろっぴ',
-        meaning: 'very active',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 16,
-    character: '六',
-    readings: ['ろく', 'む', 'むっ'],
-    meanings: ['six'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '六つ',
-        reading: 'むっつ',
-        meaning: 'six things',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '六日',
-        reading: 'むいか',
-        meaning: 'six days, 6th day',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '六時',
-        reading: 'ろくじ',
-        meaning: 'six o\'clock',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '六月',
-        reading: 'ろくがつ',
-        meaning: 'June',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '六分',
-        reading: 'ろっぷん',
-        meaning: 'six minutes',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '六回',
-        reading: 'ろっかい',
-        meaning: 'six times',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '六十',
-        reading: 'ろくじゅう',
-        meaning: 'sixty',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '六百',
-        reading: 'ろっぴゃく',
-        meaning: 'six hundred',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '六角',
-        reading: 'ろっかく',
-        meaning: 'hexagon',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '六感',
-        reading: 'ろっかん',
-        meaning: 'six senses',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 17,
-    character: '円',
-    readings: ['えん', 'まる'],
-    meanings: ['circle', 'yen'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '円',
-        reading: 'えん',
-        meaning: 'yen (currency)',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '丸い',
-        reading: 'まるい',
-        meaning: 'round',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '百円',
-        reading: 'ひゃくえん',
-        meaning: '100 yen',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '千円',
-        reading: 'せんえん',
-        meaning: '1000 yen',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '円形',
-        reading: 'えんけい',
-        meaning: 'circular shape',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '円満',
-        reading: 'えんまん',
-        meaning: 'harmony',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '円周',
-        reading: 'えんしゅう',
-        meaning: 'circumference',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '円安',
-        reading: 'えんやす',
-        meaning: 'weak yen',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '円滑',
-        reading: 'えんかつ',
-        meaning: 'smooth',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '円熟',
-        reading: 'えんじゅく',
-        meaning: 'maturity',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 18,
-    character: '出',
-    readings: ['しゅつ', 'で', 'だ'],
-    meanings: ['exit', 'come out'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '出る',
-        reading: 'でる',
-        meaning: 'to come out',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '出す',
-        reading: 'だす',
-        meaning: 'to take out',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '出口',
-        reading: 'でぐち',
-        meaning: 'exit',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '出発',
-        reading: 'しゅっぱつ',
-        meaning: 'departure',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '出身',
-        reading: 'しゅっしん',
-        meaning: 'birthplace',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '輸出',
-        reading: 'ゆしゅつ',
-        meaning: 'export',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '出席',
-        reading: 'しゅっせき',
-        meaning: 'attendance',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '出現',
-        reading: 'しゅつげん',
-        meaning: 'appearance',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '出版',
-        reading: 'しゅっぱん',
-        meaning: 'publication',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '出世',
-        reading: 'しゅっせ',
-        meaning: 'success in life',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 19,
-    character: '力',
-    readings: ['りょく', 'りき', 'ちから'],
-    meanings: ['power', 'strength'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '力',
-        reading: 'ちから',
-        meaning: 'strength, power',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '電力',
-        reading: 'でんりょく',
-        meaning: 'electric power',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '能力',
-        reading: 'のうりょく',
-        meaning: 'ability',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '力強い',
-        reading: 'ちからづよい',
-        meaning: 'powerful',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '努力',
-        reading: 'どりょく',
-        meaning: 'effort',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '実力',
-        reading: 'じつりょく',
-        meaning: 'real ability',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '権力',
-        reading: 'けんりょく',
-        meaning: 'political power',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '圧力',
-        reading: 'あつりょく',
-        meaning: 'pressure',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '魅力',
-        reading: 'みりょく',
-        meaning: 'charm',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '暴力',
-        reading: 'ぼうりょく',
-        meaning: 'violence',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 20,
-    character: '十',
-    readings: ['じゅう', 'とお', 'と'],
-    meanings: ['ten'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '十',
-        reading: 'じゅう',
-        meaning: 'ten',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '十個',
-        reading: 'じゅっこ',
-        meaning: 'ten pieces',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '十日',
-        reading: 'とおか',
-        meaning: 'ten days, 10th day',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '十時',
-        reading: 'じゅうじ',
-        meaning: 'ten o\'clock',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '二十',
-        reading: 'にじゅう',
-        meaning: 'twenty',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '十分',
-        reading: 'じゅうぶん',
-        meaning: 'enough, sufficient',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '数十',
-        reading: 'すうじゅう',
-        meaning: 'several tens',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '十代',
-        reading: 'じゅうだい',
-        meaning: 'teens',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '十字',
-        reading: 'じゅうじ',
-        meaning: 'cross shape',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '十全',
-        reading: 'じゅうぜん',
-        meaning: 'perfect',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 21,
-    character: '千',
-    readings: ['せん', 'ち'],
-    meanings: ['thousand'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '千',
-        reading: 'せん',
-        meaning: 'thousand',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '三千',
-        reading: 'さんぜん',
-        meaning: 'three thousand',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '千円',
-        reading: 'せんえん',
-        meaning: '1000 yen',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '千年',
-        reading: 'せんねん',
-        meaning: 'thousand years',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '数千',
-        reading: 'すうせん',
-        meaning: 'several thousand',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '何千',
-        reading: 'なんぜん',
-        meaning: 'how many thousands',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '千葉',
-        reading: 'ちば',
-        meaning: 'Chiba (prefecture)',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '千代',
-        reading: 'ちよ',
-        meaning: 'thousand generations',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '千載',
-        reading: 'せんざい',
-        meaning: 'thousand years',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '千差万別',
-        reading: 'せんさばんべつ',
-        meaning: 'infinite variety',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 22,
-    character: '口',
-    readings: ['こう', 'く', 'くち'],
-    meanings: ['mouth', 'opening'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '口',
-        reading: 'くち',
-        meaning: 'mouth',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '入口',
-        reading: 'いりぐち',
-        meaning: 'entrance',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '人口',
-        reading: 'じんこう',
-        meaning: 'population',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '口調',
-        reading: 'くちょう',
-        meaning: 'tone of voice',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '窓口',
-        reading: 'まどぐち',
-        meaning: 'window, counter',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '出口',
-        reading: 'でぐち',
-        meaning: 'exit',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '口座',
-        reading: 'こうざ',
-        meaning: 'bank account',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '口実',
-        reading: 'こうじつ',
-        meaning: 'pretext',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '口頭',
-        reading: 'こうとう',
-        meaning: 'oral',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '口論',
-        reading: 'こうろん',
-        meaning: 'argument',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 23,
-    character: '右',
-    readings: ['う', 'みぎ'],
-    meanings: ['right'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '右',
-        reading: 'みぎ',
-        meaning: 'right (direction)',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '右手',
-        reading: 'みぎて',
-        meaning: 'right hand',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '右側',
-        reading: 'みぎがわ',
-        meaning: 'right side',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '右折',
-        reading: 'うせつ',
-        meaning: 'right turn',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '左右',
-        reading: 'さゆう',
-        meaning: 'left and right',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '右翼',
-        reading: 'うよく',
-        meaning: 'right wing',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '右上',
-        reading: 'みぎうえ',
-        meaning: 'upper right',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '右下',
-        reading: 'みぎした',
-        meaning: 'lower right',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '右派',
-        reading: 'うは',
-        meaning: 'right-wing faction',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '右往左往',
-        reading: 'うおうさおう',
-        meaning: 'going here and there',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-      {
-    id: 24,
-    character: '名',
-    readings: ['めい', 'みょう', 'な'],
-    meanings: ['name', 'famous'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '名前',
-        reading: 'なまえ',
-        meaning: 'name',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '有名',
-        reading: 'ゆうめい',
-        meaning: 'famous',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '名字',
-        reading: 'みょうじ',
-        meaning: 'surname',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '名物',
-        reading: 'めいぶつ',
-        meaning: 'specialty',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '名詞',
-        reading: 'めいし',
-        meaning: 'noun',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '氏名',
-        reading: 'しめい',
-        meaning: 'full name',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '名刺',
-        reading: 'めいし',
-        meaning: 'business card',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '名声',
-        reading: 'めいせい',
-        meaning: 'reputation',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '名誉',
-        reading: 'めいよ',
-        meaning: 'honor',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '名義',
-        reading: 'めいぎ',
-        meaning: 'name, title',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-      {
-    id: 25,
-    character: '土',
-    readings: ['ど', 'と', 'つち'],
-    meanings: ['earth', 'soil'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '土',
-        reading: 'つち',
-        meaning: 'soil, earth',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '土曜日',
-        reading: 'どようび',
-        meaning: 'Saturday',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '土地',
-        reading: 'とち',
-        meaning: 'land',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '国土',
-        reading: 'こくど',
-        meaning: 'national territory',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '風土',
-        reading: 'ふうど',
-        meaning: 'climate, culture',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '郷土',
-        reading: 'きょうど',
-        meaning: 'homeland',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '土木',
-        reading: 'どぼく',
-        meaning: 'civil engineering',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '土俵',
-        reading: 'どひょう',
-        meaning: 'sumo ring',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '領土',
-        reading: 'りょうど',
-        meaning: 'territory',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '土台',
-        reading: 'どだい',
-        meaning: 'foundation',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-      {
-    id: 26,
-    character: '夕',
-    readings: ['せき', 'ゆう'],
-    meanings: ['evening'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '夕方',
-        reading: 'ゆうがた',
-        meaning: 'evening',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '夕食',
-        reading: 'ゆうしょく',
-        meaning: 'dinner',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '夕べ',
-        reading: 'ゆうべ',
-        meaning: 'evening',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '夕日',
-        reading: 'ゆうひ',
-        meaning: 'sunset',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '夕刊',
-        reading: 'ゆうかん',
-        meaning: 'evening paper',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '夕涼み',
-        reading: 'ゆうすずみ',
-        meaning: 'evening cool',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '夕焼け',
-        reading: 'ゆうやけ',
-        meaning: 'sunset glow',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '夕暮れ',
-        reading: 'ゆうぐれ',
-        meaning: 'twilight',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '夕立',
-        reading: 'ゆうだち',
-        meaning: 'evening shower',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '夕映え',
-        reading: 'ゆうばえ',
-        meaning: 'evening glow',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 27,
-    character: '大',
-    readings: ['だい', 'たい', 'おお'],
-    meanings: ['big', 'large'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '大きい',
-        reading: 'おおきい',
-        meaning: 'big',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '大学',
-        reading: 'だいがく',
-        meaning: 'university',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '大切',
-        reading: 'たいせつ',
-        meaning: 'important',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '大変',
-        reading: 'たいへん',
-        meaning: 'very, terrible',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '大丈夫',
-        reading: 'だいじょうぶ',
-        meaning: 'all right',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '大体',
-        reading: 'だいたい',
-        meaning: 'generally',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '大統領',
-        reading: 'だいとうりょう',
-        meaning: 'president',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '拡大',
-        reading: 'かくだい',
-        meaning: 'expansion',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '大幅',
-        reading: 'おおはば',
-        meaning: 'large width',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '盛大',
-        reading: 'せいだい',
-        meaning: 'grand',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 28,
-    character: '天',
-    readings: ['てん', 'あま'],
-    meanings: ['heaven', 'sky'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '天気',
-        reading: 'てんき',
-        meaning: 'weather',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '天国',
-        reading: 'てんごく',
-        meaning: 'heaven',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '天才',
-        reading: 'てんさい',
-        meaning: 'genius',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '天然',
-        reading: 'てんねん',
-        meaning: 'natural',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '天井',
-        reading: 'てんじょう',
-        meaning: 'ceiling',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '天使',
-        reading: 'てんし',
-        meaning: 'angel',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '天皇',
-        reading: 'てんのう',
-        meaning: 'emperor',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '天体',
-        reading: 'てんたい',
-        meaning: 'heavenly body',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '天災',
-        reading: 'てんさい',
-        meaning: 'natural disaster',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '天職',
-        reading: 'てんしょく',
-        meaning: 'vocation',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-
-           {
-    id: 29,
-    character: '女',
-    readings: ['じょ', 'にょ', 'おんな', 'め'],
-    meanings: ['woman', 'female'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '女',
-        reading: 'おんな',
-        meaning: 'woman',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '女性',
-        reading: 'じょせい',
-        meaning: 'woman, female',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '女の子',
-        reading: 'おんなのこ',
-        meaning: 'girl',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '女子',
-        reading: 'じょし',
-        meaning: 'girl, woman',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '少女',
-        reading: 'しょうじょ',
-        meaning: 'girl',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '女王',
-        reading: 'じょおう',
-        meaning: 'queen',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '女優',
-        reading: 'じょゆう',
-        meaning: 'actress',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '女神',
-        reading: 'めがみ',
-        meaning: 'goddess',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '魔女',
-        reading: 'まじょ',
-        meaning: 'witch',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '処女',
-        reading: 'しょじょ',
-        meaning: 'virgin',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 30,
-    character: '子',
-    readings: ['し', 'す', 'こ'],
-    meanings: ['child', 'offspring'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '子供',
-        reading: 'こども',
-        meaning: 'child',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '男の子',
-        reading: 'おとこのこ',
-        meaning: 'boy',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '女の子',
-        reading: 'おんなのこ',
-        meaning: 'girl',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '親子',
-        reading: 'おやこ',
-        meaning: 'parent and child',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '電子',
-        reading: 'でんし',
-        meaning: 'electron',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '分子',
-        reading: 'ぶんし',
-        meaning: 'molecule',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '原子',
-        reading: 'げんし',
-        meaning: 'atom',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '種子',
-        reading: 'しゅし',
-        meaning: 'seed',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '胞子',
-        reading: 'ほうし',
-        meaning: 'spore',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '弟子',
-        reading: 'でし',
-        meaning: 'disciple',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 31,
-    character: '字',
-    readings: ['じ', 'あざ'],
-    meanings: ['character', 'letter'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '字',
-        reading: 'じ',
-        meaning: 'character, letter',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '文字',
-        reading: 'もじ',
-        meaning: 'letter, character',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '数字',
-        reading: 'すうじ',
-        meaning: 'number',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '漢字',
-        reading: 'かんじ',
-        meaning: 'Chinese character',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '字体',
-        reading: 'じたい',
-        meaning: 'font',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '十字',
-        reading: 'じゅうじ',
-        meaning: 'cross',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '字幕',
-        reading: 'じまく',
-        meaning: 'subtitles',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '字典',
-        reading: 'じてん',
-        meaning: 'dictionary',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '字義',
-        reading: 'じぎ',
-        meaning: 'meaning of a word',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '字句',
-        reading: 'じく',
-        meaning: 'words and phrases',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 32,
-    character: '学',
-    readings: ['がく', 'まな'],
-    meanings: ['study', 'learn'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '学校',
-        reading: 'がっこう',
-        meaning: 'school',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '学生',
-        reading: 'がくせい',
-        meaning: 'student',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '大学',
-        reading: 'だいがく',
-        meaning: 'university',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '学ぶ',
-        reading: 'まなぶ',
-        meaning: 'to learn',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '科学',
-        reading: 'かがく',
-        meaning: 'science',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '数学',
-        reading: 'すうがく',
-        meaning: 'mathematics',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '哲学',
-        reading: 'てつがく',
-        meaning: 'philosophy',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '学習',
-        reading: 'がくしゅう',
-        meaning: 'learning',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '学問',
-        reading: 'がくもん',
-        meaning: 'scholarship',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '学歴',
-        reading: 'がくれき',
-        meaning: 'educational background',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 33,
-    character: '小',
-    readings: ['しょう', 'ちい', 'こ'],
-    meanings: ['small', 'little'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '小さい',
-        reading: 'ちいさい',
-        meaning: 'small',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '小学校',
-        reading: 'しょうがっこう',
-        meaning: 'elementary school',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '小さな',
-        reading: 'ちいさな',
-        meaning: 'small',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '小説',
-        reading: 'しょうせつ',
-        meaning: 'novel',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '最小',
-        reading: 'さいしょう',
-        meaning: 'minimum',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '小型',
-        reading: 'こがた',
-        meaning: 'small size',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '小数',
-        reading: 'しょうすう',
-        meaning: 'decimal',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '小麦',
-        reading: 'こむぎ',
-        meaning: 'wheat',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '小便',
-        reading: 'しょうべん',
-        meaning: 'urination',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '小細工',
-        reading: 'こざいく',
-        meaning: 'trick',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 34,
-    character: '山',
-    readings: ['さん', 'ざん', 'やま'],
-    meanings: ['mountain'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '山',
-        reading: 'やま',
-        meaning: 'mountain',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '富士山',
-        reading: 'ふじさん',
-        meaning: 'Mt. Fuji',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '火山',
-        reading: 'かざん',
-        meaning: 'volcano',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '登山',
-        reading: 'とざん',
-        meaning: 'mountain climbing',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '山頂',
-        reading: 'さんちょう',
-        meaning: 'summit',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '山脈',
-        reading: 'さんみゃく',
-        meaning: 'mountain range',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '青山',
-        reading: 'せいざん',
-        meaning: 'green mountain',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '山林',
-        reading: 'さんりん',
-        meaning: 'mountain forest',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '山岳',
-        reading: 'さんがく',
-        meaning: 'mountains',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '山賊',
-        reading: 'さんぞく',
-        meaning: 'bandit',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 35,
-    character: '川',
-    readings: ['せん', 'かわ', 'がわ'],
-    meanings: ['river'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '川',
-        reading: 'かわ',
-        meaning: 'river',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '小川',
-        reading: 'おがわ',
-        meaning: 'stream',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '河川',
-        reading: 'かせん',
-        meaning: 'river',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '山川',
-        reading: 'さんせん',
-        meaning: 'mountains and rivers',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '川岸',
-        reading: 'かわぎし',
-        meaning: 'riverbank',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '川上',
-        reading: 'かわかみ',
-        meaning: 'upstream',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '川下',
-        reading: 'かわしも',
-        meaning: 'downstream',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '氷河',
-        reading: 'ひょうが',
-        meaning: 'glacier',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '川端',
-        reading: 'かわばた',
-        meaning: 'riverside',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '三途の川',
-        reading: 'さんずのかわ',
-        meaning: 'river of death',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 36,
-    character: '左',
-    readings: ['さ', 'ひだり'],
-    meanings: ['left'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '左',
-        reading: 'ひだり',
-        meaning: 'left',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '左手',
-        reading: 'ひだりて',
-        meaning: 'left hand',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '左側',
-        reading: 'ひだりがわ',
-        meaning: 'left side',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '左折',
-        reading: 'させつ',
-        meaning: 'left turn',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '左右',
-        reading: 'さゆう',
-        meaning: 'left and right',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '左翼',
-        reading: 'さよく',
-        meaning: 'left wing',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '左上',
-        reading: 'ひだりうえ',
-        meaning: 'upper left',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '左下',
-        reading: 'ひだりした',
-        meaning: 'lower left',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '左派',
-        reading: 'さは',
-        meaning: 'left-wing faction',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '左遷',
-        reading: 'させん',
-        meaning: 'demotion',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 37,
-    character: '年',
-    readings: ['ねん', 'とし'],
-    meanings: ['year'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '年',
-        reading: 'とし',
-        meaning: 'year, age',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '今年',
-        reading: 'ことし',
-        meaning: 'this year',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '来年',
-        reading: 'らいねん',
-        meaning: 'next year',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '去年',
-        reading: 'きょねん',
-        meaning: 'last year',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '年齢',
-        reading: 'ねんれい',
-        meaning: 'age',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '年間',
-        reading: 'ねんかん',
-        meaning: 'yearly',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '年度',
-        reading: 'ねんど',
-        meaning: 'fiscal year',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '毎年',
-        reading: 'まいとし',
-        meaning: 'every year',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '年収',
-        reading: 'ねんしゅう',
-        meaning: 'annual income',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '年長',
-        reading: 'ねんちょう',
-        meaning: 'senior',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 38,
-    character: '手',
-    readings: ['しゅ', 'て'],
-    meanings: ['hand'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '手',
-        reading: 'て',
-        meaning: 'hand',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '上手',
-        reading: 'じょうず',
-        meaning: 'skillful',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '手紙',
-        reading: 'てがみ',
-        meaning: 'letter',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '右手',
-        reading: 'みぎて',
-        meaning: 'right hand',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '手伝う',
-        reading: 'てつだう',
-        meaning: 'to help',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '拍手',
-        reading: 'はくしゅ',
-        meaning: 'applause',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '選手',
-        reading: 'せんしゅ',
-        meaning: 'athlete',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '握手',
-        reading: 'あくしゅ',
-        meaning: 'handshake',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '手段',
-        reading: 'しゅだん',
-        meaning: 'means',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '手術',
-        reading: 'しゅじゅつ',
-        meaning: 'surgery',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 39,
-    character: '文',
-    readings: ['ぶん', 'もん', 'ふみ'],
-    meanings: ['sentence', 'writing'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '文',
-        reading: 'ぶん',
-        meaning: 'sentence',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '文字',
-        reading: 'もじ',
-        meaning: 'character',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '作文',
-        reading: 'さくぶん',
-        meaning: 'composition',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '注文',
-        reading: 'ちゅうもん',
-        meaning: 'order',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '文化',
-        reading: 'ぶんか',
-        meaning: 'culture',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '文学',
-        reading: 'ぶんがく',
-        meaning: 'literature',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '文章',
-        reading: 'ぶんしょう',
-        meaning: 'text',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '文明',
-        reading: 'ぶんめい',
-        meaning: 'civilization',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '文脈',
-        reading: 'ぶんみゃく',
-        meaning: 'context',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '文句',
-        reading: 'もんく',
-        meaning: 'complaint',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 40,
-    character: '日',
-    readings: ['にち', 'じつ', 'ひ', 'か'],
-    meanings: ['day', 'sun'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '日',
-        reading: 'ひ',
-        meaning: 'day, sun',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '今日',
-        reading: 'きょう',
-        meaning: 'today',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '毎日',
-        reading: 'まいにち',
-        meaning: 'every day',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '日本',
-        reading: 'にほん',
-        meaning: 'Japan',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '休日',
-        reading: 'きゅうじつ',
-        meaning: 'holiday',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '日程',
-        reading: 'にってい',
-        meaning: 'schedule',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '日記',
-        reading: 'にっき',
-        meaning: 'diary',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '祝日',
-        reading: 'しゅくじつ',
-        meaning: 'national holiday',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '日没',
-        reading: 'にちぼつ',
-        meaning: 'sunset',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '日常',
-        reading: 'にちじょう',
-        meaning: 'daily life',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-            {
-    id: 41,
-    character: '早',
-    readings: ['そう', 'はや'],
-    meanings: ['early', 'fast'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '早い',
-        reading: 'はやい',
-        meaning: 'early, fast',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '早く',
-        reading: 'はやく',
-        meaning: 'early, quickly',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '早朝',
-        reading: 'そうちょう',
-        meaning: 'early morning',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '早急',
-        reading: 'そうきゅう',
-        meaning: 'urgent',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '最早',
-        reading: 'もはや',
-        meaning: 'already',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '早速',
-        reading: 'さっそく',
-        meaning: 'immediately',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '早期',
-        reading: 'そうき',
-        meaning: 'early stage',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '早退',
-        reading: 'そうたい',
-        meaning: 'early departure',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '素早い',
-        reading: 'すばやい',
-        meaning: 'quick',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '早計',
-        reading: 'そうけい',
-        meaning: 'hasty',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 42,
-    character: '月',
-    readings: ['げつ', 'がつ', 'つき'],
-    meanings: ['month', 'moon'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '月',
-        reading: 'つき',
-        meaning: 'moon',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '一月',
-        reading: 'いちがつ',
-        meaning: 'January',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '今月',
-        reading: 'こんげつ',
-        meaning: 'this month',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '来月',
-        reading: 'らいげつ',
-        meaning: 'next month',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '月曜日',
-        reading: 'げつようび',
-        meaning: 'Monday',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '満月',
-        reading: 'まんげつ',
-        meaning: 'full moon',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '月光',
-        reading: 'げっこう',
-        meaning: 'moonlight',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '月末',
-        reading: 'げつまつ',
-        meaning: 'end of month',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '新月',
-        reading: 'しんげつ',
-        meaning: 'new moon',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '月食',
-        reading: 'げっしょく',
-        meaning: 'lunar eclipse',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 43,
-    character: '木',
-    readings: ['ぼく', 'もく', 'き'],
-    meanings: ['tree', 'wood'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '木',
-        reading: 'き',
-        meaning: 'tree',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '木曜日',
-        reading: 'もくようび',
-        meaning: 'Thursday',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '大木',
-        reading: 'たいぼく',
-        meaning: 'large tree',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '木材',
-        reading: 'もくざい',
-        meaning: 'lumber',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '植木',
-        reading: 'うえき',
-        meaning: 'planted tree',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '樹木',
-        reading: 'じゅもく',
-        meaning: 'trees',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '木造',
-        reading: 'もくぞう',
-        meaning: 'wooden',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '木工',
-        reading: 'もっこう',
-        meaning: 'woodwork',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '木陰',
-        reading: 'こかげ',
-        meaning: 'shade of tree',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '木炭',
-        reading: 'もくたん',
-        meaning: 'charcoal',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 44,
-    character: '本',
-    readings: ['ほん', 'もと'],
-    meanings: ['book', 'origin'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '本',
-        reading: 'ほん',
-        meaning: 'book',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '日本',
-        reading: 'にほん',
-        meaning: 'Japan',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '本当',
-        reading: 'ほんとう',
-        meaning: 'true',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '基本',
-        reading: 'きほん',
-        meaning: 'basic',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '本来',
-        reading: 'ほんらい',
-        meaning: 'originally',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '本格的',
-        reading: 'ほんかくてき',
-        meaning: 'authentic',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '根本',
-        reading: 'こんぽん',
-        meaning: 'foundation',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '本質',
-        reading: 'ほんしつ',
-        meaning: 'essence',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '本音',
-        reading: 'ほんね',
-        meaning: 'true feelings',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '本能',
-        reading: 'ほんのう',
-        meaning: 'instinct',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      ],
-  },
-       {
-    id: 45,
-    character: '村',
-    readings: ['そん', 'むら'],
-    meanings: ['village'],
-    level: 10,
-    jlpt: 'N4',
-    variations: [
-      {
-        word: '村',
-        reading: 'むら',
-        meaning: 'village',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '山村',
-        reading: 'さんそん',
-        meaning: 'mountain village',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '村人',
-        reading: 'むらびと',
-        meaning: 'villager',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '農村',
-        reading: 'のうそん',
-        meaning: 'farming village',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '村長',
-        reading: 'そんちょう',
-        meaning: 'village chief',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '漁村',
-        reading: 'ぎょそん',
-        meaning: 'fishing village',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '村落',
-        reading: 'そんらく',
-        meaning: 'village community',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '村役場',
-        reading: 'むらやくば',
-        meaning: 'village office',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '村民',
-        reading: 'そんみん',
-        meaning: 'villager',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '村八分',
-        reading: 'むらはちぶ',
-        meaning: 'village ostracism',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 46,
-    character: '林',
-    readings: ['りん', 'はやし'],
-    meanings: ['forest', 'woods'],
-    level: 10,
-    jlpt: 'N4',
-    variations: [
-      {
-        word: '林',
-        reading: 'はやし',
-        meaning: 'woods, forest',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '森林',
-        reading: 'しんりん',
-        meaning: 'forest',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '山林',
-        reading: 'さんりん',
-        meaning: 'mountain forest',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '林業',
-        reading: 'りんぎょう',
-        meaning: 'forestry',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '竹林',
-        reading: 'ちくりん',
-        meaning: 'bamboo grove',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '雑木林',
-        reading: 'ぞうきばやし',
-        meaning: 'mixed forest',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '林道',
-        reading: 'りんどう',
-        meaning: 'forest road',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '原始林',
-        reading: 'げんしりん',
-        meaning: 'primeval forest',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '林間',
-        reading: 'りんかん',
-        meaning: 'among trees',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '針葉樹林',
-        reading: 'しんようじゅりん',
-        meaning: 'coniferous forest',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 47,
-    character: '校',
-    readings: ['こう'],
-    meanings: ['school'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '学校',
-        reading: 'がっこう',
-        meaning: 'school',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '高校',
-        reading: 'こうこう',
-        meaning: 'high school',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '校長',
-        reading: 'こうちょう',
-        meaning: 'principal',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '小学校',
-        reading: 'しょうがっこう',
-        meaning: 'elementary school',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '校舎',
-        reading: 'こうしゃ',
-        meaning: 'school building',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '校庭',
-        reading: 'こうてい',
-        meaning: 'schoolyard',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '転校',
-        reading: 'てんこう',
-        meaning: 'changing schools',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '母校',
-        reading: 'ぼこう',
-        meaning: 'alma mater',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '校訂',
-        reading: 'こうてい',
-        meaning: 'proofreading',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '校則',
-        reading: 'こうそく',
-        meaning: 'school rules',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 48,
-    character: '森',
-    readings: ['しん', 'もり'],
-    meanings: ['forest'],
-    level: 10,
-    jlpt: 'N4',
-    variations: [
-      {
-        word: '森',
-        reading: 'もり',
-        meaning: 'forest',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '森林',
-        reading: 'しんりん',
-        meaning: 'forest',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '青森',
-        reading: 'あおもり',
-        meaning: 'Aomori (prefecture)',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '森中',
-        reading: 'もりなか',
-        meaning: 'deep in the forest',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '大森',
-        reading: 'おおもり',
-        meaning: 'large forest',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '森林浴',
-        reading: 'しんりんよく',
-        meaning: 'forest bathing',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '針葉樹林',
-        reading: 'しんようじゅりん',
-        meaning: 'coniferous forest',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '熱帯雨林',
-        reading: 'ねったいうりん',
-        meaning: 'tropical rainforest',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '森羅万象',
-        reading: 'しんらばんしょう',
-        meaning: 'all things in nature',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '森厳',
-        reading: 'しんげん',
-        meaning: 'solemn',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 49,
-    character: '正',
-    readings: ['せい', 'しょう', 'ただ', 'まさ'],
-    meanings: ['correct', 'right'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '正しい',
-        reading: 'ただしい',
-        meaning: 'correct',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '正月',
-        reading: 'しょうがつ',
-        meaning: 'New Year',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '正午',
-        reading: 'しょうご',
-        meaning: 'noon',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '修正',
-        reading: 'しゅうせい',
-        meaning: 'correction',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '正確',
-        reading: 'せいかく',
-        meaning: 'accurate',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '正義',
-        reading: 'せいぎ',
-        meaning: 'justice',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '正常',
-        reading: 'せいじょう',
-        meaning: 'normal',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '正式',
-        reading: 'せいしき',
-        meaning: 'formal',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '正統',
-        reading: 'せいとう',
-        meaning: 'orthodox',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '正念場',
-        reading: 'しょうねんば',
-        meaning: 'critical moment',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 50,
-    character: '気',
-    readings: ['き', 'け'],
-    meanings: ['spirit', 'mood', 'air'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '気',
-        reading: 'き',
-        meaning: 'spirit, mood',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '天気',
-        reading: 'てんき',
-        meaning: 'weather',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '病気',
-        reading: 'びょうき',
-        meaning: 'illness',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '人気',
-        reading: 'にんき',
-        meaning: 'popularity',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '元気',
-        reading: 'げんき',
-        meaning: 'healthy, energetic',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '気分',
-        reading: 'きぶん',
-        meaning: 'mood',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '空気',
-        reading: 'くうき',
-        meaning: 'air',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '気持ち',
-        reading: 'きもち',
-        meaning: 'feeling',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '気候',
-        reading: 'きこう',
-        meaning: 'climate',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '気質',
-        reading: 'きしつ',
-        meaning: 'temperament',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 51,
-    character: '水',
-    readings: ['すい', 'みず'],
-    meanings: ['water'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '水',
-        reading: 'みず',
-        meaning: 'water',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '水曜日',
-        reading: 'すいようび',
-        meaning: 'Wednesday',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '飲み水',
-        reading: 'のみみず',
-        meaning: 'drinking water',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '水道',
-        reading: 'すいどう',
-        meaning: 'water supply',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '水泳',
-        reading: 'すいえい',
-        meaning: 'swimming',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '水準',
-        reading: 'すいじゅん',
-        meaning: 'level, standard',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '水分',
-        reading: 'すいぶん',
-        meaning: 'moisture',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '水素',
-        reading: 'すいそ',
-        meaning: 'hydrogen',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '水平',
-        reading: 'すいへい',
-        meaning: 'horizontal',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '水没',
-        reading: 'すいぼつ',
-        meaning: 'submersion',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 52,
-    character: '火',
-    readings: ['か', 'ひ', 'ほ'],
-    meanings: ['fire'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '火',
-        reading: 'ひ',
-        meaning: 'fire',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '火曜日',
-        reading: 'かようび',
-        meaning: 'Tuesday',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '花火',
-        reading: 'はなび',
-        meaning: 'fireworks',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '火事',
-        reading: 'かじ',
-        meaning: 'fire (incident)',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '火災',
-        reading: 'かさい',
-        meaning: 'fire disaster',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '火山',
-        reading: 'かざん',
-        meaning: 'volcano',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '点火',
-        reading: 'てんか',
-        meaning: 'ignition',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '火力',
-        reading: 'かりょく',
-        meaning: 'thermal power',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '火炎',
-        reading: 'かえん',
-        meaning: 'flame',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '火急',
-        reading: 'かきゅう',
-        meaning: 'urgent',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 53,
-    character: '犬',
-    readings: ['けん', 'いぬ'],
-    meanings: ['dog'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '犬',
-        reading: 'いぬ',
-        meaning: 'dog',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '子犬',
-        reading: 'こいぬ',
-        meaning: 'puppy',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '番犬',
-        reading: 'ばんけん',
-        meaning: 'watchdog',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '愛犬',
-        reading: 'あいけん',
-        meaning: 'pet dog',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '野犬',
-        reading: 'やけん',
-        meaning: 'stray dog',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '犬小屋',
-        reading: 'いぬごや',
-        meaning: 'doghouse',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '盲導犬',
-        reading: 'もうどうけん',
-        meaning: 'guide dog',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '警察犬',
-        reading: 'けいさつけん',
-        meaning: 'police dog',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '犬猿の仲',
-        reading: 'けんえんのなか',
-        meaning: 'like cats and dogs',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '狂犬病',
-        reading: 'きょうけんびょう',
-        meaning: 'rabies',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-
-      {
-    id: 54,
-    character: '玉',
-    readings: ['ぎょく', 'たま'],
-    meanings: ['ball', 'jewel'],
-    level: 10,
-    jlpt: 'N4',
-    variations: [
-      {
-        word: '玉',
-        reading: 'たま',
-        meaning: 'ball',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '玉ねぎ',
-        reading: 'たまねぎ',
-        meaning: 'onion',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '目玉',
-        reading: 'めだま',
-        meaning: 'eyeball',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '電球',
-        reading: 'でんきゅう',
-        meaning: 'light bulb',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '宝玉',
-        reading: 'ほうぎょく',
-        meaning: 'jewel',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '水玉',
-        reading: 'みずたま',
-        meaning: 'polka dot',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '玉座',
-        reading: 'ぎょくざ',
-        meaning: 'throne',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '玉石',
-        reading: 'ぎょくせき',
-        meaning: 'gems and stones',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '玉砕',
-        reading: 'ぎょくさい',
-        meaning: 'honorable defeat',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '玉璽',
-        reading: 'ぎょくじ',
-        meaning: 'imperial seal',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 55,
-    character: '王',
-    readings: ['おう'],
-    meanings: ['king'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '王',
-        reading: 'おう',
-        meaning: 'king',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '女王',
-        reading: 'じょおう',
-        meaning: 'queen',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '王様',
-        reading: 'おうさま',
-        meaning: 'king',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '国王',
-        reading: 'こくおう',
-        meaning: 'king of a country',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '王子',
-        reading: 'おうじ',
-        meaning: 'prince',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '王国',
-        reading: 'おうこく',
-        meaning: 'kingdom',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '王座',
-        reading: 'おうざ',
-        meaning: 'throne',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '王朝',
-        reading: 'おうちょう',
-        meaning: 'dynasty',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '王道',
-        reading: 'おうどう',
-        meaning: 'royal road',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '王政',
-        reading: 'おうせい',
-        meaning: 'monarchy',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 56,
-    character: '生',
-    readings: ['せい', 'しょう', 'い', 'う', 'なま', 'き'],
-    meanings: ['life', 'birth', 'raw'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '生活',
-        reading: 'せいかつ',
-        meaning: 'life',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '学生',
-        reading: 'がくせい',
-        meaning: 'student',
-        type: 'on',
-        jlpt: 'N5',
-      },
-      {
-        word: '先生',
-        reading: 'せんせい',
-        meaning: 'teacher',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '人生',
-        reading: 'じんせい',
-        meaning: 'life',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '生まれる',
-        reading: 'うまれる',
-        meaning: 'to be born',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '誕生',
-        reading: 'たんじょう',
-        meaning: 'birth',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '生産',
-        reading: 'せいさん',
-        meaning: 'production',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '発生',
-        reading: 'はっせい',
-        meaning: 'occurrence',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '生命',
-        reading: 'せいめい',
-        meaning: 'life',
-        type: 'on',
-        jlpt: 'N1',
-      },
-      {
-        word: '生涯',
-        reading: 'しょうがい',
-        meaning: 'lifetime',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
-  {
-    id: 57,
-    character: '田',
-    readings: ['でん', 'た'],
-    meanings: ['rice field'],
-    level: 10,
-    jlpt: 'N5',
-    variations: [
-      {
-        word: '田',
-        reading: 'た',
-        meaning: 'rice field',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '田んぼ',
-        reading: 'たんぼ',
-        meaning: 'rice field',
-        type: 'kun',
-        jlpt: 'N5',
-      },
-      {
-        word: '水田',
-        reading: 'すいでん',
-        meaning: 'paddy field',
-        type: 'on',
-        jlpt: 'N4',
-      },
-      {
-        word: '田畑',
-        reading: 'たはた',
-        meaning: 'fields',
-        type: 'kun',
-        jlpt: 'N4',
-      },
-      {
-        word: '田舎',
-        reading: 'いなか',
-        meaning: 'countryside',
-        type: 'kun',
-        jlpt: 'N3',
-      },
-      {
-        word: '田園',
-        reading: 'でんえん',
-        meaning: 'countryside',
-        type: 'on',
-        jlpt: 'N3',
-      },
-      {
-        word: '油田',
-        reading: 'ゆでん',
-        meaning: 'oil field',
-        type: 'on',
-        jlpt: 'N2',
-      },
-      {
-        word: '田植え',
-        reading: 'たうえ',
-        meaning: 'rice planting',
-        type: 'kun',
-        jlpt: 'N2',
-      },
-      {
-        word: '田作り',
-        reading: 'たづくり',
-        meaning: 'field preparation',
-        type: 'kun',
-        jlpt: 'N1',
-      },
-      {
-        word: '田地',
-        reading: 'でんち',
-        meaning: 'farmland',
-        type: 'on',
-        jlpt: 'N1',
-      },
-    ],
-  },
+          // Level 9
+          {
+            id: 6,
+            character: '水',
+            readings: ['すい', 'みず'],
+            meanings: ['water'],
+            level: 9,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '水',
+                reading: 'みず',
+                meaning: 'water',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '水道',
+                reading: 'すいどう',
+                meaning: 'water supply',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '水曜日',
+                reading: 'すいようび',
+                meaning: 'Wednesday',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '水泳',
+                reading: 'すいえい',
+                meaning: 'swimming',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '水分',
+                reading: 'すいぶん',
+                meaning: 'moisture',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '水面',
+                reading: 'すいめん',
+                meaning: 'water surface',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '水準',
+                reading: 'すいじゅん',
+                meaning: 'level',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '水質',
+                reading: 'すいしつ',
+                meaning: 'water quality',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '水銀',
+                reading: 'すいぎん',
+                meaning: 'mercury',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '水脈',
+                reading: 'すいみゃく',
+                meaning: 'water vein',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 7,
+            character: '火',
+            readings: ['か', 'ひ'],
+            meanings: ['fire'],
+            level: 9,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '火',
+                reading: 'ひ',
+                meaning: 'fire',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '火曜日',
+                reading: 'かようび',
+                meaning: 'Tuesday',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '火事',
+                reading: 'かじ',
+                meaning: 'fire accident',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '花火',
+                reading: 'はなび',
+                meaning: 'fireworks',
+                type: 'kun',
+                jlpt: 'N4',
+              },
+              {
+                word: '火災',
+                reading: 'かさい',
+                meaning: 'fire disaster',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '火力',
+                reading: 'かりょく',
+                meaning: 'firepower',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '火傷',
+                reading: 'やけど',
+                meaning: 'burn',
+                type: 'kun',
+                jlpt: 'N2',
+              },
+              {
+                word: '火山',
+                reading: 'かざん',
+                meaning: 'volcano',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '火花',
+                reading: 'ひばな',
+                meaning: 'spark',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+              {
+                word: '火急',
+                reading: 'かきゅう',
+                meaning: 'urgent',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 8,
+            character: '木',
+            readings: ['もく', 'き'],
+            meanings: ['tree', 'wood'],
+            level: 9,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '木',
+                reading: 'き',
+                meaning: 'tree',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '木曜日',
+                reading: 'もくようび',
+                meaning: 'Thursday',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '木材',
+                reading: 'もくざい',
+                meaning: 'lumber',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '植木',
+                reading: 'うえき',
+                meaning: 'plant',
+                type: 'kun',
+                jlpt: 'N4',
+              },
+              {
+                word: '木造',
+                reading: 'もくぞう',
+                meaning: 'wooden',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '木製',
+                reading: 'もくせい',
+                meaning: 'wooden made',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '木工',
+                reading: 'もっこう',
+                meaning: 'woodwork',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '木目',
+                reading: 'もくめ',
+                meaning: 'wood grain',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '木陰',
+                reading: 'こかげ',
+                meaning: 'shade of tree',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+              {
+                word: '木質',
+                reading: 'もくしつ',
+                meaning: 'woody',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          // Level 8
+          {
+            id: 9,
+            character: '人',
+            readings: ['じん', 'ひと'],
+            meanings: ['person'],
+            level: 8,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '人',
+                reading: 'ひと',
+                meaning: 'person',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '人間',
+                reading: 'にんげん',
+                meaning: 'human being',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '大人',
+                reading: 'おとな',
+                meaning: 'adult',
+                type: 'kun',
+                jlpt: 'N4',
+              },
+              {
+                word: '人口',
+                reading: 'じんこう',
+                meaning: 'population',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '人生',
+                reading: 'じんせい',
+                meaning: 'life',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '人物',
+                reading: 'じんぶつ',
+                meaning: 'person, character',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '人格',
+                reading: 'じんかく',
+                meaning: 'personality',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '人材',
+                reading: 'じんざい',
+                meaning: 'human resources',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '人柄',
+                reading: 'ひとがら',
+                meaning: 'personality',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+              {
+                word: '人種',
+                reading: 'じんしゅ',
+                meaning: 'race',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 10,
+            character: '日',
+            readings: ['にち', 'ひ'],
+            meanings: ['day', 'sun'],
+            level: 8,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '今日',
+                reading: 'きょう',
+                meaning: 'today',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '日本',
+                reading: 'にほん',
+                meaning: 'Japan',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '毎日',
+                reading: 'まいにち',
+                meaning: 'every day',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '休日',
+                reading: 'きゅうじつ',
+                meaning: 'holiday',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '日付',
+                reading: 'ひづけ',
+                meaning: 'date',
+                type: 'kun',
+                jlpt: 'N3',
+              },
+              {
+                word: '日程',
+                reading: 'にってい',
+                meaning: 'schedule',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '日常',
+                reading: 'にちじょう',
+                meaning: 'daily',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '日記',
+                reading: 'にっき',
+                meaning: 'diary',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '日暮れ',
+                reading: 'ひぐれ',
+                meaning: 'sunset',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+              {
+                word: '日蝕',
+                reading: 'にっしょく',
+                meaning: 'solar eclipse',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 11,
+            character: '本',
+            readings: ['ほん', 'もと'],
+            meanings: ['book', 'origin'],
+            level: 8,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '本',
+                reading: 'ほん',
+                meaning: 'book',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '日本',
+                reading: 'にほん',
+                meaning: 'Japan',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '本当',
+                reading: 'ほんとう',
+                meaning: 'really',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '本屋',
+                reading: 'ほんや',
+                meaning: 'bookstore',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '本来',
+                reading: 'ほんらい',
+                meaning: 'originally',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '基本',
+                reading: 'きほん',
+                meaning: 'basic',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '本質',
+                reading: 'ほんしつ',
+                meaning: 'essence',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '本格',
+                reading: 'ほんかく',
+                meaning: 'full-scale',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '本音',
+                reading: 'ほんね',
+                meaning: 'true feelings',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '本源',
+                reading: 'ほんげん',
+                meaning: 'source',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 12,
+            character: '大',
+            readings: ['だい', 'おお'],
+            meanings: ['big', 'large'],
+            level: 7,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '大きい',
+                reading: 'おおきい',
+                meaning: 'big',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '大学',
+                reading: 'だいがく',
+                meaning: 'university',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '大切',
+                reading: 'たいせつ',
+                meaning: 'important',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '大変',
+                reading: 'たいへん',
+                meaning: 'very',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '大体',
+                reading: 'だいたい',
+                meaning: 'mostly',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '大統領',
+                reading: 'だいとうりょう',
+                meaning: 'president',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '大規模',
+                reading: 'だいきぼ',
+                meaning: 'large-scale',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '大幅',
+                reading: 'おおはば',
+                meaning: 'drastic',
+                type: 'kun',
+                jlpt: 'N2',
+              },
+              {
+                word: '大義',
+                reading: 'たいぎ',
+                meaning: 'great cause',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '大器',
+                reading: 'たいき',
+                meaning: 'great talent',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 13,
+            character: '小',
+            readings: ['しょう', 'ちい', 'こ'],
+            meanings: ['small'],
+            level: 7,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '小さい',
+                reading: 'ちいさい',
+                meaning: 'small',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '小学校',
+                reading: 'しょうがっこう',
+                meaning: 'elementary school',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '小説',
+                reading: 'しょうせつ',
+                meaning: 'novel',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '小包',
+                reading: 'こづつみ',
+                meaning: 'package',
+                type: 'kun',
+                jlpt: 'N4',
+              },
+              {
+                word: '小売',
+                reading: 'こうり',
+                meaning: 'retail',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '小型',
+                reading: 'こがた',
+                meaning: 'small size',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '小規模',
+                reading: 'しょうきぼ',
+                meaning: 'small-scale',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '小銭',
+                reading: 'こぜに',
+                meaning: 'small change',
+                type: 'kun',
+                jlpt: 'N2',
+              },
+              {
+                word: '小康',
+                reading: 'しょうこう',
+                meaning: 'lull',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '小粒',
+                reading: 'こつぶ',
+                meaning: 'small grain',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 14,
+            character: '中',
+            readings: ['ちゅう', 'なか'],
+            meanings: ['middle', 'inside'],
+            level: 7,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '中',
+                reading: 'なか',
+                meaning: 'inside',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '中学校',
+                reading: 'ちゅうがっこう',
+                meaning: 'middle school',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '中国',
+                reading: 'ちゅうごく',
+                meaning: 'China',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '中心',
+                reading: 'ちゅうしん',
+                meaning: 'center',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '中央',
+                reading: 'ちゅうおう',
+                meaning: 'center',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '中間',
+                reading: 'ちゅうかん',
+                meaning: 'middle',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '中断',
+                reading: 'ちゅうだん',
+                meaning: 'interruption',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '中立',
+                reading: 'ちゅうりつ',
+                meaning: 'neutral',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '中枢',
+                reading: 'ちゅうすう',
+                meaning: 'center',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '中庸',
+                reading: 'ちゅうよう',
+                meaning: 'moderation',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 15,
+            character: '山',
+            readings: ['さん', 'やま'],
+            meanings: ['mountain'],
+            level: 6,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '山',
+                reading: 'やま',
+                meaning: 'mountain',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '富士山',
+                reading: 'ふじさん',
+                meaning: 'Mount Fuji',
+                type: 'on',
+                jlpt: 'N5',
+              },
+              {
+                word: '登山',
+                reading: 'とざん',
+                meaning: 'mountain climbing',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '火山',
+                reading: 'かざん',
+                meaning: 'volcano',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '山脈',
+                reading: 'さんみゃく',
+                meaning: 'mountain range',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '山頂',
+                reading: 'さんちょう',
+                meaning: 'summit',
+                type: 'on',
+                jlpt: 'N3',
+              },
+              {
+                word: '山林',
+                reading: 'さんりん',
+                meaning: 'mountain forest',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '山間',
+                reading: 'さんかん',
+                meaning: 'among mountains',
+                type: 'on',
+                jlpt: 'N2',
+              },
+              {
+                word: '山岳',
+                reading: 'さんがく',
+                meaning: 'mountains',
+                type: 'on',
+                jlpt: 'N1',
+              },
+              {
+                word: '山麓',
+                reading: 'さんろく',
+                meaning: 'foot of mountain',
+                type: 'on',
+                jlpt: 'N1',
+              },
+            ],
+          },
+          {
+            id: 16,
+            character: '川',
+            readings: ['せん', 'かわ'],
+            meanings: ['river'],
+            level: 6,
+            jlpt: 'N5',
+            variations: [
+              {
+                word: '川',
+                reading: 'かわ',
+                meaning: 'river',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '小川',
+                reading: 'おがわ',
+                meaning: 'stream',
+                type: 'kun',
+                jlpt: 'N5',
+              },
+              {
+                word: '河川',
+                reading: 'かせん',
+                meaning: 'rivers',
+                type: 'on',
+                jlpt: 'N4',
+              },
+              {
+                word: '川辺',
+                reading: 'かわべ',
+                meaning: 'riverside',
+                type: 'kun',
+                jlpt: 'N4',
+              },
+              {
+                word: '川口',
+                reading: 'かわぐち',
+                meaning: 'river mouth',
+                type: 'kun',
+                jlpt: 'N3',
+              },
+              {
+                word: '川原',
+                reading: 'かわら',
+                meaning: 'riverbed',
+                type: 'kun',
+                jlpt: 'N3',
+              },
+              {
+                word: '川上',
+                reading: 'かわかみ',
+                meaning: 'upstream',
+                type: 'kun',
+                jlpt: 'N2',
+              },
+              {
+                word: '川下',
+                reading: 'かわしも',
+                meaning: 'downstream',
+                type: 'kun',
+                jlpt: 'N2',
+              },
+              {
+                word: '川筋',
+                reading: 'かわすじ',
+                meaning: 'course of river',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+              {
+                word: '川床',
+                reading: 'かわどこ',
+                meaning: 'riverbed',
+                type: 'kun',
+                jlpt: 'N1',
+              },
+            ],
+          },
         ];
 
         // API Configuration
@@ -5618,30 +2430,28 @@ const API_CONFIG = {
         }
 
         // Utility function to make API calls
- 
-async function apiCall(endpoint, method = 'GET', data = null, retries = 1) {
-  console.log(`Making API call: ${method} ${API_CONFIG.baseURL}${endpoint}`);
-  
-  const config = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+  async function apiCall(endpoint, method = 'GET', data = null) {
+    console.log(`Making API call: ${method} ${API_CONFIG.baseURL}${endpoint}`);
+    
+    const config = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
 
-  if (gameState.authToken) {
-    config.headers['Authorization'] = `Bearer ${gameState.authToken}`;
-  }
+    if (gameState.authToken) {
+      config.headers['Authorization'] = `Bearer ${gameState.authToken}`;
+    }
 
-  if (data && method !== 'GET') {
-    config.body = JSON.stringify(data);
-  }
+    if (data && method !== 'GET') {
+      config.body = JSON.stringify(data);
+    }
 
-  const url = method === 'GET' && data
-    ? `${API_CONFIG.baseURL}${endpoint}?${new URLSearchParams(data)}`
-    : `${API_CONFIG.baseURL}${endpoint}`;
+    const url = method === 'GET' && data
+      ? `${API_CONFIG.baseURL}${endpoint}?${new URLSearchParams(data)}`
+      : `${API_CONFIG.baseURL}${endpoint}`;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, config);
       
@@ -5662,43 +2472,18 @@ async function apiCall(endpoint, method = 'GET', data = null, retries = 1) {
           }
         }
         
-        // If unauthorized, clear auth state
-        if (response.status === 401) {
-          localStorage.removeItem('authToken');
-          gameState.authToken = null;
-          gameState.isSignedIn = false;
-          gameState.user = null;
-          
-          // Only redirect to login if we're not already there
-          if (gameState.currentScene !== 'loginScene') {
-            loadScene('loginScene');
-            updateNavigationUI();
-          }
-        }
-        
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
       return result;
-      
     } catch (error) {
-      console.error(`API call attempt ${attempt + 1} failed:`, error);
-      
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        if (attempt < retries) {
-          console.log(`Retrying in ${1000 * (attempt + 1)}ms...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-          continue;
-        }
-        throw new Error('Unable to connect to server. Please check your connection and try again.');
+        throw new Error('Unable to connect to server. Please check your connection.');
       }
-      
-      // Don't retry for non-network errors
       throw error;
     }
   }
-}
  async function signIn() {
   const email = document.getElementById('email').value.trim();
   const username = document.getElementById('username').value.trim();
@@ -5895,22 +2680,12 @@ async function validateTokenAndAutoLogin(token) {
       ...settingsResponse.settings,
     };
 
-    // Set a basic user object (we'll get more details when loading game data)
-    gameState.user = {
-      username: gameState.settings.profileName || 'User',
-    };
-
     // Update UI
     document.getElementById('signOutBtn').style.display = 'block';
     document.getElementById('signInBtn').style.display = 'none';
     
     loadScene('dashboardScene');
-    
-    // Load game data after the scene has loaded
-    setTimeout(async () => {
-      await loadGameData();
-    }, 100);
-    
+    await loadGameData();
   } catch (error) {
     console.error('Token validation failed:', error);
     localStorage.removeItem('authToken');
@@ -5927,7 +2702,7 @@ async function validateTokenAndAutoLogin(token) {
     
     loadScene('loginScene');
   }
-}//the signOut function:
+}// 6. Fix the signOut function:
 async function signOut() {
   try {
     if (gameState.authToken) {
@@ -6109,40 +2884,18 @@ async function handleAuthFallback(email, username, password, isSignUp = false) {
     }
   }
         // Dashboard Functions
- 
-function updateDashboard() {
-  // Check if we're actually on the dashboard scene
-  if (gameState.currentScene !== 'dashboardScene') {
-    console.warn('updateDashboard called but not on dashboard scene');
-    return;
-  }
+        function updateDashboard() {
+          document.getElementById('welcomeName').textContent =
+            gameState.settings.profileName || 'User';
 
-  // Check if required elements exist
-  const welcomeName = document.getElementById('welcomeName');
-  const kanjiLearned = document.getElementById('kanjiLearned');
-  const reviewsDue = document.getElementById('reviewsDue');
-  const accuracy = document.getElementById('accuracy');
+          const stats = calculateStats();
+          document.getElementById('kanjiLearned').textContent =
+            stats.kanjiLearned;
+          document.getElementById('reviewsDue').textContent = stats.reviewsDue;
+          document.getElementById('accuracy').textContent = stats.accuracy + '%';
 
-  if (!welcomeName || !kanjiLearned || !reviewsDue || !accuracy) {
-    console.warn('Dashboard elements not ready, deferring update');
-    // Try again after a short delay
-    setTimeout(() => {
-      if (gameState.currentScene === 'dashboardScene') {
-        updateDashboard();
-      }
-    }, 100);
-    return;
-  }
-
-  welcomeName.textContent = gameState.settings.profileName || 'User';
-
-  const stats = calculateStats();
-  kanjiLearned.textContent = stats.kanjiLearned;
-  reviewsDue.textContent = stats.reviewsDue;
-  accuracy.textContent = stats.accuracy + '%';
-
-  updateLevelProgress();
-}
+          updateLevelProgress();
+        }
 
         function calculateStats() {
           let kanjiLearned = 0;
@@ -6173,111 +2926,88 @@ function updateDashboard() {
           return { kanjiLearned, reviewsDue, accuracy };
         }
 
-function updateLevelProgress() {
-  // Check if the element exists before trying to update it
-  const progressDiv = document.getElementById('levelProgress');
-  if (!progressDiv) {
-    console.warn('levelProgress element not found, skipping update');
-    return;
-  }
+        function updateLevelProgress() {
+          const progressDiv = document.getElementById('levelProgress');
+          let html = '';
 
-  let html = '';
+          for (let level = 10; level >= 1; level--) {
+            const levelKanji = Array.from(gameState.kanjiData.values()).filter(
+              (k) => k.level === level
+            );
+            const learnedCount = levelKanji.filter((k) => k.learned).length;
+            const totalCount = levelKanji.length;
+            const percentage =
+              totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
 
-  for (let level = 10; level >= 1; level--) {
-    const levelKanji = Array.from(gameState.kanjiData.values()).filter(
-      (k) => k.level === level
-    );
-    const learnedCount = levelKanji.filter((k) => k.learned).length;
-    const totalCount = levelKanji.length;
-    const percentage =
-      totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
+            html += `
+              <div style="margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <span>Level ${level}</span>
+                  <span>${learnedCount}/${totalCount}</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: ${percentage}%"></div>
+                </div>
+              </div>
+            `;
+          }
 
-    html += `
-      <div style="margin: 10px 0;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-          <span>Level ${level}</span>
-          <span>${learnedCount}/${totalCount}</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${percentage}%"></div>
-        </div>
-      </div>
-    `;
-  }
+          progressDiv.innerHTML = html;
+        }
 
-  progressDiv.innerHTML = html;
-}
+        // Data Management
+        async function saveGameData() {
+          if (gameState.isAnonymous || !gameState.authToken) return;
 
-        
-async function saveGameData() {
-  if (gameState.isAnonymous || !gameState.authToken) {
-    // For anonymous users, save to localStorage
-    const saveData = {
-      settings: gameState.settings,
-      kanjiData: Array.from(gameState.kanjiData.entries()),
-      lastSave: new Date().toISOString(),
-    };
-    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-    return;
-  }
+          try {
+            // Prepare kanji progress data
+            const kanjiProgressData = Array.from(
+              gameState.kanjiData.entries()
+            ).map(([id, kanji]) => [
+              id,
+              {
+                learned: kanji.learned,
+                inReview: kanji.inReview,
+                interval: kanji.interval,
+                ease: kanji.ease,
+                consecutiveCorrect: kanji.consecutiveCorrect,
+                totalReviews: kanji.totalReviews,
+                correctReviews: kanji.correctReviews,
+                lastReview: kanji.lastReview
+                  ? kanji.lastReview.toISOString()
+                  : null,
+                nextReview: kanji.nextReview
+                  ? kanji.nextReview.toISOString()
+                  : null,
+                mnemonic: kanji.mnemonic || '',
+              },
+            ]);
 
-  try {
-    // Prepare kanji progress data
-    const kanjiProgressData = Array.from(
-      gameState.kanjiData.entries()
-    ).map(([id, kanji]) => [
-      id,
-      {
-        learned: kanji.learned,
-        inReview: kanji.inReview,
-        interval: kanji.interval,
-        ease: kanji.ease,
-        consecutiveCorrect: kanji.consecutiveCorrect,
-        totalReviews: kanji.totalReviews,
-        correctReviews: kanji.correctReviews,
-        lastReview: kanji.lastReview
-          ? kanji.lastReview.toISOString()
-          : null,
-        nextReview: kanji.nextReview
-          ? kanji.nextReview.toISOString()
-          : null,
-        mnemonic: kanji.mnemonic || '',
-      },
-    ]);
+await apiCall('/progress/bulk-update', 'POST', {
+  kanjiProgressData,
+});
+            // Save settings
+            await apiCall('/settings', 'PUT', gameState.settings);
 
-    // Save progress to server
-    await apiCall('/progress/bulk-update', 'POST', {
-      kanjiProgressData,
-    });
+            // Also save to localStorage as backup
+            const saveData = {
+              settings: gameState.settings,
+              kanjiData: Array.from(gameState.kanjiData.entries()),
+              lastSave: new Date().toISOString(),
+            };
+            localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+          } catch (error) {
+            console.error('Failed to save to server:', error);
+            // Fall back to localStorage only
+            const saveData = {
+              settings: gameState.settings,
+              kanjiData: Array.from(gameState.kanjiData.entries()),
+              lastSave: new Date().toISOString(),
+            };
+            localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+          }
+        }
 
-    // Save settings to server
-    await apiCall('/settings', 'PUT', gameState.settings);
-
-    console.log('Data saved successfully to server');
-    
-    // Also save to localStorage as backup
-    const saveData = {
-      settings: gameState.settings,
-      kanjiData: Array.from(gameState.kanjiData.entries()),
-      lastSave: new Date().toISOString(),
-    };
-    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-    
-  } catch (error) {
-    console.error('Failed to save to server:', error);
-    
-    // If server save fails, still save locally
-    const saveData = {
-      settings: gameState.settings,
-      kanjiData: Array.from(gameState.kanjiData.entries()),
-      lastSave: new Date().toISOString(),
-    };
-    localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-    
-    // Don't throw the error - we still saved locally
-    console.log('Data saved to localStorage as backup');
-  }
-}
 async function loadGameData() {
     if (gameState.isAnonymous || !gameState.authToken) {
       // For anonymous users, still try to load from localStorage
@@ -6350,10 +3080,8 @@ async function loadGameData() {
 
       console.log('Data loaded successfully from server');
       
-      // Only update UI if we're on the dashboard scene
-      if (gameState.currentScene === 'dashboardScene') {
-        updateDashboard();
-      }
+      // Update UI elements that depend on settings
+      updateDashboard();
       
     } catch (error) {
       console.error('Failed to load from database:', error);
@@ -6385,8 +3113,7 @@ async function loadGameData() {
         }
       }
     }
-}
-
+  }
         // Study Functions
         function startReview() {
           if (gameState.kanjiData.size === 0) {
