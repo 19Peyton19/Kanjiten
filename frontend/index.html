@@ -8339,50 +8339,48 @@ async function displayVariations(kanji) {
   
         // Replace all placeholder functions with these implementations:
   
-    function updateDecksScene() {
-      const levelsDiv = document.getElementById('kanjiLevels');
-      let html = '';
-  
-      for (let level = 10; level >= 1; level--) {
-        const levelKanji = Array.from(gameState.kanjiData.values()).filter(
-          (k) =>
-            k.level === level &&
-            (gameState.settings.jlptLevel === 'all' ||
-              k.jlpt === gameState.settings.jlptLevel)
-        );
-  
-        if (levelKanji.length === 0) continue;
-  
-        const inReviewCount = levelKanji.filter((k) => k.inReview).length;
-        const isExpanded = gameState.expandedLevel === level;
-  
-        html += `
-          <div class="level-header ${isExpanded ? 'expanded' : ''}" onclick="toggleLevel(${level})">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <h3>Level ${level}</h3>
-                <p>${inReviewCount} in review / ${levelKanji.length} total</p>
-              </div>
-              <div>
-                <button class="btn btn-primary" onclick="event.stopPropagation(); studyLevel(${level})">Study Level</button>
-                <span style="margin-left: 15px;">${isExpanded ? '▼' : '▶'}</span>
-              </div>
-            </div>
+function updateDecksScene() {
+  const levelsDiv = document.getElementById('kanjiLevels');
+  let html = '';
+
+  for (let level = 10; level >= 1; level--) {
+    // Remove the JLPT filtering - show all kanji for the level
+    const levelKanji = Array.from(gameState.kanjiData.values()).filter(
+      (k) => k.level === level
+    );
+
+    if (levelKanji.length === 0) continue;
+
+    const inReviewCount = levelKanji.filter((k) => k.inReview).length;
+    const isExpanded = gameState.expandedLevel === level;
+
+    html += `
+      <div class="level-header ${isExpanded ? 'expanded' : ''}" onclick="toggleLevel(${level})">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3>Level ${level}</h3>
+            <p>${inReviewCount} in review / ${levelKanji.length} total</p>
           </div>
-          <div class="kanji-grid ${isExpanded ? 'expanded' : ''}" id="level${level}Grid" style="display: ${isExpanded ? 'grid' : 'none'};">
-            ${levelKanji.map(kanji => `
-              <div class="kanji-card ${kanji.learned ? 'learned' : ''} ${kanji.inReview ? 'in-review' : ''}" 
-                  onclick="showKanjiDetail(${kanji.id})">
-                <div class="kanji-character">${kanji.character}</div>
-                <div class="kanji-translation">${kanji.meanings.join(', ')}</div>
-              </div>
-            `).join('')}
+          <div>
+            <button class="btn btn-primary" onclick="event.stopPropagation(); studyLevel(${level})">Study Level</button>
+            <span style="margin-left: 15px;">${isExpanded ? '▼' : '▶'}</span>
           </div>
-        `;
-      }
-  
-      levelsDiv.innerHTML = html;
-    }
+        </div>
+      </div>
+      <div class="kanji-grid ${isExpanded ? 'expanded' : ''}" id="level${level}Grid" style="display: ${isExpanded ? 'grid' : 'none'};">
+        ${levelKanji.map(kanji => `
+          <div class="kanji-card ${kanji.learned ? 'learned' : ''} ${kanji.inReview ? 'in-review' : ''}" 
+              onclick="showKanjiDetail(${kanji.id})">
+            <div class="kanji-character">${kanji.character}</div>
+            <div class="kanji-translation">${kanji.meanings.join(', ')}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  levelsDiv.innerHTML = html;
+}
     function updateCramScene() {
       gameState.cramSession.selectedKanji.clear();
   
