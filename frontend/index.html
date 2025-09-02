@@ -1191,7 +1191,7 @@
                   type: 'kun',
                   jlpt: 'N1',
                 },
-              ]
+              ],
             },
             {
               id: 2,
@@ -7970,128 +7970,113 @@ async function displayVariations(kanji) {
               localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
             }
           }
- async function loadGameData() {
-  if (gameState.isAnonymous || !gameState.authToken) {
-    // For anonymous users, still try to load from localStorage
-    const savedData = localStorage.getItem('kanjiMasterSave');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        if (data.settings) {
-          gameState.settings = { ...gameState.settings, ...data.settings };
+  
+  async function loadGameData() {
+      if (gameState.isAnonymous || !gameState.authToken) {
+        // For anonymous users, still try to load from localStorage
+        const savedData = localStorage.getItem('kanjiMasterSave');
+        if (savedData) {
+          try {
+            const data = JSON.parse(savedData);
+            if (data.settings) {
+              gameState.settings = { ...gameState.settings, ...data.settings };
+            }
+            if (data.kanjiData) {
+              data.kanjiData.forEach(([id, kanjiData]) => {
+                if (gameState.kanjiData.has(id)) {
+                  const existingKanji = gameState.kanjiData.get(id);
+                  gameState.kanjiData.set(id, {
+                    ...existingKanji,
+                    ...kanjiData,
+                    lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
+                    nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                  });
+                }
+              });
+            }
+          } catch (e) {
+            console.error('Failed to load local save data:', e);
+          }
         }
-        if (data.kanjiData) {
-          data.kanjiData.forEach(([id, kanjiData]) => {
-            if (gameState.kanjiData.has(id)) {
-              const existingKanji = gameState.kanjiData.get(id);
-              gameState.kanjiData.set(id, {
+        return;
+      }
+  
+      try {
+        // Initialize with base kanji data first
+        if (gameState.kanjiData.size === 0) {
+          initializeKanjiData();
+        }
+  
+        // Load user progress
+        const progressResponse = await apiCall('/progress', 'GET');
+        
+        // Merge with user progress
+        if (progressResponse.progress && progressResponse.progress.length > 0) {
+          progressResponse.progress.forEach((userKanji) => {
+            if (gameState.kanjiData.has(userKanji.kanji_id)) {
+              const existingKanji = gameState.kanjiData.get(userKanji.kanji_id);
+              gameState.kanjiData.set(userKanji.kanji_id, {
                 ...existingKanji,
-                ...kanjiData,
-                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                learned: userKanji.learned || false,
+                inReview: userKanji.in_review || false,
+                interval: userKanji.srs_interval || 1,
+                ease: userKanji.ease_factor || 2.5,
+                consecutiveCorrect: userKanji.consecutive_correct || 0,
+                totalReviews: userKanji.total_reviews || 0,
+                correctReviews: userKanji.correct_reviews || 0,
+                lastReview: userKanji.last_review ? new Date(userKanji.last_review) : null,
+                nextReview: userKanji.next_review ? new Date(userKanji.next_review) : null,
+                mnemonic: userKanji.mnemonic || '',
               });
             }
           });
         }
-      } catch (e) {
-        console.error('Failed to load local save data:', e);
-      }
-    }
-    return;
-  }
-
-  try {
-    // CRITICAL FIX: Ensure base kanji data is always initialized first
-    if (gameState.kanjiData.size === 0) {
-      console.log('Initializing kanji data before loading user progress');
-      initializeKanjiData();
-    }
-
-    // Load user progress
-    const progressResponse = await apiCall('/progress', 'GET');
-    
-    // FIXED: Only merge progress for kanji that exist in our base data
-    // This preserves all kanji while updating only those with user progress
-    if (progressResponse.progress && progressResponse.progress.length > 0) {
-      console.log(`Loading progress for ${progressResponse.progress.length} kanji`);
-      
-      progressResponse.progress.forEach((userKanji) => {
-        // Only update if the kanji exists in our base data
-        if (gameState.kanjiData.has(userKanji.kanji_id)) {
-          const existingKanji = gameState.kanjiData.get(userKanji.kanji_id);
-          gameState.kanjiData.set(userKanji.kanji_id, {
-            ...existingKanji, // Keep all original kanji data (character, meanings, etc.)
-            // Only override progress-related fields
-            learned: userKanji.learned || false,
-            inReview: userKanji.in_review || false,
-            interval: userKanji.srs_interval || 1,
-            ease: userKanji.ease_factor || 2.5,
-            consecutiveCorrect: userKanji.consecutive_correct || 0,
-            totalReviews: userKanji.total_reviews || 0,
-            correctReviews: userKanji.correct_reviews || 0,
-            lastReview: userKanji.last_review ? new Date(userKanji.last_review) : null,
-            nextReview: userKanji.next_review ? new Date(userKanji.next_review) : null,
-            mnemonic: userKanji.mnemonic || '',
-          });
-        } else {
-          console.warn(`Server returned progress for unknown kanji ID: ${userKanji.kanji_id}`);
+  
+        // Load user settings
+        const settingsResponse = await apiCall('/settings', 'GET');
+        if (settingsResponse.success && settingsResponse.settings) {
+          gameState.settings = {
+            ...gameState.settings,
+            ...settingsResponse.settings,
+          };
         }
-      });
-    }
-
-    // Load user settings
-    const settingsResponse = await apiCall('/settings', 'GET');
-    if (settingsResponse.success && settingsResponse.settings) {
-      gameState.settings = {
-        ...gameState.settings,
-        ...settingsResponse.settings,
-      };
-    }
-
-    console.log(`Data loaded successfully - Total kanji: ${gameState.kanjiData.size}`);
-    
-    // Log kanji counts by level for debugging
-    for (let level = 1; level <= 10; level++) {
-      const levelCount = Array.from(gameState.kanjiData.values()).filter(k => k.level === level).length;
-      if (levelCount > 0) {
-        console.log(`Level ${level}: ${levelCount} kanji`);
-      }
-    }
-    
-    // Update UI elements that depend on settings
-    updateDashboard();
-    
-  } catch (error) {
-    console.error('Failed to load from database:', error);
-    
-    // Fallback to localStorage
-    const savedData = localStorage.getItem('kanjiMasterSave');
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        if (data.settings) {
-          gameState.settings = { ...gameState.settings, ...data.settings };
-        }
-        if (data.kanjiData) {
-          data.kanjiData.forEach(([id, kanjiData]) => {
-            if (gameState.kanjiData.has(id)) {
-              const existingKanji = gameState.kanjiData.get(id);
-              gameState.kanjiData.set(id, {
-                ...existingKanji,
-                ...kanjiData,
-                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+  
+        console.log('Data loaded successfully from server');
+        
+        // Update UI elements that depend on settings
+        updateDashboard();
+        
+      } catch (error) {
+        console.error('Failed to load from database:', error);
+        
+        // Fallback to localStorage
+        const savedData = localStorage.getItem('kanjiMasterSave');
+        if (savedData) {
+          try {
+            const data = JSON.parse(savedData);
+            if (data.settings) {
+              gameState.settings = { ...gameState.settings, ...data.settings };
+            }
+            if (data.kanjiData) {
+              data.kanjiData.forEach(([id, kanjiData]) => {
+                if (gameState.kanjiData.has(id)) {
+                  const existingKanji = gameState.kanjiData.get(id);
+                  gameState.kanjiData.set(id, {
+                    ...existingKanji,
+                    ...kanjiData,
+                    lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
+                    nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                  });
+                }
               });
             }
-          });
+            console.log('Data loaded from localStorage backup');
+          } catch (e) {
+            console.error('Failed to load local save data:', e);
+          }
         }
-        console.log('Data loaded from localStorage backup');
-      } catch (e) {
-        console.error('Failed to load local save data:', e);
       }
     }
-  }
-}
           // Study Functions
           function startReview() {
             if (gameState.kanjiData.size === 0) {
@@ -8338,126 +8323,66 @@ async function displayVariations(kanji) {
             return exactMatches.length > 0 ? exactMatches : kanji.variations;
           }
   
-function initializeApp() {
-  console.log('Initializing app...');
+  function initializeApp() {
+    initializeKanjiData();
+    startAutoSave();
   
-  // Initialize kanji data
-  initializeKanjiData();
-  console.log(`Initial kanji data loaded: ${gameState.kanjiData.size} kanji`);
-  
-  // Log initial counts by level
-  for (let level = 1; level <= 10; level++) {
-    const levelCount = Array.from(gameState.kanjiData.values()).filter(k => k.level === level).length;
-    if (levelCount > 0) {
-      console.log(`Initial Level ${level}: ${levelCount} kanji`);
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+      gameState.authToken = storedToken;
+      validateTokenAndAutoLogin(storedToken);
+    } else {
+      loadScene('loginScene');
+      updateNavigationUI();
     }
   }
   
-  startAutoSave();
-
-  const storedToken = localStorage.getItem('authToken');
-  if (storedToken) {
-    console.log('Found stored auth token, attempting auto-login');
-    gameState.authToken = storedToken;
-    validateTokenAndAutoLogin(storedToken);
-  } else {
-    console.log('No stored token, showing login scene');
-    loadScene('loginScene');
-    updateNavigationUI();
-  }
-}
-
-// Also improve the initializeKanjiData function with logging
-function initializeKanjiData() {
-  console.log('Initializing kanji data from SAMPLE_KANJI...');
+        // Replace all placeholder functions with these implementations:
   
-  if (!window.SAMPLE_KANJI || !Array.isArray(window.SAMPLE_KANJI)) {
-    console.error('SAMPLE_KANJI not found or not an array!');
-    return;
-  }
+    function updateDecksScene() {
+      const levelsDiv = document.getElementById('kanjiLevels');
+      let html = '';
   
-  console.log(`Found ${window.SAMPLE_KANJI.length} kanji in SAMPLE_KANJI`);
+      for (let level = 10; level >= 1; level--) {
+        const levelKanji = Array.from(gameState.kanjiData.values()).filter(
+          (k) =>
+            k.level === level &&
+            (gameState.settings.jlptLevel === 'all' ||
+              k.jlpt === gameState.settings.jlptLevel)
+        );
   
-  // Clear existing data
-  gameState.kanjiData.clear();
+        if (levelKanji.length === 0) continue;
   
-  SAMPLE_KANJI.forEach((kanji) => {
-    if (!kanji.id) {
-      console.warn('Kanji missing ID:', kanji);
-      return;
+        const inReviewCount = levelKanji.filter((k) => k.inReview).length;
+        const isExpanded = gameState.expandedLevel === level;
+  
+        html += `
+          <div class="level-header ${isExpanded ? 'expanded' : ''}" onclick="toggleLevel(${level})">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3>Level ${level}</h3>
+                <p>${inReviewCount} in review / ${levelKanji.length} total</p>
+              </div>
+              <div>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); studyLevel(${level})">Study Level</button>
+                <span style="margin-left: 15px;">${isExpanded ? '▼' : '▶'}</span>
+              </div>
+            </div>
+          </div>
+          <div class="kanji-grid ${isExpanded ? 'expanded' : ''}" id="level${level}Grid" style="display: ${isExpanded ? 'grid' : 'none'};">
+            ${levelKanji.map(kanji => `
+              <div class="kanji-card ${kanji.learned ? 'learned' : ''} ${kanji.inReview ? 'in-review' : ''}" 
+                  onclick="showKanjiDetail(${kanji.id})">
+                <div class="kanji-character">${kanji.character}</div>
+                <div class="kanji-translation">${kanji.meanings.join(', ')}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+  
+      levelsDiv.innerHTML = html;
     }
-    
-    gameState.kanjiData.set(kanji.id, {
-      ...kanji,
-      learned: false,
-      inReview: false,
-      interval: 1,
-      ease: 2.5,
-      consecutiveCorrect: 0,
-      totalReviews: 0,
-      correctReviews: 0,
-      lastReview: null,
-      nextReview: null,
-      mnemonic: '',
-    });
-  });
-  
-  console.log(`Successfully initialized ${gameState.kanjiData.size} kanji`);
-}
-function updateDecksScene() {
-  const levelsDiv = document.getElementById('kanjiLevels');
-  let html = '';
-
-  // Get all kanji, then apply level and JLPT filters
-  const allKanji = Array.from(gameState.kanjiData.values());
-  
-  console.log(`Total kanji in memory: ${allKanji.length}`);
-  console.log(`Current JLPT filter: ${gameState.settings.jlptLevel}`);
-
-  for (let level = 10; level >= 1; level--) {
-    // FIXED: More robust filtering logic
-    let levelKanji = allKanji.filter(k => k.level === level);
-    
-    // Apply JLPT filter only if not 'all'
-    if (gameState.settings.jlptLevel !== 'all') {
-      levelKanji = levelKanji.filter(k => k.jlpt === gameState.settings.jlptLevel);
-    }
-
-    console.log(`Level ${level}: ${levelKanji.length} kanji (after filters)`);
-
-    // Skip levels with no kanji
-    if (levelKanji.length === 0) continue;
-
-    const inReviewCount = levelKanji.filter((k) => k.inReview).length;
-    const isExpanded = gameState.expandedLevel === level;
-
-    html += `
-      <div class="level-header ${isExpanded ? 'expanded' : ''}" onclick="toggleLevel(${level})">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3>Level ${level}</h3>
-            <p>${inReviewCount} in review / ${levelKanji.length} total</p>
-          </div>
-          <div>
-            <button class="btn btn-primary" onclick="event.stopPropagation(); studyLevel(${level})">Study Level</button>
-            <span style="margin-left: 15px;">${isExpanded ? '▼' : '▶'}</span>
-          </div>
-        </div>
-      </div>
-      <div class="kanji-grid ${isExpanded ? 'expanded' : ''}" id="level${level}Grid" style="display: ${isExpanded ? 'grid' : 'none'};">
-        ${levelKanji.map(kanji => `
-          <div class="kanji-card ${kanji.learned ? 'learned' : ''} ${kanji.inReview ? 'in-review' : ''}" 
-              onclick="showKanjiDetail(${kanji.id})">
-            <div class="kanji-character">${kanji.character}</div>
-            <div class="kanji-translation">${kanji.meanings ? kanji.meanings.join(', ') : 'No meaning'}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  levelsDiv.innerHTML = html;
-}
     function updateCramScene() {
       gameState.cramSession.selectedKanji.clear();
   
