@@ -662,6 +662,19 @@
             </button>
           </div>
 
+       
+<div style="margin: 20px 0;">
+  <div style="margin-bottom: 20px;">
+    <h3>Upcoming Reviews (Next 7 Days)</h3>
+    <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
+  </div>
+  
+  <div style="margin-bottom: 20px;">
+    <h3>Review History (Past 7 Days)</h3>
+    <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
+  </div>
+</div>
+
           <div id="authStatus"></div>
         </div>
       </div>
@@ -7651,6 +7664,171 @@
   }
 }
 
+// Chart drawing functions
+function drawReviewChart(canvasId, data, labels, title, color = '#4CAF50') {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  // Set actual canvas size for crisp rendering
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  
+  const width = rect.width;
+  const height = rect.height;
+  const padding = 50;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - padding * 2;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Find max value for scaling
+  const maxValue = Math.max(...data, 1);
+  
+  // Draw background
+  ctx.fillStyle = '#f9f9f9';
+  ctx.fillRect(0, 0, width, height);
+  
+  // Draw grid lines
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  
+  // Horizontal grid lines
+  for (let i = 0; i <= 5; i++) {
+    const y = padding + (chartHeight / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+    
+    // Y-axis labels
+    const value = Math.round(maxValue - (maxValue / 5) * i);
+    ctx.fillStyle = '#666';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText(value.toString(), padding - 10, y + 4);
+  }
+  
+  // Draw bars
+  const barWidth = chartWidth / data.length * 0.8;
+  const barSpacing = chartWidth / data.length * 0.2;
+  
+  data.forEach((value, index) => {
+    const barHeight = (value / maxValue) * chartHeight;
+    const x = padding + index * (chartWidth / data.length) + barSpacing / 2;
+    const y = padding + chartHeight - barHeight;
+    
+    // Draw bar
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, barWidth, barHeight);
+    
+    // Draw value on top of bar
+    if (value > 0) {
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(value.toString(), x + barWidth / 2, y - 5);
+    }
+    
+    // Draw x-axis labels
+    ctx.fillStyle = '#666';
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[index], x + barWidth / 2, height - 10);
+  });
+  
+  // Draw axes
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.lineTo(width - padding, height - padding);
+  ctx.stroke();
+}
+
+function getUpcomingReviewsData() {
+  const data = [];
+  const labels = [];
+  const now = new Date();
+  
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + i);
+    
+    // Count reviews due on this date
+    let reviewCount = 0;
+    gameState.kanjiData.forEach((kanji) => {
+      if (kanji.inReview && kanji.nextReview) {
+        const reviewDate = new Date(kanji.nextReview);
+        if (reviewDate.toDateString() === date.toDateString()) {
+          reviewCount++;
+        }
+      }
+    });
+    
+    data.push(reviewCount);
+    
+    // Format label
+    if (i === 0) {
+      labels.push('Today');
+    } else if (i === 1) {
+      labels.push('Tomorrow');
+    } else {
+      labels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }));
+    }
+  }
+  
+  return { data, labels };
+}
+
+function getReviewHistoryData() {
+  const data = [];
+  const labels = [];
+  const now = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    
+    // Count reviews done on this date
+    let reviewCount = 0;
+    gameState.kanjiData.forEach((kanji) => {
+      if (kanji.lastReview) {
+        const reviewDate = new Date(kanji.lastReview);
+        if (reviewDate.toDateString() === date.toDateString()) {
+          reviewCount++;
+        }
+      }
+    });
+    
+    data.push(reviewCount);
+    
+    // Format label
+    if (i === 0) {
+      labels.push('Today');
+    } else if (i === 1) {
+      labels.push('Yesterday');
+    } else {
+      labels.push(date.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' }));
+    }
+  }
+  
+  return { data, labels };
+}
+
+function updateReviewCharts() {
+  // Update upcoming reviews chart
+  const upcomingData = getUpcomingReviewsData();
+  drawReviewChart('upcomingReviewsChart', upcomingData.data, upcomingData.labels, 'Upcoming Reviews', '#2196F3');
+  
+  // Update review history chart
+  const historyData = getReviewHistoryData();
+  drawReviewChart('reviewHistoryChart', historyData.data, historyData.labels, 'Review History', '#4CAF50');
+}
+          
 async function addCustomWord() {
   if (!gameState.selectedKanji) return;
   
@@ -7907,18 +8085,19 @@ async function displayVariations(kanji) {
       }
     }
           // Dashboard Functions
-          function updateDashboard() {
-            document.getElementById('welcomeName').textContent =
-              gameState.settings.profileName || 'User';
-  
-            const stats = calculateStats();
-            document.getElementById('kanjiLearned').textContent =
-              stats.kanjiLearned;
-            document.getElementById('reviewsDue').textContent = stats.reviewsDue;
-            document.getElementById('accuracy').textContent = stats.accuracy + '%';
-  
-            updateLevelProgress();
-          }
+function updateDashboard() {
+  document.getElementById('welcomeName').textContent =
+    gameState.settings.profileName || 'User';
+
+  const stats = calculateStats();
+  document.getElementById('kanjiLearned').textContent =
+    stats.kanjiLearned;
+  document.getElementById('reviewsDue').textContent = stats.reviewsDue;
+  document.getElementById('accuracy').textContent = stats.accuracy + '%';
+
+  updateLevelProgress();
+  updateReviewCharts(); // Add this line
+}
   
           function calculateStats() {
             let kanjiLearned = 0;
