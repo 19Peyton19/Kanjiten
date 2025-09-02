@@ -8255,6 +8255,8 @@ async function displayVariations(kanji) {
               ];
   
             let questionText, answerText;
+
+            
   
             if (session.questionMode === 'meaning-first') {
               questionText = `${randomVariation.reading}\n${randomVariation.meaning}`;
@@ -8263,6 +8265,10 @@ async function displayVariations(kanji) {
               questionText = randomVariation.word;
               answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
             }
+
+            const currentKanji = session.kanji[session.currentIndex];
+document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
+document.getElementById('reviewsRemaining').textContent = session.total - session.currentIndex - 1;
   
             document.getElementById('questionText').innerHTML =
               questionText.replace(/\n/g, '<br>');
@@ -8277,12 +8283,7 @@ async function displayVariations(kanji) {
             session.showingAnswer = false;
             updateStudyProgress();
   
-            const drawingSection = document.getElementById('drawingSection');
-            if (drawingSection) {
-              drawingSection.style.display = gameState.settings.showDrawing
-                ? 'block'
-                : 'none';
-            }
+
           }
   
           function showAnswer() {
@@ -8492,14 +8493,23 @@ function updateDecksScene() {
   
     function updateSettingsScene() {
       document.getElementById('profileName').value = gameState.settings.profileName;
-      document.getElementById('maxLevel').value = gameState.settings.maxLevel;
       document.getElementById('jlptLevel').value = gameState.settings.jlptLevel;
       document.getElementById('maxInterval').value = gameState.settings.maxInterval;
       document.getElementById('showProgress').checked = gameState.settings.showProgress;
-      document.getElementById('showDrawing').checked = gameState.settings.showDrawing;
        document.getElementById('defaultQuestionMode').value = gameState.settings.defaultQuestionMode;
     }
+  function toggleKanjiVisibility() {
+  const drawingInfo = document.getElementById('drawingInfo');
+  const toggleBtn = drawingInfo.querySelector('button');
   
+  if (drawingInfo.classList.contains('hidden')) {
+    drawingInfo.classList.remove('hidden');
+    toggleBtn.textContent = 'Hide Kanji';
+  } else {
+    drawingInfo.classList.add('hidden');
+    toggleBtn.textContent = 'Show Kanji';
+  }
+}
     function showKanjiDetail(kanjiId) {
       const kanji = gameState.kanjiData.get(kanjiId);
       if (!kanji) return;
@@ -8675,11 +8685,9 @@ function updateDecksScene() {
   async function saveSettings() {
       // Update gameState with form values
       gameState.settings.profileName = document.getElementById('profileName').value;
-      gameState.settings.maxLevel = parseInt(document.getElementById('maxLevel').value);
       gameState.settings.jlptLevel = document.getElementById('jlptLevel').value;
       gameState.settings.maxInterval = parseInt(document.getElementById('maxInterval').value);
       gameState.settings.showProgress = document.getElementById('showProgress').checked;
-      gameState.settings.showDrawing = document.getElementById('showDrawing').checked;
       gameState.settings.defaultQuestionMode = document.getElementById('defaultQuestionMode').value; 
   
       try {
