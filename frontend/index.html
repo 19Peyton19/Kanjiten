@@ -599,7 +599,7 @@
           onclick="goBack()"
           style="display: none"
         >
-          ← Back
+          Back
         </button>
         <button
           class="nav-btn"
@@ -726,18 +726,6 @@
     <canvas id="reviewHistoryChart" width="800" height="200" style="width: 300%; height: 200px; border: 1px solid #ddd;"></canvas>
   </div>
 </div>
-                  <div style="margin-top: 40px">
-          <div class="dashboard-card">
-            <h3>Settings</h3>
-            <p>Customize your learning experience</p>
-            <button
-              class="btn btn-primary"
-              onclick="loadScene('settingsScene')"
-            >
-              Settings
-            </button>
-          </div>
-        </div>
 
         <div style="margin-top: 40px">
           <h3>Level Progress</h3>
@@ -7946,6 +7934,7 @@ async function displayVariations(kanji) {
     if (gameState.isSignedIn) {
       document.getElementById('signOutBtn').style.display = 'block';
       document.getElementById('signInBtn').style.display = 'none';
+      document.getElementById('settingsBtn').style.display = 'none';
       
       if (gameState.isAnonymous) {
         document.getElementById('guestNotice').style.display = 'block';
@@ -7956,6 +7945,7 @@ async function displayVariations(kanji) {
       document.getElementById('signOutBtn').style.display = 'none';
       document.getElementById('signInBtn').style.display = 'block';
       document.getElementById('guestNotice').style.display = 'none';
+      document.getElementById('settingsBtn').style.display = 'none';
     }
   }
   async function handleAuthFallback(email, username, password, isSignUp = false) {
