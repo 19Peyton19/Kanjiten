@@ -471,7 +471,8 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
 // Save user  endpoint
 app.put('/api/settings', authenticateUser, async (req, res) => {
     try {
-        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing } = req.body;
+        // Add defaultQuestionMode to the destructuring
+        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing, defaultQuestionMode } = req.body;
         
         const settingsData = {
             user_id: req.user.id,
@@ -481,7 +482,7 @@ app.put('/api/settings', authenticateUser, async (req, res) => {
             max_interval: maxInterval,
             show_progress: showProgress,
             show_drawing: showDrawing,
-            default_question_mode: defaultQuestionMode,
+            default_question_mode: defaultQuestionMode, // Now this variable exists
             updated_at: new Date().toISOString()
         };
 
