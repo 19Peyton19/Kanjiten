@@ -1,969 +1,1029 @@
   
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Kanjiten - Spaced Repetition Learning</title>
-        <style>
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-  
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
-              sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            color: #333;
-          }
-  
-          /* Top Navigation Bar */
-          .top-nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e1e8ed;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-          }
-  
-          .nav-logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-          }
-  
-          .nav-buttons {
-            display: flex;
-            gap: 10px;
-          }
-  
-          .nav-btn {
-            padding: 8px 16px;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-          }
-  
-          .nav-btn:hover {
-            background: #e9ecef;
-          }
-  
-          .nav-btn.primary {
-            background: #495057;
-            color: white;
-            border-color: #495057;
-          }
-  
-          .nav-btn.primary:hover {
-            background: #343a40;
-          }
-  
-          .container {
-            max-width: 1200px;
-            margin: 60px auto 0;
-            padding: 20px;
-          }
-  
-          .scene {
-            display: none;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            min-height: 80vh;
-          }
-  
-          .scene.active {
-            display: block;
-          }
-  
-          h1,
-          h2,
-          h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-          }
-  
-          .auth-form {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 40px;
-          }
-  
-          .input-group {
-            margin-bottom: 20px;
-          }
-  
-          label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-          }
-  
-          input,
-          select,
-          textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-          }
-  
-          input:focus,
-          select:focus,
-          textarea:focus {
-            outline: none;
-            border-color: #6c757d;
-            box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
-          }
-  
-          .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-            min-width: 120px;
-          }
-  
-          .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-          }
-  
-          .btn-primary {
-            background: linear-gradient(135deg, #495057, #6c757d);
-            color: white;
-          }
-  
-          .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(73, 80, 87, 0.3);
-          }
-  
-          .btn-secondary {
-            background: #f8f9fa;
-            color: #495057;
-            border: 2px solid #dee2e6;
-          }
-  
-          .btn-secondary:hover {
-            background: #e9ecef;
-          }
-  
-          .btn-danger {
-            background: #dc3545;
-            color: white;
-          }
-  
-          .btn-success {
-            background: #28a745;
-            color: white;
-          }
-  
-          .btn-warning {
-            background: #ffc107;
-            color: #212529;
-          }
-  
-          .status-message {
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-          }
-  
-          .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-          }
-  
-          .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-          }
-  
-          .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-          }
-  
-          .dashboard-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease;
-          }
-  
-          .dashboard-card:hover {
-            transform: translateY(-5px);
-          }
-  
-          .progress-bar {
-            width: 100%;
-            height: 20px;
-            background: #e9ecef;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-          }
-  
-          .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #6c757d, #495057);
-            transition: width 0.3s ease;
-            border-radius: 10px;
-          }
-  
-          .level-header {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 10px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
-          }
-  
-          .level-header:hover {
-            background: #e9ecef;
-          }
-  
-          .level-header.expanded {
-            background: #e9ecef;
-          }
-  
-          .kanji-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-            overflow: hidden;
-            transition: all 0.3s ease;
-          }
-  
-          .kanji-grid:not(.expanded) {
-            display: none;
-          }
-  
-          .kanji-grid.expanded {
-            display: grid;
-          }
-          
-          .kanji-card {
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-          }
-  
-          .kanji-card:hover {
-            border-color: #6c757d;
-            transform: translateY(-2px);
-          }
-  
-          .kanji-card.learned {
-            background: #d4edda;
-            border-color: #28a745;
-          }
-  
-          .kanji-card.in-review {
-            background: #fff3cd;
-            border-color: #ffc107;
-          }
-  
-          .kanji-card.selected {
-            background: #e9ecef;
-            border-color: #6c757d;
-            transform: scale(0.95);
-          }
-  
-          .kanji-character {
-            font-size: 48px;
-            font-weight: bold;
-            margin-bottom: 10px;
-          }
-  
-          .kanji-translation {
-            font-size: 14px;
-            color: #666;
-          }
-  
-          .study-interface {
-            text-align: center;
-            padding: 40px;
-          }
-  
-          .question-card {
-            background: white;
-            padding: 60px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin: 30px 0;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-          }
-  
-          .question-text {
-            font-size: 32px;
-            margin-bottom: 20px;
-          }
-  
-          .answer-text {
-            font-size: 72px;
-            font-weight: bold;
-            color: #495057;
-            margin: 20px 0;
-          }
-  
-          .answer-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 30px 0;
-          }
-  
-          .drawing-canvas {
-            border: 3px solid #e1e8ed;
-            border-radius: 15px;
-            margin: 20px auto;
-            display: block;
-            background: white;
-            cursor: crosshair;
-          }
-  
-          .drawing-controls {
-            text-align: center;
-            margin: 20px 0;
-          }
-  
-          .variation-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-            border-left: 4px solid #6c757d;
-          }
-  
-          .tabs {
-            display: flex;
-            border-bottom: 2px solid #e1e8ed;
-            margin-bottom: 30px;
-          }
-  
-          .tab {
-            padding: 15px 30px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-          }
-  
-          .tab.active {
-            border-bottom-color: #6c757d;
-            background: #f8f9fa;
-          }
-  
-          .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-          }
-  
-          .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-          }
-  
-          .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #495057;
-          }
-  
-          .stat-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
-          }
-  
-          .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-          }
-  
-          .modal.active {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-  
-          .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-          }
-  
-          .close {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #999;
-          }
-  
-          .close:hover {
-            color: #333;
-          }
-  
-          .floating-btn {
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-          }
-  
-          .guest-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-          }
-  
-          @media (max-width: 768px) {
-            .container {
-              padding: 10px;
-              margin-top: 70px;
-            }
-  
-            .top-nav {
-              padding: 0 10px;
-            }
-  
-            .nav-logo {
-              font-size: 20px;
-            }
-  
-            .nav-btn {
-              padding: 6px 12px;
-              font-size: 12px;
-            }
-  
-            .scene {
-              padding: 20px;
-            }
-  
-            .dashboard-grid {
-              grid-template-columns: 1fr;
-            }
-  
-            .answer-buttons {
-              flex-direction: column;
-              align-items: center;
-            }
-  
-            .kanji-grid {
-              grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <!-- Top Navigation Bar -->
-        <div class="top-nav">
-          <div class="nav-logo">🌸 Kanjiten</div>
-          <div class="nav-buttons">
-            <button
-              class="nav-btn"
-              id="backBtn"
-              onclick="goBack()"
-              style="display: none"
-            >
-              ← Back
+   <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kanjiten - Spaced Repetition Learning</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+          sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      /* Top Navigation Bar */
+      .top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #e1e8ed;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .nav-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .nav-btn {
+        padding: 8px 16px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-btn:hover {
+        background: #e9ecef;
+      }
+
+      .nav-btn.primary {
+        background: #495057;
+        color: white;
+        border-color: #495057;
+      }
+
+      .nav-btn.primary:hover {
+        background: #343a40;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 60px auto 0;
+        padding: 20px;
+      }
+
+      .scene {
+        display: none;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        min-height: 80vh;
+      }
+
+      .scene.active {
+        display: block;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .auth-form {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 40px;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #6c757d;
+        box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
+      }
+
+      .btn {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 10px;
+        min-width: 120px;
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #495057, #6c757d);
+        color: white;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(73, 80, 87, 0.3);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #495057;
+        border: 2px solid #dee2e6;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+      }
+
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-warning {
+        background: #ffc107;
+        color: #212529;
+      }
+
+      .status-message {
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .dashboard-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease;
+        text-align: center;
+      }
+
+      .dashboard-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6c757d, #495057);
+        transition: width 0.3s ease;
+        border-radius: 10px;
+      }
+
+      .level-header {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .level-header:hover {
+        background: #e9ecef;
+      }
+
+      .level-header.expanded {
+        background: #e9ecef;
+      }
+
+      .kanji-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .kanji-grid:not(.expanded) {
+        display: none;
+      }
+
+      .kanji-grid.expanded {
+        display: grid;
+      }
+      
+      .kanji-card {
+        background: white;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+      }
+
+      .kanji-card:hover {
+        border-color: #6c757d;
+        transform: translateY(-2px);
+      }
+
+      .kanji-card.learned {
+        background: #d4edda;
+        border-color: #28a745;
+      }
+
+      .kanji-card.in-review {
+        background: #fff3cd;
+        border-color: #ffc107;
+      }
+
+      .kanji-card.selected {
+        background: #e9ecef;
+        border-color: #6c757d;
+        transform: scale(0.95);
+      }
+
+      .kanji-character {
+        font-size: 48px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .kanji-translation {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .study-interface {
+        text-align: center;
+        padding: 40px;
+      }
+
+      .study-info {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #e9ecef;
+      }
+
+      .study-info-item {
+        text-align: center;
+      }
+
+      .study-info-label {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .study-info-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #495057;
+      }
+
+      .question-card {
+        background: white;
+        padding: 60px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin: 30px 0;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .question-text {
+        font-size: 32px;
+        margin-bottom: 20px;
+      }
+
+      .answer-text {
+        font-size: 72px;
+        font-weight: bold;
+        color: #495057;
+        margin: 20px 0;
+      }
+
+      .answer-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 30px 0;
+      }
+
+      .drawing-canvas {
+        border: 3px solid #e1e8ed;
+        border-radius: 15px;
+        display: block;
+        background: white;
+        cursor: crosshair;
+      }
+
+      .drawing-container {
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
+      .drawing-info {
+        flex: 0 0 300px;
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+      }
+
+      .drawing-info.hidden {
+        display: none;
+      }
+
+      .drawing-controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .variation-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+        border-left: 4px solid #6c757d;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid #e1e8ed;
+        margin-bottom: 30px;
+      }
+
+      .tab {
+        padding: 15px 30px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .tab.active {
+        border-bottom-color: #6c757d;
+        background: #f8f9fa;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px 0;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .stat-value {
+        font-size: 36px;
+        font-weight: bold;
+        color: #495057;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      .modal.active {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .close {
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #999;
+      }
+
+      .close:hover {
+        color: #333;
+      }
+
+      .floating-btn {
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .guest-notice {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 10px;
+          margin-top: 70px;
+        }
+
+        .top-nav {
+          padding: 0 10px;
+        }
+
+        .nav-logo {
+          font-size: 20px;
+        }
+
+        .nav-btn {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+
+        .scene {
+          padding: 20px;
+        }
+
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .answer-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .kanji-grid {
+          grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        }
+
+        .drawing-container {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .drawing-info {
+          flex: none;
+          width: 100%;
+          max-width: 400px;
+        }
+
+        .study-info {
+          flex-direction: column;
+          gap: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+      <div class="nav-logo">🌸 Kanjiten</div>
+      <div class="nav-buttons">
+        <button
+          class="nav-btn"
+          id="backBtn"
+          onclick="goBack()"
+          style="display: none"
+        >
+          ← Back
+        </button>
+        <button
+          class="nav-btn"
+          id="settingsBtn"
+          onclick="loadScene('settingsScene')"
+          style="display: none"
+        >
+          Settings
+        </button>
+        <button
+          class="nav-btn"
+          id="signInBtn"
+          onclick="loadScene('loginScene')"
+          style="display: none"
+        >
+          Sign In
+        </button>
+        <button
+          class="nav-btn primary"
+          id="signOutBtn"
+          onclick="signOut()"
+          style="display: none"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Login Scene -->
+      <div class="scene" id="loginScene">
+        <div class="auth-form">
+          <h1>🌸 Kanjiten</h1>
+          <p style="text-align: center; margin-bottom: 30px; color: #666">
+            Master Japanese kanji with spaced repetition
+          </p>
+
+<div class="input-group">
+  <label for="email">Email</label>
+  <input type="email" id="email" placeholder="Enter email" />
+</div>
+<div class="input-group">
+  <label for="username">Username</label>
+  <input type="text" id="username" placeholder="Enter username" />
+</div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password" />
+          </div>
+
+
+          <div style="text-align: center">
+            <button class="btn btn-primary" onclick="signIn()">Sign In</button>
+            <button class="btn btn-secondary" onclick="signUp()">
+              Sign Up
             </button>
+            <button class="btn btn-secondary" onclick="signInAnonymous()">
+              Guest Mode
+            </button>
+          </div>
+
+          <div id="authStatus"></div>
+        </div>
+      </div>
+
+      <!-- Dashboard Scene -->
+      <div class="scene active" id="dashboardScene">
+        <div id="guestNotice" class="guest-notice" style="display: none;">
+          You're in guest mode. Your progress won't be saved permanently. 
+          <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
+        </div>
+
+        <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="kanjiLearned">0</div>
+            <div class="stat-label">Kanji in Review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="reviewsDue">0</div>
+            <div class="stat-label">Reviews Due</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="accuracy">0%</div>
+            <div class="stat-label">Accuracy</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <h3>Decks</h3>
+            <p>Browse and study kanji by level</p>
+            <button class="btn btn-primary" onclick="loadScene('decksScene')">
+              Browse Decks
+            </button>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Study</h3>
+            <p>Review kanji that are due for study</p>
+            <button class="btn btn-primary" onclick="startReview()">
+              Start Review
+            </button>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Cram Kanji</h3>
+            <p>Quick practice with selected kanji</p>
+            <button class="btn btn-primary" onclick="loadScene('cramScene')">
+              Cram Session
+            </button>
+          </div>
+
+          <div class="dashboard-card">
+            <h3>Settings</h3>
+            <p>Customize your learning experience</p>
             <button
-              class="nav-btn"
-              id="settingsBtn"
+              class="btn btn-primary"
               onclick="loadScene('settingsScene')"
-              style="display: none"
             >
               Settings
             </button>
+          </div>
+        </div>
+
+        <div style="margin-top: 40px">
+          <h3>Level Progress</h3>
+          <div id="levelProgress"></div>
+        </div>
+      </div>
+
+      <!-- Decks Scene -->
+      <div class="scene" id="decksScene">
+        <h2>📚 Kanji Decks</h2>
+
+        <div style="margin-bottom: 30px; text-align: center">
+          <label for="studyAmount">Study Amount: </label>
+          <select id="studyAmount">
+            <option value="5">5 cards</option>
+            <option value="10">10 cards</option>
+            <option value="20">20 cards</option>
+            <option value="all">All cards</option>
+          </select>
+          <button
+            class="btn btn-primary"
+            onclick="startLevelStudy()"
+            style="margin-left: 20px"
+          >
+            Study Selected
+          </button>
+        </div>
+
+        <div id="kanjiLevels"></div>
+      </div>
+
+      <!-- Study Scene -->
+      <div class="scene" id="studyScene">
+        <h2>📖 Study Session</h2>
+
+        <div class="study-info">
+          <div class="study-info-item">
+            <div class="study-info-label">Progress</div>
+            <div class="study-info-value" id="studyProgress">0/0</div>
+          </div>
+          <div class="study-info-item">
+            <div class="study-info-label">Current Level</div>
+            <div class="study-info-value" id="currentKanjiLevel">-</div>
+          </div>
+          <div class="study-info-item">
+            <div class="study-info-label">Reviews Remaining</div>
+            <div class="study-info-value" id="reviewsRemaining">0</div>
+          </div>
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            id="studyProgressBar"
+            style="width: 0%"
+          ></div>
+        </div>
+
+        <div class="study-interface">
+          <div class="question-card">
+            <div id="questionText" class="question-text">
+              Click "Show Answer" to begin
+            </div>
+            <div
+              id="answerText"
+              class="answer-text"
+              style="display: none"
+            ></div>
+
             <button
-              class="nav-btn"
-              id="signInBtn"
-              onclick="loadScene('loginScene')"
+              class="btn btn-primary"
+              id="showAnswerBtn"
+              onclick="showAnswer()"
+            >
+              Show Answer
+            </button>
+
+            <div
+              class="answer-buttons"
+              id="answerButtons"
               style="display: none"
             >
-              Sign In
+              <button class="btn btn-danger" onclick="submitAnswer(1)">
+                Wrong
+              </button>
+              <button class="btn btn-warning" onclick="submitAnswer(2)">
+                Hard
+              </button>
+              <button class="btn btn-success" onclick="submitAnswer(3)">
+                Good
+              </button>
+              <button class="btn btn-primary" onclick="submitAnswer(4)">
+                Easy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kanji Detail Scene -->
+      <div class="scene" id="kanjiDetailScene">
+        <div style="text-align: center">
+          <div
+            class="kanji-character"
+            id="detailKanjiChar"
+            style="font-size: 120px"
+          >
+            漢
+          </div>
+          <h2 id="detailKanjiReading">かん</h2>
+          <p
+            id="detailKanjiMeaning"
+            style="font-size: 24px; margin-bottom: 30px"
+          >
+            chinese
+          </p>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+          "
+        >
+          <div>
+            <h3>Details</h3>
+            <p><strong>Level:</strong> <span id="detailLevel">N/A</span></p>
+            <p><strong>JLPT:</strong> <span id="detailJLPT">N/A</span></p>
+            <p>
+              <strong>Status:</strong>
+              <span id="detailStatus">Not learned</span>
+            </p>
+            <p>
+              <strong>Accuracy:</strong> <span id="detailAccuracy">0%</span>
+            </p>
+            <p>
+              <strong>Next Review:</strong>
+              <span id="detailNextReview">N/A</span>
+            </p>
+          </div>
+          <div>
+            <h3>Actions</h3>
+            <button
+              class="btn btn-primary"
+              id="addToReviewBtn"
+              onclick="addKanjiToReview()"
+            >
+              Add to Review
             </button>
             <button
-              class="nav-btn primary"
-              id="signOutBtn"
-              onclick="signOut()"
+              class="btn btn-danger"
+              id="removeFromReviewBtn"
+              onclick="removeKanjiFromReview()"
               style="display: none"
             >
-              Sign Out
+              Remove from Review
+            </button>
+            <button class="btn btn-secondary" onclick="openDrawingScene()">
+              Practice Writing
             </button>
           </div>
         </div>
-  
-        <div class="container">
-          <!-- Login Scene -->
-          <div class="scene" id="loginScene">
-            <div class="auth-form">
-              <h1>🌸 Kanjiten</h1>
-              <p style="text-align: center; margin-bottom: 30px; color: #666">
-                Master Japanese kanji with spaced repetition
-              </p>
-  
-  <div class="input-group">
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Enter email" />
-  </div>
-  <div class="input-group">
-    <label for="username">Username</label>
-    <input type="text" id="username" placeholder="Enter username" />
-  </div>
-  
-              <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter password" />
-              </div>
 
+        <div>
+          <h3>Mnemonic</h3>
+          <textarea
+            id="mnemonicText"
+            placeholder="Enter your memory aid here..."
+            style="min-height: 100px"
+          ></textarea>
+          <button class="btn btn-primary" onclick="saveMnemonic()">
+            Save Mnemonic
+          </button>
+        </div>
 
-  
-              <div style="text-align: center">
-                <button class="btn btn-primary" onclick="signIn()">Sign In</button>
-                <button class="btn btn-secondary" onclick="signUp()">
-                  Sign Up
-                </button>
-                <button class="btn btn-secondary" onclick="signInAnonymous()">
-                  Guest Mode
-                </button>
-              </div>
-  
-              <div id="authStatus"></div>
-            </div>
-          </div>
-  
-          <!-- Dashboard Scene -->
-          <div class="scene active" id="dashboardScene">
-            <div id="guestNotice" class="guest-notice" style="display: none;">
-              You're in guest mode. Your progress won't be saved permanently. 
-              <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
-            </div>
-  
-            <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
-  
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-value" id="kanjiLearned">0</div>
-                <div class="stat-label">Kanji in Review</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value" id="reviewsDue">0</div>
-                <div class="stat-label">Reviews Due</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-value" id="accuracy">0%</div>
-                <div class="stat-label">Accuracy</div>
-              </div>
-            </div>
-  
-            <div class="dashboard-grid">
-              <div class="dashboard-card">
-                <h3>Decks</h3>
-                <p>Browse and study kanji by level</p>
-                <button class="btn btn-primary" onclick="loadScene('decksScene')">
-                  Browse Decks
-                </button>
-              </div>
-  
-              <div class="dashboard-card">
-                <h3>Study</h3>
-                <p>Review kanji that are due for study</p>
-                <button class="btn btn-primary" onclick="startReview()">
-                  Start Review
-                </button>
-              </div>
-  
-              <div class="dashboard-card">
-                <h3>Cram Kanji</h3>
-                <p>Quick practice with selected kanji</p>
-                <button class="btn btn-primary" onclick="loadScene('cramScene')">
-                  Cram Session
-                </button>
-              </div>
-  
-              <div class="dashboard-card">
-                <h3>Settings</h3>
-                <p>Customize your learning experience</p>
-                <button
-                  class="btn btn-primary"
-                  onclick="loadScene('settingsScene')"
-                >
-                  Settings
-                </button>
-              </div>
-            </div>
-  
-            <div style="margin-top: 40px">
-              <h3>Level Progress</h3>
-              <div id="levelProgress"></div>
-            </div>
-          </div>
-  
-          <!-- Decks Scene -->
-          <div class="scene" id="decksScene">
-            <h2>📚 Kanji Decks</h2>
-  
-            <div style="margin-bottom: 30px; text-align: center">
-              <label for="studyAmount">Study Amount: </label>
-              <select id="studyAmount">
-                <option value="5">5 cards</option>
-                <option value="10">10 cards</option>
-                <option value="20">20 cards</option>
-                <option value="all">All cards</option>
-              </select>
-              <button
-                class="btn btn-primary"
-                onclick="startLevelStudy()"
-                style="margin-left: 20px"
-              >
-                Study Selected
-              </button>
-            </div>
-  
-            <div id="kanjiLevels"></div>
-          </div>
-  
-          <!-- Study Scene -->
-          <div class="scene" id="studyScene">
-            <h2>📖 Study Session</h2>
-  
-            <div style="text-align: center; margin-bottom: 20px">
-              <div>Progress: <span id="studyProgress">0/0</span></div>
-              <div class="progress-bar">
-                <div
-                  class="progress-fill"
-                  id="studyProgressBar"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-  
-            <div class="study-interface">
-              <div class="question-card">
-                <div id="questionText" class="question-text">
-                  Click "Show Answer" to begin
-                </div>
-                <div
-                  id="answerText"
-                  class="answer-text"
-                  style="display: none"
-                ></div>
-  
-                <button
-                  class="btn btn-primary"
-                  id="showAnswerBtn"
-                  onclick="showAnswer()"
-                >
-                  Show Answer
-                </button>
-  
-                <div
-                  class="answer-buttons"
-                  id="answerButtons"
-                  style="display: none"
-                >
-                  <button class="btn btn-danger" onclick="submitAnswer(1)">
-                    Wrong
-                  </button>
-                  <button class="btn btn-warning" onclick="submitAnswer(2)">
-                    Hard
-                  </button>
-                  <button class="btn btn-success" onclick="submitAnswer(3)">
-                    Good
-                  </button>
-                  <button class="btn btn-primary" onclick="submitAnswer(4)">
-                    Easy
-                  </button>
-                </div>
-              </div>
-  
-              <div id="drawingSection" style="display: none">
-                <h4>Practice Writing</h4>
-                <canvas
-                  id="drawingCanvas"
-                  class="drawing-canvas"
-                  width="300"
-                  height="300"
-                ></canvas>
-                <div class="drawing-controls">
-                  <button class="btn btn-secondary" onclick="clearCanvas()">
-                    Clear
-                  </button>
-                  <button class="btn btn-secondary" onclick="toggleEraser()">
-                    Eraser
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Kanji Detail Scene -->
-          <div class="scene" id="kanjiDetailScene">
-            <div style="text-align: center">
-              <div
-                class="kanji-character"
-                id="detailKanjiChar"
-                style="font-size: 120px"
-              >
-                漢
-              </div>
-              <h2 id="detailKanjiReading">かん</h2>
-              <p
-                id="detailKanjiMeaning"
-                style="font-size: 24px; margin-bottom: 30px"
-              >
-                chinese
-              </p>
-            </div>
-  
+        <div id="kanjiVariations" style="margin-top: 30px">
+          <h3>Words using this kanji</h3>
+            <button class="btn btn-secondary" onclick="toggleAddWordForm()" id="addWordBtn">Add Word</button>
+            <div id="addWordForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+  <h4>Add Custom Word</h4>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+    <div>
+      <label>Word:</label>
+      <input type="text" id="customWord" placeholder="e.g., 一番" />
+    </div>
+    <div>
+      <label>Reading:</label>
+      <input type="text" id="customReading" placeholder="e.g., いちばん" />
+    </div>
+    <div style="grid-column: span 2;">
+      <label>Meaning:</label>
+      <input type="text" id="customMeaning" placeholder="e.g., number one, first" />
+    </div>
+    <div>
+      <label>Type:</label>
+      <select id="customType">
+        <option value="on">On'yomi</option>
+        <option value="kun">Kun'yomi</option>
+      </select>
+    </div>
+    <div>
+      <label>JLPT Level:</label>
+      <select id="customJlpt">
+        <option value="N5">N5</option>
+        <option value="N4">N4</option>
+        <option value="N3">N3</option>
+        <option value="N2">N2</option>
+        <option value="N1">N1</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top: 15px;">
+    <button class="btn btn-primary" onclick="addCustomWord()">Add Word</button>
+    <button class="btn btn-secondary" onclick="toggleAddWordForm()">Cancel</button>
+  </div>
+</div>
+
+          <div id="variationsList"></div>
+        </div>
+      </div>
+
+      <!-- Drawing Scene -->
+      <div class="scene" id="drawingScene">
+        <h2>✏️ Practice Writing</h2>
+
+        <div class="drawing-container">
+          <canvas
+            id="mainDrawingCanvas"
+            class="drawing-canvas"
+            width="400"
+            height="400"
+          ></canvas>
+          
+          <div class="drawing-info" id="drawingInfo">
             <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 30px;
-                margin: 30px 0;
-              "
+              class="kanji-character"
+              id="drawingKanjiChar"
+              style="font-size: 120px"
             >
-              <div>
-                <h3>Details</h3>
-                <p><strong>Level:</strong> <span id="detailLevel">N/A</span></p>
-                <p><strong>JLPT:</strong> <span id="detailJLPT">N/A</span></p>
-                <p>
-                  <strong>Status:</strong>
-                  <span id="detailStatus">Not learned</span>
-                </p>
-                <p>
-                  <strong>Accuracy:</strong> <span id="detailAccuracy">0%</span>
-                </p>
-                <p>
-                  <strong>Next Review:</strong>
-                  <span id="detailNextReview">N/A</span>
-                </p>
-              </div>
-              <div>
-                <h3>Actions</h3>
-                <button
-                  class="btn btn-primary"
-                  id="addToReviewBtn"
-                  onclick="addKanjiToReview()"
-                >
-                  Add to Review
-                </button>
-                <button
-                  class="btn btn-danger"
-                  id="removeFromReviewBtn"
-                  onclick="removeKanjiFromReview()"
-                  style="display: none"
-                >
-                  Remove from Review
-                </button>
-                <button class="btn btn-secondary" onclick="openDrawingScene()">
-                  Practice Writing
-                </button>
-              </div>
+              漢
             </div>
-  
-            <div>
-              <h3>Mnemonic</h3>
-              <textarea
-                id="mnemonicText"
-                placeholder="Enter your memory aid here..."
-                style="min-height: 100px"
-              ></textarea>
-              <button class="btn btn-primary" onclick="saveMnemonic()">
-                Save Mnemonic
-              </button>
-            </div>
-  
-            <div id="kanjiVariations" style="margin-top: 30px">
-              <h3>Words using this kanji</h3>
-                <button class="btn btn-secondary" onclick="toggleAddWordForm()" id="addWordBtn">Add Word</button>
-                <div id="addWordForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-    <h4>Add Custom Word</h4>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-      <div>
-        <label>Word:</label>
-        <input type="text" id="customWord" placeholder="e.g., 一番" />
-      </div>
-      <div>
-        <label>Reading:</label>
-        <input type="text" id="customReading" placeholder="e.g., いちばん" />
-      </div>
-      <div style="grid-column: span 2;">
-        <label>Meaning:</label>
-        <input type="text" id="customMeaning" placeholder="e.g., number one, first" />
-      </div>
-      <div>
-        <label>Type:</label>
-        <select id="customType">
-          <option value="on">On'yomi</option>
-          <option value="kun">Kun'yomi</option>
-        </select>
-      </div>
-      <div>
-        <label>JLPT Level:</label>
-        <select id="customJlpt">
-          <option value="N5">N5</option>
-          <option value="N4">N4</option>
-          <option value="N3">N3</option>
-          <option value="N2">N2</option>
-          <option value="N1">N1</option>
-        </select>
-      </div>
-    </div>
-    <div style="margin-top: 15px;">
-      <button class="btn btn-primary" onclick="addCustomWord()">Add Word</button>
-      <button class="btn btn-secondary" onclick="toggleAddWordForm()">Cancel</button>
-    </div>
-  </div>
-  
-              <div id="variationsList"></div>
-            </div>
+            <p
+              id="drawingKanjiMeaning"
+              style="font-size: 24px; margin: 20px 0"
+            >
+              chinese
+            </p>
+            <button class="btn btn-secondary" onclick="toggleKanjiVisibility()">
+              Hide Kanji
+            </button>
           </div>
-  
-          <!-- Drawing Scene -->
-          <div class="scene" id="drawingScene">
-            <h2>✏️ Practice Writing</h2>
-  
-            <div style="text-align: center">
-              <div
-                class="kanji-character"
-                id="drawingKanjiChar"
-                style="font-size: 120px"
-              >
-                漢
-              </div>
-              <p
-                id="drawingKanjiMeaning"
-                style="font-size: 24px; margin-bottom: 30px"
-              >
-                chinese
-              </p>
-            </div>
-  
-            <div style="text-align: center">
-              <canvas
-                id="mainDrawingCanvas"
-                class="drawing-canvas"
-                width="400"
-                height="400"
-              ></canvas>
-  
-              <div class="drawing-controls">
-                <button class="btn btn-secondary" onclick="clearMainCanvas()">
-                  Clear Canvas
-                </button>
-                <button class="btn btn-secondary" onclick="toggleMainEraser()">
-                  Toggle Eraser
-                </button>
-                <button class="btn btn-secondary" onclick="toggleBackground()">
-                  Toggle Guidelines
-                </button>
-              </div>
-            </div>
+        </div>
+
+        <div class="drawing-controls">
+          <button class="btn btn-secondary" onclick="clearMainCanvas()">
+            Clear Canvas
+          </button>
+          <button class="btn btn-secondary" onclick="toggleMainEraser()">
+            Toggle Eraser
+          </button>
+          <button class="btn btn-secondary" onclick="toggleBackground()">
+            Toggle Guidelines
+          </button>
+        </div>
+      </div>
+
+      <!-- Cram Scene -->
+      <div class="scene" id="cramScene">
+        <h2>🎯 Cram Session Setup</h2>
+
+        <div style="text-align: center; margin-bottom: 30px">
+          <div style="margin-bottom: 20px">
+            <label for="cramQuestionMode">Question Mode: </label>
+            <select id="cramQuestionMode" onchange="updateCramQuestionMode()">
+              <option value="meaning-first">
+                Show Reading + Meaning → Word
+              </option>
+              <option value="kanji-first">Show Word → Reading + Meaning</option>
+            </select>
           </div>
-  
-          <!-- Cram Scene -->
-          <div class="scene" id="cramScene">
-            <h2>🎯 Cram Session Setup</h2>
-  
-            <div style="text-align: center; margin-bottom: 30px">
-              <div style="margin-bottom: 20px">
-                <label for="cramQuestionMode">Question Mode: </label>
-                <select id="cramQuestionMode" onchange="updateCramQuestionMode()">
-                  <option value="meaning-first">
-                    Show Reading + Meaning → Word
-                  </option>
-                  <option value="kanji-first">Show Word → Reading + Meaning</option>
-                </select>
-              </div>
-  
-              <button class="btn btn-primary" onclick="selectAllKanji()">
-                Select All
-              </button>
-              <button class="btn btn-secondary" onclick="deselectAllKanji()">
-                Deselect All
-              </button>
-              <button
-                class="btn btn-success"
-                onclick="startCramSession()"
-                id="startCramBtn"
-                disabled
-              >
-                Start Cram (0 selected)
-              </button>
-            </div>
+
+          <button class="btn btn-primary" onclick="selectAllKanji()">
+            Select All
+          </button>
+          <button class="btn btn-secondary" onclick="deselectAllKanji()">
+            Deselect All
+          </button>
+          <button
+            class="btn btn-success"
+            onclick="startCramSession()"
+            id="startCramBtn"
+            disabled
+          >
+            Start Cram (0 selected)
+          </button>
+        </div
   
             <div id="cramKanjiLevels"></div>
           </div>
