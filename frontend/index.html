@@ -669,82 +669,76 @@
 
       <!-- Dashboard Scene -->
       <div class="scene active" id="dashboardScene">
-        <div id="guestNotice" class="guest-notice" style="display: none;">
-          You're in guest mode. Your progress won't be saved permanently. 
-          <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
-        </div>
-
-        <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value" id="kanjiLearned">0</div>
-            <div class="stat-label">Kanji in Review</div>
+               <div id="guestNotice" class="guest-notice" style="display: none;">
+            You're in guest mode. Your progress won't be saved permanently. 
+            <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
           </div>
-          <div class="stat-card">
-            <div class="stat-value" id="reviewsDue">0</div>
-            <div class="stat-label">Reviews Due</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="accuracy">0%</div>
-            <div class="stat-label">Accuracy</div>
-          </div>
-        </div>
-
-        <div class="dashboard-grid">
-          <div class="dashboard-card">
-            <h3>Decks</h3>
-            <p>Browse and study kanji by level</p>
-            <button class="btn btn-primary" onclick="loadScene('decksScene')">
-              Browse Decks
-            </button>
-          </div>
-
-          <div class="dashboard-card">
-            <h3>Study</h3>
-            <p>Review kanji that are due</p>
-            <button class="btn btn-primary" onclick="startReview()">
-              Start Review
-            </button>
-          </div>
-
-          <div class="dashboard-card">
-            <h3>Cram Kanji</h3>
-            <p>Practice with selected kanji</p>
-            <button class="btn btn-primary" onclick="loadScene('cramScene')">
-              Cram Session
-            </button>
-          </div>
-          <div style="margin: 20px 0;">
-<div style="grid-column: 1 / -1; margin: 20px 0;">
-  <div style="margin-bottom: 20px;">
-    <h3>Upcoming Reviews (Next 7 Days)</h3>
-    <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
-  </div>
   
-  <div style="margin-bottom: 20px;">
-    <h3>Review History (Past 7 Days)</h3>
-    <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
-  </div>
-</div>
-          <div class="dashboard-card">
-            <h3>Settings</h3>
-            <p>Customize your learning experience</p>
-            <button
-              class="btn btn-primary"
-              onclick="loadScene('settingsScene')"
-            >
-              Settings
-            </button>
+          <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
+  
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="kanjiLearned">0</div>
+              <div class="stat-label">Kanji in Review</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="reviewsDue">0</div>
+              <div class="stat-label">Reviews Due</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="accuracy">0%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
           </div>
-        </div>
-
-        <div style="margin-top: 40px">
-          <h3>Level Progress</h3>
-          <div id="levelProgress"></div>
-        </div>
-      </div>
-
+  
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <h3>Decks</h3>
+              <p>Browse and study kanji by level</p>
+              <button class="btn btn-primary" onclick="loadScene('decksScene')">
+                Browse Decks
+              </button>
+            </div>
+  
+            <div class="dashboard-card">
+              <h3>Study</h3>
+              <p>Review kanji that are due</p>
+              <button class="btn btn-primary" onclick="startReview()">
+                Start Review
+              </button>
+            </div>
+  
+            <div class="dashboard-card">
+              <h3>Cram Kanji</h3>
+              <p>Practice with selected kanji</p>
+              <button class="btn btn-primary" onclick="loadScene('cramScene')">
+                Cram Session
+              </button>
+            </div>
+            <div style="margin: 20px 0;">
+  <div style="grid-column: 1 / -1; margin: -10px 0;">
+    <div style="margin-bottom: 20px;">  
+      <h3>Upcoming Reviews (Next 7 Days)</h3>
+      <canvas id="upcomingReviewsChart" width="800" height="300" style="width: 300%; height: 200px; border: 1px solid #ddd;"></canvas>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <h3>Review History (Past 7 Days)</h3>
+      <canvas id="reviewHistoryChart" width="800" height="200" style="width: 300%; height: 200px; border: 1px solid #ddd;"></canvas>
+    </div>
+  </div>
+            <div class="dashboard-card">
+              <h3>Settings</h3>
+              <p>Customize your learning experience</p>
+              <button
+                class="btn btn-primary"
+                onclick="loadScene('settingsScene')"
+              >
+                Settings
+              </button>
+            </div>
+          </div>
+  
       <!-- Decks Scene -->
       <div class="scene" id="decksScene">
         <h2>Kanji Kentei Decks (漢字検定)</h2>
