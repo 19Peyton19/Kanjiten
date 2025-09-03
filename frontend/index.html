@@ -1337,6 +1337,50 @@ body {
             <span class="close" onclick="closeModal()">&times;</span>
             <div id="modalContent"></div>
           </div>
+          <!-- Add this modal HTML before the closing </div> of container -->
+<div class="kanji-details-modal-overlay" id="kanjiDetailsModal">
+  <div class="kanji-details-modal">
+    <div class="kanji-details-header">
+      <h2 id="modalKanjiChar">漢</h2>
+      <button class="close-btn" onclick="closeKanjiDetailsModal()">&times;</button>
+    </div>
+    <div class="kanji-details-content">
+      <div class="kanji-details-grid">
+        <div class="detail-item">
+          <div class="detail-label">Reading</div>
+          <div class="detail-value" id="modalKanjiReading">かん</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Meaning</div>
+          <div class="detail-value" id="modalKanjiMeaning">Chinese</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Level</div>
+          <div class="detail-value" id="modalKanjiLevel">N/A</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">JLPT</div>
+          <div class="detail-value" id="modalKanjiJLPT">N/A</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Status</div>
+          <div class="detail-value" id="modalKanjiStatus">Not learned</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Next Review</div>
+          <div class="detail-value" id="modalKanjiNextReview">N/A</div>
+        </div>
+        <div class="detail-item full-width">
+          <div class="detail-label">Mnemonic</div>
+          <div class="detail-value" id="modalKanjiMnemonic">
+            <div class="mnemonic-text">No mnemonic saved yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
         </div>
   
         <script>
