@@ -12,7 +12,7 @@
         box-sizing: border-box;
       }
 
-      /* Dark mode variables */
+/* Dark mode variables - Updated for dark gray theme */
 :root {
   --bg-primary: white;
   --bg-secondary: #f8f9fa;
@@ -29,18 +29,159 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #2d2d2d;
-  --bg-tertiary: #404040;
-  --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #888888;
-  --border-color: #404040;
-  --border-secondary: #555555;
-  --card-bg: #2d2d2d;
-  --modal-bg: #2d2d2d;
-  --gradient-start: #6c757d;
-  --gradient-end: #495057;
+  --bg-primary: #2a2a2a;        /* Dark gray background */
+  --bg-secondary: #3a3a3a;      /* Lighter dark gray for cards/sections */
+  --bg-tertiary: #4a4a4a;       /* Even lighter for hover states */
+  --text-primary: #ffffff;      /* White text */
+  --text-secondary: #ffffff;    /* White secondary text */
+  --text-muted: #cccccc;        /* Light gray for muted text */
+  --border-color: #555555;      /* Gray borders */
+  --border-secondary: #666666;  /* Lighter gray borders */
+  --card-bg: #3a3a3a;          /* Lighter dark gray for cards */
+  --modal-bg: #3a3a3a;         /* Lighter dark gray for modals */
+  --gradient-start: #4a4a4a;    /* Updated gradients */
+  --gradient-end: #3a3a3a;
+}
+
+      /* Dark mode specific overrides */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] div,
+[data-theme="dark"] label {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .top-nav {
+  background: rgba(42, 42, 42, 0.95);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-logo {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .nav-btn.primary {
+  background: #555555;
+  color: var(--text-primary);
+  border-color: #555555;
+}
+
+[data-theme="dark"] .nav-btn.primary:hover {
+  background: #666666;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .kanji-translation,
+[data-theme="dark"] .detail-label,
+[data-theme="dark"] .study-info-label,
+[data-theme="dark"] .stat-label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .status-success {
+  background: #1e4620;
+  color: #a3d9a5;
+  border-color: #2d5a2f;
+}
+
+[data-theme="dark"] .status-error {
+  background: #4a1e1e;
+  color: #f5b7b1;
+  border-color: #5f2d2d;
+}
+
+[data-theme="dark"] .guest-notice {
+  background: #4a3d1a;
+  color: #f4e4a6;
+  border-color: #6b5720;
+}
+
+[data-theme="dark"] .variation-item {
+  background: var(--bg-secondary);
+  border-left-color: #666666;
+}
+
+[data-theme="dark"] .mnemonic-text {
+  background: #4a3d1a;
+  color: #f4e4a6;
+  border-left-color: #6b5720;
+}
+
+[data-theme="dark"] .kanji-details-header {
+  background: linear-gradient(135deg, #4a4a4a 0%, #3a3a3a 100%);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .close-btn {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .detail-item {
+  background: var(--bg-secondary);
+  border-left-color: #666666;
+}
+
+[data-theme="dark"] .detail-value {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .drawing-canvas {
+  border-color: var(--border-color);
+  background: #1a1a1a; /* Darker canvas for better contrast */
 }
 
 body {
