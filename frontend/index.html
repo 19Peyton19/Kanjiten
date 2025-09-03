@@ -12,11 +12,42 @@
         box-sizing: border-box;
       }
 
+      /* Dark mode variables */
+:root {
+  --bg-primary: white;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-muted: #999;
+  --border-color: #e1e8ed;
+  --border-secondary: #dee2e6;
+  --card-bg: white;
+  --modal-bg: white;
+  --gradient-start: #495057;
+  --gradient-end: #6c757d;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #404040;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #888888;
+  --border-color: #404040;
+  --border-secondary: #555555;
+  --card-bg: #2d2d2d;
+  --modal-bg: #2d2d2d;
+  --gradient-start: #6c757d;
+  --gradient-end: #495057;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: white; /* Changed from gradient */
+background: var(--bg-primary);
   min-height: 100vh;
-  color: #333;
+  color: var(--text-primary);
 }
 
       /* Top Navigation Bar */
@@ -26,9 +57,9 @@ body {
         left: 0;
         right: 0;
         height: 60px;
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(var(--bg-primary), 0.95);
         backdrop-filter: blur(10px);
-        border-bottom: 1px solid #e1e8ed;
+        border: 1px solid var(--border-color);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -121,7 +152,7 @@ body {
       textarea {
         width: 100%;
         padding: 15px;
-        border: 2px solid #e1e8ed;
+        border: 2px solid var(--border-color);
         border-radius: 10px;
         font-size: 16px;
         transition: all 0.3s ease;
@@ -214,7 +245,7 @@ body {
       }
 
       .dashboard-card {
-        background: white;
+        background: var(--card-bg);
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -277,8 +308,8 @@ body {
       }
       
       .kanji-card {
-        background: white;
-        border: 2px solid #e1e8ed;
+        background: var(--card-bg);
+        border: 2px solid var(--border-color);
         border-radius: 10px;
         padding: 20px;
         text-align: center;
@@ -329,7 +360,7 @@ body {
       }
 
       .study-info {
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         padding: 15px 20px;
         border-radius: 10px;
         margin-bottom: 30px;
@@ -356,7 +387,7 @@ body {
       }
 
       .question-card {
-        background: white;
+        background: var(--card-bg);
         padding: 60px;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -390,7 +421,7 @@ body {
         border: 3px solid #e1e8ed;
         border-radius: 15px;
         display: block;
-        background: white;
+        background: var(--card-bg);
         cursor: crosshair;
       }
 
@@ -406,7 +437,7 @@ body {
         flex: 0 0 300px;
         text-align: center;
         padding: 20px;
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         border-radius: 15px;
         border: 1px solid #e9ecef;
       }
@@ -421,7 +452,7 @@ body {
       }
 
       .variation-item {
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         padding: 15px;
         border-radius: 10px;
         margin: 10px 0;
@@ -443,7 +474,7 @@ body {
 
       .tab.active {
         border-bottom-color: #6c757d;
-        background: #f8f9fa;
+        background: var(--bg-secondary);
       }
 
       .stats-grid {
@@ -454,7 +485,7 @@ body {
       }
 
       .stat-card {
-        background: white;
+        background: var(--card-bg);
         padding: 25px;
         border-radius: 15px;
         text-align: center;
@@ -491,7 +522,7 @@ body {
       }
 
       .modal-content {
-        background: white;
+        background: var(--card-bg);
         padding: 40px;
         border-radius: 20px;
         max-width: 600px;
@@ -608,7 +639,7 @@ body {
 }
 
 .kanji-details-modal {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 0;
   max-width: 90vw;
@@ -669,7 +700,7 @@ body {
 }
 
 .detail-item {
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 15px;
   border-left: 4px solid #667eea;
@@ -1327,6 +1358,12 @@ body {
         <input type="checkbox" id="showDrawing" /> Enable drawing practice
       </label>
     </div>
+
+    <div class="input-group">
+  <label>
+    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()"/> Enable dark mode
+  </label>
+</div>
 
     <div style="text-align: center; margin-top: 40px">
       <button class="btn btn-primary" onclick="saveSettings()">
@@ -8768,6 +8805,37 @@ function showAnswer() {
   }, 10);
 }
 
+// Dark mode functions
+function toggleDarkMode() {
+  const isDarkMode = document.getElementById('darkModeToggle').checked;
+  
+  if (isDarkMode) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('darkMode', 'enabled');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('darkMode', 'disabled');
+  }
+}
+
+function loadDarkModePreference() {
+  const darkMode = localStorage.getItem('darkMode');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  
+  if (darkMode === 'enabled') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (darkModeToggle) darkModeToggle.checked = true;
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (darkModeToggle) darkModeToggle.checked = false;
+  }
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  loadDarkModePreference();
+});
+
 // Function to close the kanji details modal
 function closeKanjiDetailsModal(event) {
   const modal = document.getElementById('kanjiDetailsModal');
@@ -9173,6 +9241,8 @@ function updateDecksScene() {
       gameState.settings.maxInterval = parseInt(document.getElementById('maxInterval').value);
       gameState.settings.showProgress = document.getElementById('showProgress').checked;
       gameState.settings.defaultQuestionMode = document.getElementById('defaultQuestionMode').value; 
+    // Add this line to your existing saveSettings() function
+localStorage.setItem('darkMode', document.getElementById('darkModeToggle').checked ? 'enabled' : 'disabled');
   
       try {
         if (gameState.isSignedIn && !gameState.isAnonymous && gameState.authToken) {
