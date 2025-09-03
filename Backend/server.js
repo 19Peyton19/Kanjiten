@@ -440,25 +440,27 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
         }
 
         // If no settings exist, return defaults
-        const defaultSettings = {
-            profileName: req.user.username || 'User',
-            maxLevel: 10,
-            jlptLevel: 'all',
-            maxInterval: 180,
-            showProgress: true,
-            showDrawing: true,
-            defaultQuestionMode: 'meaning-first'
-        };
+const defaultSettings = {
+    profileName: req.user.username || 'User',
+    maxLevel: 10,
+    jlptLevel: 'all',
+    maxInterval: 180,
+    showProgress: true,
+    showDrawing: true,
+    defaultQuestionMode: 'meaning-first',
+    darkMode: false
+};
 
         const settings = data ? {
-            profileName: data.profile_name || defaultSettings.profileName,
-            maxLevel: data.max_level || defaultSettings.maxLevel,
-            jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
-            maxInterval: data.max_interval || defaultSettings.maxInterval,
-            showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
-            showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
-             defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode
-        } : defaultSettings;
+    profileName: data.profile_name || defaultSettings.profileName,
+    maxLevel: data.max_level || defaultSettings.maxLevel,
+    jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
+    maxInterval: data.max_interval || defaultSettings.maxInterval,
+    showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
+    showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
+    defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode,
+    darkMode: data.dark_mode !== null ? data.dark_mode : defaultSettings.darkMode
+} : defaultSettings;
 
         res.json({ success: true, settings });
         
@@ -472,20 +474,20 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
 app.put('/api/settings', authenticateUser, async (req, res) => {
     try {
         // Add defaultQuestionMode to the destructuring
-        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing, defaultQuestionMode } = req.body;
+        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing, defaultQuestionMode, darkMode } = req.body;
         
         const settingsData = {
-            user_id: req.user.id,
-            profile_name: profileName,
-            max_level: maxLevel,
-            jlpt_level: jlptLevel,
-            max_interval: maxInterval,
-            show_progress: showProgress,
-            show_drawing: showDrawing,
-            default_question_mode: defaultQuestionMode, // Now this variable exists
-            updated_at: new Date().toISOString()
-        };
-
+    user_id: req.user.id,
+    profile_name: profileName,
+    max_level: maxLevel,
+    jlpt_level: jlptLevel,
+    max_interval: maxInterval,
+    show_progress: showProgress,
+    show_drawing: showDrawing,
+    default_question_mode: defaultQuestionMode,
+    dark_mode: darkMode,
+    updated_at: new Date().toISOString()
+};
         const { error } = await supabase
             .from('user_settings')
             .upsert(settingsData, {
