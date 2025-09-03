@@ -293,7 +293,7 @@ body {
 
       .kanji-card:hover {
         border-color: #6c757d;
-        transform: translateY(-2px);
+        transform: translateY(2px);
       }
 
       .kanji-card.learned {
@@ -583,37 +583,42 @@ body {
           flex-direction: column;
           gap: 15px;
         }
-        .kanji-details-modal-overlay {
+       /* Fixed modal positioning */
+.kanji-details-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 10000;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  visibility: hidden;
+  transition: all 0.3s ease;
 }
 
 .kanji-details-modal-overlay.active {
   opacity: 1;
+  visibility: visible;
 }
 
 .kanji-details-modal {
   background: white;
   border-radius: 12px;
   padding: 0;
-  max-width: 600px;
-  max-height: 80vh;
+  max-width: 90vw;
+  width: 600px;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   transform: scale(0.9);
   transition: transform 0.3s ease;
-  margin: 20px;
-  width: 100%;
+  position: relative;
 }
 
 .kanji-details-modal-overlay.active .kanji-details-modal {
