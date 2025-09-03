@@ -1,6 +1,4 @@
-
-  
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,8 +11,7 @@
         box-sizing: border-box;
       }
 
-      /* Dark mode variables */
-/* Dark mode variables - Updated for dark gray theme */
+      /* Dark mode variables - Updated for dark gray theme */
 :root {
   --bg-primary: white;
   --bg-secondary: #f8f9fa;
@@ -28,6 +25,11 @@
   --modal-bg: white;
   --gradient-start: #495057;
   --gradient-end: #6c757d;
+  --chart-bg: white;
+  --chart-text: #333;
+  --chart-lines: #666;
+  --in-review-bg: #fff3cd;
+  --in-review-border: #ffc107;
 }
 
 [data-theme="dark"] {
@@ -43,6 +45,11 @@
   --modal-bg: #3a3a3a;         /* Lighter dark gray for modals */
   --gradient-start: #4a4a4a;    /* Updated gradients */
   --gradient-end: #3a3a3a;
+  --chart-bg: #3a3a3a;         /* Dark gray for chart backgrounds */
+  --chart-text: #cccccc;       /* Light gray for chart text */
+  --chart-lines: #777777;      /* Medium gray for chart lines */
+  --in-review-bg: #4a4a4a;     /* Light gray instead of yellow for in-review cards */
+  --in-review-border: #666666; /* Gray border for in-review cards */
 }
 
       /* Dark mode specific overrides */
@@ -184,6 +191,46 @@
 [data-theme="dark"] .drawing-canvas {
   border-color: var(--border-color);
   background: #1a1a1a; /* Darker canvas for better contrast */
+}
+
+/* Level headers dark mode styling */
+[data-theme="dark"] .level-header {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .level-header:hover {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .level-header.expanded {
+  background: var(--bg-tertiary);
+}
+
+/* Chart styling for dark mode */
+[data-theme="dark"] .stat-card {
+  background: var(--chart-bg);
+}
+
+[data-theme="dark"] .stat-value {
+  color: var(--chart-text);
+}
+
+[data-theme="dark"] .stat-label {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .dashboard-card {
+  background: var(--chart-bg);
+}
+
+/* Progress bar dark mode */
+[data-theme="dark"] .progress-bar {
+  background: #4a4a4a;
+}
+
+[data-theme="dark"] .progress-fill {
+  background: linear-gradient(90deg, #666666, #555555);
 }
 
 body {
@@ -417,20 +464,21 @@ background: var(--bg-primary);
       }
 
       .level-header {
-        background: #f8f9fa;
+        background: var(--bg-secondary);
         padding: 20px;
         border-radius: 10px;
         margin: 10px 0;
         cursor: pointer;
         transition: all 0.3s ease;
+        color: var(--text-primary);
       }
 
       .level-header:hover {
-        background: #e9ecef;
+        background: var(--bg-tertiary);
       }
 
       .level-header.expanded {
-        background: #e9ecef;
+        background: var(--bg-tertiary);
       }
 
       .kanji-grid {
@@ -476,8 +524,8 @@ background: var(--bg-primary);
       }
 
       .kanji-card.in-review {
-        background: #fff3cd;
-        border-color: #ffc107;
+        background: var(--in-review-bg);
+        border-color: var(--in-review-border);
       }
 
       .kanji-card.selected {
