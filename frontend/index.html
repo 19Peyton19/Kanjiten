@@ -836,14 +836,14 @@ body {
         </div>
       </div>
 
-  <!-- Dashboard Scene -->
+<!-- Dashboard Scene -->
 <div class="scene active" id="dashboardScene">
   <div id="guestNotice" class="guest-notice" style="display: none;">
     You're in guest mode. Your progress won't be saved permanently. 
     <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
   </div>
 
-  <h1>Welcome back, <span id="welcomeName">Guest</span> </h1>
+  <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
 
   <!-- Combined stats in single box spanning 2 grid spaces -->
   <div style="margin: 30px 0;">
@@ -863,49 +863,54 @@ body {
     </div>
   </div>
 
-  <div class="dashboard-grid">
-    <div class="dashboard-card">
-      <h3>Decks</h3>
-      <p>View and study kanji by level</p>
-      <button class="btn btn-primary" onclick="loadScene('decksScene')">
-        Browse Decks
-      </button>
+  <!-- Main content layout: Charts on left (2/3), Buttons on right (1/3) -->
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin: 20px 0;">
+    <!-- Charts section (left side, 2/3) -->
+    <div>
+      <div style="margin-bottom: 20px;">
+        <h3>Upcoming Reviews (Next 7 Days)</h3>
+        <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
+      </div>
+      
+      <div style="margin-bottom: 20px;">
+        <h3>Review History (Past 7 Days)</h3>
+        <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
+      </div>
     </div>
 
-    <div class="dashboard-card">
-      <h3>Study</h3>
-      <p>Review kanji that are due for study</p>
-      <button class="btn btn-primary" onclick="startReview()">
-        Start Review
-      </button>
-    </div>
+    <!-- Action buttons section (right side, 1/3) -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; align-content: start;">
+      <div class="dashboard-card">
+        <h3>Decks</h3>
+        <p>Browse and study kanji by level</p>
+        <button class="btn btn-primary" onclick="loadScene('decksScene')">
+          Browse Decks
+        </button>
+      </div>
 
-    <div class="dashboard-card">
-      <h3>Cram Kanji</h3>
-      <p>Quick practice with selected kanji</p>
-      <button class="btn btn-primary" onclick="loadScene('cramScene')">
-        Cram Session
-      </button>
-    </div>
-    
-    <div class="dashboard-card">
-      <h3>Settings</h3>
-      <p>Customize your learning experience</p>
-      <button class="btn btn-primary" onclick="loadScene('settingsScene')">
-        Settings
-      </button>
-    </div>
-  </div>
+      <div class="dashboard-card">
+        <h3>Study</h3>
+        <p>Review kanji that are due for study</p>
+        <button class="btn btn-primary" onclick="startReview()">
+          Start Review
+        </button>
+      </div>
 
-  <div style="margin: 20px 0;">
-    <div style="margin-bottom: 20px;">
-      <h3>Upcoming Reviews</h3>
-      <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
-    </div>
-    
-    <div style="margin-bottom: 20px;">
-      <h3>Review History</h3>
-      <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid #ddd;"></canvas>
+      <div class="dashboard-card">
+        <h3>Cram Kanji</h3>
+        <p>Quick practice with selected kanji</p>
+        <button class="btn btn-primary" onclick="loadScene('cramScene')">
+          Cram Session
+        </button>
+      </div>
+      
+      <div class="dashboard-card">
+        <h3>Settings</h3>
+        <p>Customize your learning experience</p>
+        <button class="btn btn-primary" onclick="loadScene('settingsScene')">
+          Settings
+        </button>
+      </div>
     </div>
   </div>
        
