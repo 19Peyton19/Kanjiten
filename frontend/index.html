@@ -1108,14 +1108,14 @@ background: var(--bg-primary);
   <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin: 20px 0;">
     <!-- Charts section (left side, 2/3) -->
     <div>
-      <div style="margin-bottom: 20px;">
+      <div class="dashboard-card" style="margin-bottom: 20px;">
         <h3>Upcoming Reviews (Next 7 Days)</h3>
-        <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid var(--border-color); background: var(--chart-bg);"></canvas>
+        <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; background: var(--chart-bg);"></canvas>
       </div>
       
-      <div style="margin-bottom: 20px;">
+      <div class="dashboard-card" style="margin-bottom: 20px;">
         <h3>Review History (Past 7 Days)</h3>
-        <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; border: 1px solid var(--border-color); background: var(--chart-bg);"></canvas>
+        <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; background: var(--chart-bg);"></canvas>
       </div>
     </div>
     <!-- Action buttons section (right side, 1/3) -->
@@ -1152,7 +1152,7 @@ background: var(--bg-primary);
     </div>
   </div>
        
-  <div style="margin-top: 40px">
+  <div class="dashboard-card" style="margin-top: 40px">
     <h3>Level Progress</h3>
     <div id="levelProgress"></div>
   </div>
