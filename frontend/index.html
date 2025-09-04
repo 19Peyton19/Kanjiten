@@ -8695,16 +8695,16 @@ function updateDashboard() {
               const levelKanji = Array.from(gameState.kanjiData.values()).filter(
                 (k) => k.level === level
               );
-              const learnedCount = levelKanji.filter((k) => k.learned).length;
+              const reviewCount = levelKanji.filter((k) => k.inReview).length;
               const totalCount = levelKanji.length;
               const percentage =
-                totalCount > 0 ? (learnedCount / totalCount) * 100 : 0;
+                totalCount > 0 ? (reviewCount / totalCount) * 100 : 0;
   
               html += `
                 <div style="margin: 10px 0;">
                   <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                     <span>Level ${level}</span>
-                    <span>${learnedCount}/${totalCount}</span>
+                    <span>${reviewCount}/${totalCount}</span>
                   </div>
                   <div class="progress-bar">
                     <div class="progress-fill" style="width: ${percentage}%"></div>
