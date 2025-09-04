@@ -578,6 +578,15 @@ background: var(--bg-primary);
         color: #495057;
       }
 
+      .fixed-bottom-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
       .question-card {
   background: transparent; /* Changed from var(--card-bg) */
   padding: 20px 0; /* Changed from 60px */
@@ -1198,11 +1207,11 @@ background: var(--bg-primary);
             ></div>
 
             <button
-              class="btn btn-primary"
-              id="showAnswerBtn"
-              onclick="showAnswer()"
+            class="btn btn-primary fixed-bottom-button"
+            id="showAnswerBtn"
+            onclick="showAnswer()"
             >
-              Show Answer
+            Show Answer
             </button>
 
             <div
