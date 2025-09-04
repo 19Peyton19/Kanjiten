@@ -822,20 +822,21 @@ background: var(--bg-primary);
         }
 
         
- /* Bottom panel kanji details */
+/* Bottom panel kanji details */
 .kanji-details-container {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background: var(--card-bg);
-  border-top: 2px solid var(--border-color);
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--border-color);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   transform: translateY(100%);
-  transition: transform 0.3s ease;
-  max-height: 50vh;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 55vh;
   overflow-y: auto;
+  border-radius: 15px 15px 0 0;
 }
 
 .kanji-details-container.active {
@@ -846,97 +847,193 @@ background: var(--bg-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 25px;
-  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .kanji-details-header h2 {
-  font-size: 36px;
+  font-size: 42px;
   margin: 0;
-  font-weight: bold;
+  font-weight: 700;
   color: white !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 2px;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 20px;
   color: white;
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 8px 12px;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
 .close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
 }
 
 .kanji-details-content {
-  padding: 20px 25px;
+  padding: 30px;
+  background: var(--card-bg);
 }
 
 .kanji-details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .detail-item {
   background: var(--bg-secondary);
-  border-radius: 8px;
-  padding: 12px;
-  border-left: 4px solid #667eea;
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 5px solid #667eea;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.detail-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+  border-left-color: #764ba2;
 }
 
 .detail-item.full-width {
   grid-column: 1 / -1;
+  border-left-color: #ffc107;
+}
+
+.detail-item.full-width:hover {
+  border-left-color: #e0a800;
 }
 
 .detail-label {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
-  font-size: 12px;
-  margin-bottom: 6px;
+  font-size: 11px;
+  margin-bottom: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-label::before {
+  content: "●";
+  color: #667eea;
+  font-size: 8px;
+}
+
+.detail-item.full-width .detail-label::before {
+  color: #ffc107;
 }
 
 .detail-value {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-primary);
-  font-weight: 500;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .mnemonic-text {
-  background: #fff3cd;
-  padding: 10px;
-  border-radius: 6px;
-  border-left: 4px solid #ffc107;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  padding: 18px;
+  border-radius: 10px;
+  border-left: 5px solid #ffc107;
   font-style: italic;
   color: #856404;
-  margin-top: 6px;
+  margin-top: 12px;
+  line-height: 1.6;
+  font-size: 16px;
+  box-shadow: inset 0 1px 3px rgba(255, 193, 7, 0.2);
+}
+
+.mnemonic-text::before {
+  content: "💡 ";
+  margin-right: 8px;
+}
+
+/* Special styling for different detail types */
+.detail-item:nth-child(1) { border-left-color: #e74c3c; }
+.detail-item:nth-child(2) { border-left-color: #3498db; }
+.detail-item:nth-child(3) { border-left-color: #2ecc71; }
+.detail-item:nth-child(4) { border-left-color: #f39c12; }
+.detail-item:nth-child(5) { border-left-color: #9b59b6; }
+.detail-item:nth-child(6) { border-left-color: #1abc9c; }
+.detail-item:nth-child(7) { border-left-color: #34495e; }
+.detail-item:nth-child(8) { border-left-color: #e67e22; }
+
+/* Scrollbar styling */
+.kanji-details-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kanji-details-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.kanji-details-container::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 3px;
+}
+
+.kanji-details-container::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
 }
 
 @media (max-width: 768px) {
   .kanji-details-container {
-    max-height: 60vh;
+    max-height: 65vh;
+    border-radius: 20px 20px 0 0;
   }
   
   .kanji-details-grid {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 15px;
+  }
+  
+  .kanji-details-header {
+    padding: 15px 20px;
   }
   
   .kanji-details-header h2 {
-    font-size: 28px;
+    font-size: 32px;
   }
   
   .kanji-details-content {
-    padding: 15px 20px;
+    padding: 20px;
+  }
+  
+  .detail-item {
+    padding: 15px;
+  }
+  
+  .detail-value {
+    font-size: 16px;
+  }
+  
+  .mnemonic-text {
+    font-size: 14px;
+    padding: 15px;
   }
 }
 
@@ -1553,58 +1650,6 @@ background: var(--bg-primary);
     </div>
   </div>
 </div>
-        <!-- Modal for kanji details -->
-        <div class="modal" id="kanjiModal">
-          <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <div id="modalContent"></div>
-          </div>
-          <!-- Add this modal HTML before the closing </div> of container -->
-<div class="kanji-details-modal-overlay" id="kanjiDetailsModal">
-  <div class="kanji-details-modal">
-    <div class="kanji-details-header">
-      <h2 id="modalKanjiChar">漢</h2>
-      <button class="close-btn" onclick="closeKanjiDetailsModal()">&times;</button>
-    </div>
-    <div class="kanji-details-content">
-      <div class="kanji-details-grid">
-        <div class="detail-item">
-          <div class="detail-label">Reading</div>
-          <div class="detail-value" id="modalKanjiReading">かん</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Meaning</div>
-          <div class="detail-value" id="modalKanjiMeaning">Chinese</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Level</div>
-          <div class="detail-value" id="modalKanjiLevel">N/A</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">JLPT</div>
-          <div class="detail-value" id="modalKanjiJLPT">N/A</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Status</div>
-          <div class="detail-value" id="modalKanjiStatus">Not learned</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Next Review</div>
-          <div class="detail-value" id="modalKanjiNextReview">N/A</div>
-        </div>
-        <div class="detail-item full-width">
-          <div class="detail-label">Mnemonic</div>
-          <div class="detail-value" id="modalKanjiMnemonic">
-            <div class="mnemonic-text">No mnemonic saved yet</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-        </div>
-  
         <script>
         const SAMPLE_KANJI = [
             // Level 10 (Easiest)
@@ -9030,7 +9075,7 @@ function showAnswer() {
   gameState.studySession.showingAnswer = true;
 }
 
-    function showKanjiDetailsModal() {
+  function showKanjiDetailsModal() {
   const session = gameState.studySession;
   if (!session || !session.kanji || session.currentIndex >= session.kanji.length) {
     return;
@@ -9039,50 +9084,54 @@ function showAnswer() {
   const currentKanji = session.kanji[session.currentIndex];
   if (!currentKanji) return;
   
-  // Create modal content
+  // Create modal content with properly bound close button
   const modalHtml = `
     <div class="kanji-details-header">
       <h2>${currentKanji.character}</h2>
-      <button class="close-btn" onclick="closeKanjiDetailsModal()">&times;</button>
+      <button class="close-btn" id="kanjiModalCloseBtn">&times;</button>
     </div>
     <div class="kanji-details-content">
       <div class="kanji-details-grid">
         <div class="detail-item">
-          <div class="detail-label">On'yomi (音読み)</div>
-          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'onyomi').map(r => r.reading).join(', ') || 'N/A'}</div>
+          <div class="detail-label">On'yomi Reading</div>
+          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'onyomi').map(r => r.reading).join(', ') || 'Not available'}</div>
         </div>
         <div class="detail-item">
-          <div class="detail-label">Kun'yomi (訓読み)</div>
-          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'kunyomi').map(r => r.reading).join(', ') || 'N/A'}</div>
+          <div class="detail-label">Kun'yomi Reading</div>
+          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'kunyomi').map(r => r.reading).join(', ') || 'Not available'}</div>
         </div>
         <div class="detail-item">
-          <div class="detail-label">Meaning</div>
+          <div class="detail-label">English Meaning</div>
           <div class="detail-value">${currentKanji.meanings.join(', ')}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">JLPT Level</div>
-          <div class="detail-value">${currentKanji.jlpt}</div>
+          <div class="detail-value">Level ${currentKanji.jlpt}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">WaniKani Level</div>
-          <div class="detail-value">${currentKanji.level}</div>
+          <div class="detail-value">Level ${currentKanji.level}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">Stroke Count</div>
-          <div class="detail-value">${currentKanji.stroke_count || 'N/A'}</div>
+          <div class="detail-value">${currentKanji.stroke_count ? currentKanji.stroke_count + ' strokes' : 'Not available'}</div>
         </div>
         <div class="detail-item">
-          <div class="detail-label">Status</div>
-          <div class="detail-value">${currentKanji.learned ? 'Learned' : currentKanji.inReview ? 'In Review' : 'Not Studied'}</div>
+          <div class="detail-label">Study Status</div>
+          <div class="detail-value">${currentKanji.learned ? '✅ Learned' : currentKanji.inReview ? '📚 In Review' : '🆕 Not Studied'}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">Study Accuracy</div>
-          <div class="detail-value">${currentKanji.totalReviews > 0 ? Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100) + '%' : '0%'}</div>
+          <div class="detail-value">${currentKanji.totalReviews > 0 ? 
+            `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})` : 
+            'No reviews yet'}</div>
         </div>
         ${currentKanji.mnemonic ? `
         <div class="detail-item full-width">
-          <div class="detail-label">Your Mnemonic</div>
-          <div class="detail-value mnemonic-text">${currentKanji.mnemonic}</div>
+          <div class="detail-label">Your Personal Mnemonic</div>
+          <div class="detail-value">
+            <div class="mnemonic-text">${currentKanji.mnemonic}</div>
+          </div>
         </div>
         ` : ''}
       </div>
@@ -9095,21 +9144,32 @@ function showAnswer() {
     container.innerHTML = modalHtml;
     container.style.display = 'block';
     
+    // Bind the close button event after the HTML is inserted
+    const closeBtn = document.getElementById('kanjiModalCloseBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeKanjiDetailsModal);
+    }
+    
     // Show with animation
     setTimeout(() => {
       container.classList.add('active');
     }, 10);
   }
 }
+          
 function closeKanjiDetailsModal(event) {
-  if (event) event.stopPropagation();
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
   const container = document.getElementById('kanjiDetailsContainer');
-  if (container) {
+  if (container && container.classList.contains('active')) {
     container.classList.remove('active');
     setTimeout(() => {
       container.style.display = 'none';
       container.innerHTML = '';
-    }, 300);
+    }, 400); // Match the CSS transition duration
   }
 }
 // Dark mode functions
