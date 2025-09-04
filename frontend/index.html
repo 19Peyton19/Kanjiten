@@ -582,14 +582,14 @@ background: var(--bg-primary);
   position: fixed;
   bottom: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) !important;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .fixed-bottom-button:hover {
-  transform: translateX(-50%); /* Keep the same transform on hover */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Only change shadow slightly */
+  transform: translateX(-50%) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
       .question-card {
