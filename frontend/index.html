@@ -9032,30 +9032,25 @@ function showAnswer() {
   gameState.studySession.showingAnswer = true;
 }
 
- function showKanjiDetailsModal() {
+function showKanjiDetailsModal() {
   const session = gameState.studySession;
-  if (!session || !session.kanji || session.currentIndex >= session.kanji.length) {
-    return;
-  }
-  
+  if (!session || !session.kanji || session.currentIndex >= session.kanji.length) return;
+
   const currentKanji = session.kanji[session.currentIndex];
   if (!currentKanji) return;
-  
+
   // Remove existing modal if present
   const existingModal = document.getElementById('kanjiDetailsModalOverlay');
-  if (existingModal) {
-    existingModal.remove();
-  }  
-  
-  // Create the complete modal structure
+  if (existingModal) existingModal.remove();
+
+  // Create modal structure
   const modalHtml = `
     <div id="kanjiDetailsModalOverlay" class="kanji-details-modal-overlay">
       <div class="kanji-details-modal">
         <div class="kanji-details-header">
           <h2>${currentKanji.character}</h2>
           <button id="kanjiModalCloseBtn" class="close-btn">&times;</button>
-
-                        </div>
+        </div>
         <div class="kanji-details-content">
           <div class="kanji-details-grid">
             <div class="detail-item">
@@ -9080,78 +9075,74 @@ function showAnswer() {
             </div>
             <div class="detail-item">
               <div class="detail-label">Study Accuracy</div>
-              <div class="detail-value">${currentKanji.totalReviews > 0 ? 
-                `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})` : 
-                'No reviews yet'}</div>
+              <div class="detail-value">
+                ${
+                  currentKanji.totalReviews > 0
+                    ? `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})`
+                    : 'No reviews yet'
+                }
+              </div>
             </div>
-            ${currentKanji.mnemonic ? `
+            ${
+              currentKanji.mnemonic
+                ? `
             <div class="detail-item full-width">
               <div class="detail-label">Your Personal Mnemonic</div>
               <div class="detail-value">
                 <div class="mnemonic-text">${currentKanji.mnemonic}</div>
               </div>
-            </div>
-            ` : ''}
+            </div>`
+                : ''
+            }
           </div>
         </div>
       </div>
     </div>
   `;
-  
-  // Insert the modal into the document
+
+  // Insert into document
   document.body.insertAdjacentHTML('beforeend', modalHtml);
-  
-  // Get references to the modal elements
+
+  // Get references
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
   const closeBtn = document.getElementById('kanjiModalCloseBtn');
-  
-  // Bind event listeners
+
+  // Close on button click
   if (closeBtn) {
     closeBtn.addEventListener('click', closeKanjiDetailsModal);
   }
-  
+
   // Close on overlay click
   if (modalOverlay) {
-    modalOverlay.addEventListener('click', function(event) {
+    modalOverlay.addEventListener('click', (event) => {
       if (event.target === modalOverlay) {
         closeKanjiDetailsModal();
       }
     });
   }
 
-   modalOverlay.addEventListener('click', function(event) {
-                if (event.target === modalOverlay) {
-                    closeKanjiDetailsModal();
-                }
-            });
-  
-  // Show modal with animation
-  setTimeout(() => {
-    if (modalOverlay) {
-      modalOverlay.classList.add('active');
-    }
-  }, 10);
-  
-  // Close on Escape key
-  document.addEventListener('keydown', function escapeHandler(event) {
+  // Show with animation
+  setTimeout(() => modalOverlay?.classList.add('active'), 10);
+
+  // Close on Escape (cleanly add/remove listener)
+  function escapeHandler(event) {
     if (event.key === 'Escape') {
       closeKanjiDetailsModal();
       document.removeEventListener('keydown', escapeHandler);
     }
-  });
+  }
+  document.addEventListener('keydown', escapeHandler);
 }
 
-function closeKanjiDetailsModal(event) {
+function closeKanjiDetailsModal() {
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
-            if (modalOverlay && modalOverlay.classList.contains('active')) {
-                modalOverlay.classList.remove('active');
-                // ADDED: Restore body scroll
-                document.body.classList.remove('modal-open');
-                setTimeout(() => {
-                    modalOverlay.remove();
-                }, 300);
-            }
+  if (modalOverlay && modalOverlay.classList.contains('active')) {
+    modalOverlay.classList.remove('active');
+    document.body.classList.remove('modal-open');
+    setTimeout(() => modalOverlay.remove(), 300);
+  }
 }
+
 // Dark mode functions
 function toggleDarkMode() {
   const isDarkMode = document.getElementById('darkModeToggle').checked;
