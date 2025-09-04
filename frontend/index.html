@@ -9103,6 +9103,12 @@ function showKanjiDetailsModal() {
   // Insert into document
   document.body.insertAdjacentHTML('beforeend', modalHtml);
 
+  // Prevent background scroll
+  document.body.classList.add('modal-open');
+
+  // Push new history state so back button closes modal
+  history.pushState({ modalOpen: true }, "", window.location.href);
+
   // Get references
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
   const closeBtn = document.getElementById('kanjiModalCloseBtn');
@@ -9140,8 +9146,22 @@ function closeKanjiDetailsModal() {
     modalOverlay.classList.remove('active');
     document.body.classList.remove('modal-open');
     setTimeout(() => modalOverlay.remove(), 300);
+
+    // If modal was opened via pushState, go back one step
+    if (history.state && history.state.modalOpen) {
+      history.back();
+    }
   }
 }
+
+// Close modal when back button is pressed
+window.addEventListener("popstate", (event) => {
+  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
+  if (modalOverlay) {
+    closeKanjiDetailsModal();
+  }
+});
+
 
 // Dark mode functions
 function toggleDarkMode() {
