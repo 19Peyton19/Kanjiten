@@ -821,43 +821,64 @@ background: var(--bg-primary);
           gap: 15px;
         }
 
-        
-/* Bottom panel kanji details */
-.kanji-details-container {
+/* Full screen kanji details modal */
+.kanji-details-modal-overlay {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  background: var(--card-bg);
-  border-top: 3px solid var(--border-color);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  transform: translateY(100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 55vh;
-  overflow-y: auto;
-  border-radius: 15px 15px 0 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
 }
 
-.kanji-details-container.active {
-  transform: translateY(0);
+.kanji-details-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.kanji-details-modal {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 0;
+  max-width: 90vw;
+  width: 800px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  transform: scale(0.8) translateY(50px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.kanji-details-modal-overlay.active .kanji-details-modal {
+  transform: scale(1) translateY(0);
 }
 
 .kanji-details-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
+  padding: 25px 30px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border-bottom: none;
+  border-radius: 20px 20px 0 0;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 .kanji-details-header h2 {
-  font-size: 42px;
+  font-size: 48px;
   margin: 0;
   font-weight: 700;
   color: white !important;
@@ -868,50 +889,72 @@ background: var(--bg-primary);
 .close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
-  font-size: 20px;
+  font-size: 24px;
   color: white;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px;
   border-radius: 50%;
   transition: all 0.3s ease;
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  line-height: 1;
 }
 
 .close-btn:hover {
   background-color: rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(90deg);
 }
 
 .kanji-details-content {
   padding: 30px;
   background: var(--card-bg);
+  max-height: calc(85vh - 100px);
+  overflow-y: auto;
+  border-radius: 0 0 20px 20px;
 }
 
 .kanji-details-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   margin-bottom: 20px;
 }
 
 .detail-item {
   background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 20px;
-  border-left: 5px solid #667eea;
+  border-radius: 15px;
+  padding: 25px;
+  border-left: 6px solid #667eea;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.detail-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.detail-item:hover::before {
+  transform: translateX(100%);
 }
 
 .detail-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2);
   border-left-color: #764ba2;
 }
 
@@ -927,19 +970,25 @@ background: var(--bg-primary);
 .detail-label {
   font-weight: 700;
   color: var(--text-muted);
-  font-size: 11px;
-  margin-bottom: 12px;
+  font-size: 12px;
+  margin-bottom: 15px;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .detail-label::before {
   content: "●";
   color: #667eea;
-  font-size: 8px;
+  font-size: 10px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .detail-item.full-width .detail-label::before {
@@ -947,63 +996,88 @@ background: var(--bg-primary);
 }
 
 .detail-value {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text-primary);
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.6;
   word-break: break-word;
 }
 
 .mnemonic-text {
   background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-  padding: 18px;
-  border-radius: 10px;
-  border-left: 5px solid #ffc107;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 6px solid #ffc107;
   font-style: italic;
   color: #856404;
-  margin-top: 12px;
-  line-height: 1.6;
-  font-size: 16px;
-  box-shadow: inset 0 1px 3px rgba(255, 193, 7, 0.2);
+  margin-top: 15px;
+  line-height: 1.7;
+  font-size: 18px;
+  box-shadow: inset 0 2px 5px rgba(255, 193, 7, 0.2);
+  position: relative;
 }
 
 .mnemonic-text::before {
-  content: "💡 ";
-  margin-right: 8px;
+  content: "💡";
+  font-size: 24px;
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  background: #ffc107;
+  border-radius: 50%;
+  padding: 8px;
+  box-shadow: 0 4px 10px rgba(255, 193, 7, 0.3);
 }
 
-/* Special styling for different detail types */
+/* Color variations for different detail types */
 .detail-item:nth-child(1) { border-left-color: #e74c3c; }
+.detail-item:nth-child(1) .detail-label::before { color: #e74c3c; }
+
 .detail-item:nth-child(2) { border-left-color: #3498db; }
+.detail-item:nth-child(2) .detail-label::before { color: #3498db; }
+
 .detail-item:nth-child(3) { border-left-color: #2ecc71; }
+.detail-item:nth-child(3) .detail-label::before { color: #2ecc71; }
+
 .detail-item:nth-child(4) { border-left-color: #f39c12; }
+.detail-item:nth-child(4) .detail-label::before { color: #f39c12; }
+
 .detail-item:nth-child(5) { border-left-color: #9b59b6; }
+.detail-item:nth-child(5) .detail-label::before { color: #9b59b6; }
+
 .detail-item:nth-child(6) { border-left-color: #1abc9c; }
+.detail-item:nth-child(6) .detail-label::before { color: #1abc9c; }
+
 .detail-item:nth-child(7) { border-left-color: #34495e; }
+.detail-item:nth-child(7) .detail-label::before { color: #34495e; }
+
 .detail-item:nth-child(8) { border-left-color: #e67e22; }
+.detail-item:nth-child(8) .detail-label::before { color: #e67e22; }
 
 /* Scrollbar styling */
-.kanji-details-container::-webkit-scrollbar {
-  width: 6px;
+.kanji-details-content::-webkit-scrollbar {
+  width: 8px;
 }
 
-.kanji-details-container::-webkit-scrollbar-track {
+.kanji-details-content::-webkit-scrollbar-track {
   background: var(--bg-secondary);
+  border-radius: 4px;
 }
 
-.kanji-details-container::-webkit-scrollbar-thumb {
-  background: #667eea;
-  border-radius: 3px;
+.kanji-details-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 4px;
 }
 
-.kanji-details-container::-webkit-scrollbar-thumb:hover {
-  background: #764ba2;
+.kanji-details-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
 }
 
 @media (max-width: 768px) {
-  .kanji-details-container {
-    max-height: 65vh;
-    border-radius: 20px 20px 0 0;
+  .kanji-details-modal {
+    margin: 20px;
+    max-height: 90vh;
+    width: calc(100vw - 40px);
   }
   
   .kanji-details-grid {
@@ -1012,31 +1086,36 @@ background: var(--bg-primary);
   }
   
   .kanji-details-header {
-    padding: 15px 20px;
+    padding: 20px 25px;
   }
   
   .kanji-details-header h2 {
-    font-size: 32px;
+    font-size: 36px;
   }
   
   .kanji-details-content {
-    padding: 20px;
+    padding: 25px;
   }
   
   .detail-item {
-    padding: 15px;
+    padding: 20px;
   }
   
   .detail-value {
-    font-size: 16px;
+    font-size: 18px;
   }
   
   .mnemonic-text {
-    font-size: 14px;
-    padding: 15px;
+    font-size: 16px;
+    padding: 18px 18px 18px 35px;
+  }
+  
+  .close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
   }
 }
-
 /* Button styles for the Show Details button */
 .btn-info {
   background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
@@ -1321,7 +1400,6 @@ background: var(--bg-primary);
   Show Details
 </button>
           </div>
-         <div id="kanjiDetailsContainer" class="kanji-details-container" style="display: none;">
   </div>
 </div>
 
@@ -9084,7 +9162,12 @@ function showAnswer() {
   const currentKanji = session.kanji[session.currentIndex];
   if (!currentKanji) return;
   
-  // Create modal content with properly bound close button
+  // Remove existing modal if present
+  const existingModal = document.getElementById('kanjiDetailsModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
   const modalHtml = `
     <div class="kanji-details-header">
       <h2>${currentKanji.character}</h2>
@@ -9093,12 +9176,16 @@ function showAnswer() {
     <div class="kanji-details-content">
       <div class="kanji-details-grid">
         <div class="detail-item">
-          <div class="detail-label">On'yomi Reading</div>
+          <div class="detail-label">Readings</div>
           <div class="detail-value">${currentKanji.readings}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">English Meaning</div>
           <div class="detail-value">${currentKanji.meanings.join(', ')}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Kanji Kentei Level</div>
+          <div class="detail-value">Level ${currentKanji.level}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">JLPT Level</div>
@@ -9126,30 +9213,54 @@ function showAnswer() {
     </div>
   `;
   
-  // Get the container and show the modal
-  const container = document.getElementById('kanjiDetailsContainer');
-  if (container) {
-    container.innerHTML = modalHtml;
-    container.style.display = 'block';
-    
-    // Bind the close button event after the HTML is inserted
-    const closeBtn = document.getElementById('kanjiModalCloseBtn');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeKanjiDetailsModal);
-    }
-    
-    // Show with animation
-    setTimeout(() => {
-      container.classList.add('active');
-    }, 10);
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  
+  // Bind event listeners
+  const modal = document.getElementById('kanjiDetailsModal');
+  const closeBtn = document.getElementById('kanjiModalCloseBtn');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeKanjiDetailsModal);
   }
+  
+  // Close on overlay click
+  if (modal) {
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        closeKanjiDetailsModal();
+      }
+    });
+  }
+  
+  // Show modal with animation
+  setTimeout(() => {
+    if (modal) {
+      modal.classList.add('active');
+    }
+  }, 10);
+  
+  // Close on Escape key
+  document.addEventListener('keydown', function escapeHandler(event) {
+    if (event.key === 'Escape') {
+      closeKanjiDetailsModal();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  });
 }
-          
 function closeKanjiDetailsModal(event) {
   if (event) {
     event.preventDefault();
     event.stopPropagation();
   }
+  
+  const modal = document.getElementById('kanjiDetailsModal');
+  if (modal && modal.classList.contains('active')) {
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.remove();
+    }, 400);
+  }
+}
   
   const container = document.getElementById('kanjiDetailsContainer');
   if (container && container.classList.contains('active')) {
