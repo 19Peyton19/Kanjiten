@@ -10774,7 +10774,7 @@ function performSearch(query) {
 function searchKanji(query) {
   const normalizedQuery = query.toLowerCase();
   
-  return kanjiData.filter(kanji => {
+  return SAMPLE_KANJI.filter(kanji => {
     // Ensure kanji object exists
     if (!kanji) return false;
     
