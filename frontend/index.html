@@ -8212,11 +8212,75 @@ function getUpcomingReviewsData() {
     }
   }
   
+  // Now draw the chart
+  const canvas = document.getElementById('upcomingReviewsChart');
+  if (!canvas) return { data, labels };
+  
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  
+  // Get theme-aware colors
+  const textColor = getCSSVariable('--chart-text');
+  const lineColor = getCSSVariable('--chart-lines');
+  const barColor = getCSSVariable('--text-primary');
+  
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  
+  const maxReviews = Math.max(...data, 1); // Ensure at least 1 to avoid division by zero
+  
+  const padding = 40;
+  const chartWidth = rect.width - padding * 2;
+  const chartHeight = rect.height - padding * 2;
+  const barWidth = chartWidth / labels.length * 0.6;
+  const barSpacing = chartWidth / labels.length;
+  
+  // Draw axes
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, rect.height - padding);
+  ctx.lineTo(rect.width - padding, rect.height - padding);
+  ctx.stroke();
+  
+  // Draw bars
+  ctx.fillStyle = barColor;
+  data.forEach((count, index) => {
+    const barHeight = (count / maxReviews) * chartHeight * 0.8;
+    const x = padding + index * barSpacing + (barSpacing - barWidth) / 2;
+    const y = rect.height - padding - barHeight;
+    
+    ctx.fillRect(x, y, barWidth, barHeight);
+  });
+  
+  // Draw labels
+  ctx.fillStyle = textColor;
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  
+  labels.forEach((label, index) => {
+    const x = padding + index * barSpacing + barSpacing / 2;
+    ctx.fillText(label, x, rect.height - padding + 20);
+  });
+  
+  // Draw values on bars
+  ctx.textAlign = 'center';
+  data.forEach((count, index) => {
+    const barHeight = (count / maxReviews) * chartHeight * 0.8;
+    const x = padding + index * barSpacing + barSpacing / 2;
+    const y = rect.height - padding - barHeight - 5;
+    ctx.fillText(count.toString(), x, y);
+  });
+  
   return { data, labels };
 }
 
 function getReviewHistoryData() {
-  const data = [];
+  const correctData = [];
+  const incorrectData = [];
   const labels = [];
   const now = new Date();
   
@@ -8224,18 +8288,27 @@ function getReviewHistoryData() {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
     
-    // Count reviews done on this date
-    let reviewCount = 0;
+    // Count correct and incorrect reviews done on this date
+    let correctCount = 0;
+    let incorrectCount = 0;
+    
     gameState.kanjiData.forEach((kanji) => {
       if (kanji.lastReview) {
         const reviewDate = new Date(kanji.lastReview);
         if (reviewDate.toDateString() === date.toDateString()) {
-          reviewCount++;
+          // Assuming we have a way to track correct/incorrect - you may need to adjust this
+          // For now, we'll simulate based on SRS level or use a placeholder
+          if (kanji.srsLevel && kanji.srsLevel > 1) {
+            correctCount++;
+          } else {
+            incorrectCount++;
+          }
         }
       }
     });
     
-    data.push(reviewCount);
+    correctData.push(correctCount);
+    incorrectData.push(incorrectCount);
     
     // Format label
     if (i === 0) {
@@ -8247,17 +8320,97 @@ function getReviewHistoryData() {
     }
   }
   
-  return { data, labels };
+  // Now draw the chart
+  const canvas = document.getElementById('reviewHistoryChart');
+  if (!canvas) return { data: { correct: correctData, incorrect: incorrectData }, labels };
+  
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  
+  // Get theme-aware colors
+  const textColor = getCSSVariable('--chart-text');
+  const lineColor = getCSSVariable('--chart-lines');
+  const correctColor = '#4CAF50'; // Keep green for correct
+  const incorrectColor = '#F44336'; // Keep red for incorrect
+  
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  
+  const maxTotal = Math.max(...labels.map((_, i) => correctData[i] + incorrectData[i]), 1);
+  
+  const padding = 40;
+  const chartWidth = rect.width - padding * 2;
+  const chartHeight = rect.height - padding * 2;
+  const barWidth = chartWidth / labels.length * 0.6;
+  const barSpacing = chartWidth / labels.length;
+  
+  // Draw axes
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, rect.height - padding);
+  ctx.lineTo(rect.width - padding, rect.height - padding);
+  ctx.stroke();
+  
+  // Draw stacked bars
+  labels.forEach((label, index) => {
+    const correctCount = correctData[index];
+    const incorrectCount = incorrectData[index];
+    const total = correctCount + incorrectCount;
+    
+    if (total > 0) {
+      const totalBarHeight = (total / maxTotal) * chartHeight * 0.8;
+      const correctBarHeight = (correctCount / total) * totalBarHeight;
+      const incorrectBarHeight = (incorrectCount / total) * totalBarHeight;
+      
+      const x = padding + index * barSpacing + (barSpacing - barWidth) / 2;
+      const baseY = rect.height - padding;
+      
+      // Draw correct (bottom) bar
+      ctx.fillStyle = correctColor;
+      ctx.fillRect(x, baseY - correctBarHeight, barWidth, correctBarHeight);
+      
+      // Draw incorrect (top) bar
+      ctx.fillStyle = incorrectColor;
+      ctx.fillRect(x, baseY - correctBarHeight - incorrectBarHeight, barWidth, incorrectBarHeight);
+    }
+  });
+  
+  // Draw labels
+  ctx.fillStyle = textColor;
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'center';
+  
+  labels.forEach((label, index) => {
+    const x = padding + index * barSpacing + barSpacing / 2;
+    ctx.fillText(label, x, rect.height - padding + 20);
+  });
+  
+  // Draw legend
+  ctx.fillStyle = correctColor;
+  ctx.fillRect(rect.width - 120, 20, 15, 15);
+  ctx.fillStyle = textColor;
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('Correct', rect.width - 100, 32);
+  
+  ctx.fillStyle = incorrectColor;
+  ctx.fillRect(rect.width - 120, 40, 15, 15);
+  ctx.fillStyle = textColor;
+  ctx.fillText('Incorrect', rect.width - 100, 52);
+  
+  return { data: { correct: correctData, incorrect: incorrectData }, labels };
 }
 
 function updateReviewCharts() {
   // Update upcoming reviews chart
   const upcomingData = getUpcomingReviewsData();
-  drawReviewChart('upcomingReviewsChart', upcomingData.data, upcomingData.labels, 'Upcoming Reviews', '#2196F3');
   
   // Update review history chart
   const historyData = getReviewHistoryData();
-  drawReviewChart('reviewHistoryChart', historyData.data, historyData.labels, 'Review History', '#4CAF50');
 }
           
 async function addCustomWord() {
@@ -9024,27 +9177,33 @@ function toggleDarkMode() {
   }
 }
 
-          function updateChartColors() {
+        function updateChartColors() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const charts = document.querySelectorAll('canvas');
   
+  // Update canvas backgrounds using CSS variables
   charts.forEach(canvas => {
-    const ctx = canvas.getContext('2d');
-    if (isDark) {
-      canvas.style.background = '#3a3a3a';
-      ctx.fillStyle = '#cccccc';
-      ctx.strokeStyle = '#777777';
-    } else {
-      canvas.style.background = 'white';
-      ctx.fillStyle = '#333';
-      ctx.strokeStyle = '#666';
-    }
+    canvas.style.background = getCSSVariable('--chart-bg');
   });
   
-  // Redraw charts if they exist
-  if (typeof drawUpcomingReviewsChart === 'function') drawUpcomingReviewsChart();
-  if (typeof drawReviewHistoryChart === 'function') drawReviewHistoryChart();
+  // Redraw charts with new colors
+  if (typeof getUpcomingReviewsData === 'function') getUpcomingReviewsData();
+  if (typeof getReviewHistoryData === 'function') getReviewHistoryData();
 }
+// Make sure charts are redrawn when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Initial chart draw
+  setTimeout(() => {
+    drawUpcomingReviewsChart();
+    drawReviewHistoryChart();
+  }, 100);
+});
+
+// Also redraw charts when window is resized
+window.addEventListener('resize', function() {
+  drawUpcomingReviewsChart();
+  drawReviewHistoryChart();
+});
 
 function loadDarkModePreference() {
   const darkMode = localStorage.getItem('darkMode');
@@ -9099,6 +9258,9 @@ function closeKanjiDetailsModal(event) {
         displayCurrentQuestion();
       }
     }
+          function getCSSVariable(variable) {
+  return getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+}
   
           function updateStudyProgress() {
             const session = gameState.studySession;
