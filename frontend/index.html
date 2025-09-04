@@ -10123,6 +10123,7 @@ async function displayVariations(kanji) {
           break;
         case 'decksScene':
           updateDecksScene();
+          showDecksScene();
           break;
         case 'cramScene':
           updateCramScene();
@@ -10159,12 +10160,14 @@ async function displayVariations(kanji) {
           break;
         case 'kanjiDetailScene':
           loadScene('decksScene');
+          showDecksScene();
           break;
         case 'drawingScene':
           if (gameState.selectedKanji) {
             loadScene('kanjiDetailScene');
           } else {
             loadScene('decksScene');
+            showDecksScene();
           }
           break;
         case 'cramStudyScene':
@@ -10997,7 +11000,6 @@ function closeKanjiDetailsModal(event) {
   function initializeApp() {
     initializeKanjiData();
     startAutoSave();
-initializeSearch();
     
   
     const storedToken = localStorage.getItem('authToken');
@@ -11554,6 +11556,7 @@ localStorage.setItem('darkMode', document.getElementById('darkModeToggle').check
     function toggleLevel(level) {
       gameState.expandedLevel = gameState.expandedLevel === level ? null : level;
       updateDecksScene();
+      showDecksScene();
     }
           
   function studyLevel(level) {
