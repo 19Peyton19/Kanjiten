@@ -9016,6 +9016,12 @@ function toggleDarkMode() {
   }
 
   updateChartColors();
+
+  const canvas = document.getElementById('mainDrawingCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = getDrawingColor();
+  }
 }
 
           function updateChartColors() {
@@ -9273,16 +9279,23 @@ function updateDecksScene() {
        document.getElementById('defaultQuestionMode').value = gameState.settings.defaultQuestionMode;
     }
   function toggleKanjiVisibility() {
-  const drawingInfo = document.getElementById('drawingInfo');
-  const toggleBtn = drawingInfo.querySelector('button');
+  const kanjiChar = document.getElementById('drawingKanjiChar');
+  const kanjiMeaning = document.getElementById('drawingKanjiMeaning');
+  const toggleBtn = document.querySelector('.drawing-info button');
   
-  if (drawingInfo.classList.contains('hidden')) {
-    drawingInfo.classList.remove('hidden');
+  if (kanjiChar.style.visibility === 'hidden') {
+    kanjiChar.style.visibility = 'visible';
+    kanjiMeaning.style.visibility = 'visible';
     toggleBtn.textContent = 'Hide Kanji';
   } else {
-    drawingInfo.classList.add('hidden');
+    kanjiChar.style.visibility = 'hidden';
+    kanjiMeaning.style.visibility = 'hidden';
     toggleBtn.textContent = 'Show Kanji';
   }
+}
+          function getDrawingColor() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return isDark ? '#ffffff' : '#000000';
 }
     function showKanjiDetail(kanjiId) {
       const kanji = gameState.kanjiData.get(kanjiId);
@@ -9644,7 +9657,7 @@ localStorage.setItem('darkMode', document.getElementById('darkModeToggle').check
       const ctx = canvas.getContext('2d');
   
       // Set up canvas
-      ctx.strokeStyle = '#000';
+      ctx.strokeStyle = getDrawingColor();
       ctx.lineWidth = 3;
       ctx.lineCap = 'round';
   
