@@ -10774,7 +10774,7 @@ function performSearch(query) {
 function searchKanji(query) {
   const normalizedQuery = query.toLowerCase();
   
-  return gameState.kanjiData.filter(kanji => {
+  return SAMPLE_KANJI.filter(kanji => {
     // Search by character (exact match)
     if (kanji.character === query) {
       return true;
