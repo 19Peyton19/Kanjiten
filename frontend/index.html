@@ -10774,45 +10774,60 @@ function performSearch(query) {
 function searchKanji(query) {
   const normalizedQuery = query.toLowerCase();
   
-  return SAMPLE_KANJI.filter(kanji => {
+  return kanjiData.filter(kanji => {
+    // Ensure kanji object exists
+    if (!kanji) return false;
+    
     // Search by character (exact match)
     if (kanji.character === query) {
       return true;
     }
     
-    // Search by meanings
-    const meaningMatch = kanji.meanings.some(meaning => 
-      meaning.toLowerCase().includes(normalizedQuery)
-    );
+    // Search by meanings (with null checks)
+    const meaningMatch = kanji.meanings && Array.isArray(kanji.meanings) && 
+      kanji.meanings.some(meaning => 
+        meaning && typeof meaning === 'string' && meaning.toLowerCase().includes(normalizedQuery)
+      );
     
-    // Search by readings
-    const readingMatch = kanji.readings.some(reading => 
-      reading.toLowerCase().includes(normalizedQuery)
-    );
+    // Search by readings (with null checks)
+    const readingMatch = kanji.readings && Array.isArray(kanji.readings) && 
+      kanji.readings.some(reading => 
+        reading && typeof reading === 'string' && reading.toLowerCase().includes(normalizedQuery)
+      );
     
-    // Search by variations (word, reading, meaning)
-    const variationMatch = kanji.variations && kanji.variations.some(variation => 
-      variation.word.includes(query) ||
-      variation.reading.toLowerCase().includes(normalizedQuery) ||
-      variation.meaning.toLowerCase().includes(normalizedQuery)
-    );
+    // Search by variations (with null checks)
+    const variationMatch = kanji.variations && Array.isArray(kanji.variations) && 
+      kanji.variations.some(variation => {
+        if (!variation) return false;
+        
+        const wordMatch = variation.word && variation.word.includes && variation.word.includes(query);
+        const readingMatch = variation.reading && typeof variation.reading === 'string' && 
+          variation.reading.toLowerCase().includes(normalizedQuery);
+        const meaningMatch = variation.meaning && typeof variation.meaning === 'string' && 
+          variation.meaning.toLowerCase().includes(normalizedQuery);
+        
+        return wordMatch || readingMatch || meaningMatch;
+      });
     
     return meaningMatch || readingMatch || variationMatch;
   }).slice(0, 20); // Limit to 20 results for performance
 }
-
+          
 function createSearchResultHTML(kanji) {
-  const meanings = kanji.meanings.join(', ');
-  const readings = kanji.readings.join('、 ');
+  const meanings = kanji.meanings && Array.isArray(kanji.meanings) ? 
+    kanji.meanings.filter(m => m).join(', ') : 'No meanings available';
+  const readings = kanji.readings && Array.isArray(kanji.readings) ? 
+    kanji.readings.filter(r => r).join('、 ') : 'No readings available';
+  const level = kanji.level || 'Unknown';
   
   return `
-    <div class="search-result-item" onclick="showKanjiDetails(${kanji.id})">
-      <div class="search-result-character">${kanji.character}</div>
+    <div class="search-result-item" onclick="showKanjiDetails(${kanji.id || 0})">
+      <div class="search-result-character">${kanji.character || '?'}</div>
       <div class="search-result-details">
         <div class="search-result-meanings">${meanings}</div>
         <div class="search-result-readings">${readings}</div>
       </div>
-      <div class="search-result-level">Level ${kanji.level}</div>
+      <div class="search-result-level">Level ${level}</div>
     </div>
   `;
 }
