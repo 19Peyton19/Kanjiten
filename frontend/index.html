@@ -1173,7 +1173,7 @@ background: var(--bg-primary);
     You're in guest mode. Your progress won't be saved permanently. 
     <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress!
   </div>
-  <h1>Welcome back, <span id="welcomeName">Guest</span>! 🎌</h1>
+  <h1>Welcome back, <span id="welcomeName">Guest</span></h1>
   <!-- Combined stats in single box spanning 2 grid spaces -->
   <div style="margin: 30px 0;">
     <div class="stat-card" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; text-align: center; padding: 30px;">
@@ -1196,12 +1196,12 @@ background: var(--bg-primary);
     <!-- Charts section (left side, 2/3) -->
     <div>
       <div class="stat-card" style="margin-bottom: 20px;">
-        <h3>Upcoming Reviews (Next 7 Days)</h3>
+        <h3>Upcoming Reviews</h3>
         <canvas id="upcomingReviewsChart" width="800" height="200" style="width: 100%; height: 200px; background: var(--chart-bg);"></canvas>
       </div>
       
       <div class="stat-card" style="margin-bottom: 20px;">
-        <h3>Review History (Past 7 Days)</h3>
+        <h3>Review History</h3>
         <canvas id="reviewHistoryChart" width="800" height="200" style="width: 100%; height: 200px; background: var(--chart-bg);"></canvas>
       </div>
     </div>
@@ -1246,7 +1246,7 @@ background: var(--bg-primary);
 </div>
       <!-- Decks Scene -->
       <div class="scene" id="decksScene">
-        <h2>📚 Kanji Decks</h2>
+        <h2>Kanji Decks</h2>
 
         <div style="margin-bottom: 30px; text-align: center">
           <label for="studyAmount">Study Amount: </label>
@@ -9094,11 +9094,7 @@ function showAnswer() {
       <div class="kanji-details-grid">
         <div class="detail-item">
           <div class="detail-label">On'yomi Reading</div>
-          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'onyomi').map(r => r.reading).join(', ') || 'Not available'}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Kun'yomi Reading</div>
-          <div class="detail-value">${currentKanji.readings.filter(r => r.type === 'kunyomi').map(r => r.reading).join(', ') || 'Not available'}</div>
+          <div class="detail-value">${currentKanji.readings}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">English Meaning</div>
@@ -9111,14 +9107,6 @@ function showAnswer() {
         <div class="detail-item">
           <div class="detail-label">WaniKani Level</div>
           <div class="detail-value">Level ${currentKanji.level}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Stroke Count</div>
-          <div class="detail-value">${currentKanji.stroke_count ? currentKanji.stroke_count + ' strokes' : 'Not available'}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Study Status</div>
-          <div class="detail-value">${currentKanji.learned ? '✅ Learned' : currentKanji.inReview ? '📚 In Review' : '🆕 Not Studied'}</div>
         </div>
         <div class="detail-item">
           <div class="detail-label">Study Accuracy</div>
