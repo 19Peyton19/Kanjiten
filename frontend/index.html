@@ -9032,6 +9032,22 @@ function showAnswer() {
   gameState.studySession.showingAnswer = true;
 }
 
+// Prevent duplicate global listeners
+if (!window.__kanjiModalHistoryBound) {
+  window.__kanjiModalHistoryBound = true;
+
+  const handleHistoryOrHash = () => {
+    const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
+    // If the modal is open but the URL no longer has our hash/state, close it.
+    if (modalOverlay && (location.hash !== '#kanji-modal' || !history.state?.modalOpen)) {
+      closeKanjiDetailsModal({ fromHistory: true });
+    }
+  };
+
+  window.addEventListener('popstate', handleHistoryOrHash);
+  window.addEventListener('hashchange', handleHistoryOrHash);
+}
+
 function showKanjiDetailsModal() {
   const session = gameState.studySession;
   if (!session || !session.kanji || session.currentIndex >= session.kanji.length) return;
@@ -9040,8 +9056,7 @@ function showKanjiDetailsModal() {
   if (!currentKanji) return;
 
   // Remove existing modal if present
-  const existingModal = document.getElementById('kanjiDetailsModalOverlay');
-  if (existingModal) existingModal.remove();
+  document.getElementById('kanjiDetailsModalOverlay')?.remove();
 
   // Create modal structure
   const modalHtml = `
@@ -9106,33 +9121,32 @@ function showKanjiDetailsModal() {
   // Prevent background scroll
   document.body.classList.add('modal-open');
 
-  // Push new history state so back button closes modal
-  history.pushState({ modalOpen: true }, "", window.location.href);
+  // *** History + hash: guarantee a same-document back step ***
+  // Ensure current entry is marked as a "page" state without adding history
+  history.replaceState({ ...(history.state || {}), pageState: true }, "", location.href);
+  // Push a new entry that includes the modal marker and a tiny hash
+  const url = new URL(location.href);
+  if (url.hash !== '#kanji-modal') url.hash = 'kanji-modal';
+  history.pushState({ ...(history.state || {}), modalOpen: true }, "", url.href);
 
-  // Get references
+  // Refs
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
   const closeBtn = document.getElementById('kanjiModalCloseBtn');
 
-  // Close on button click
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeKanjiDetailsModal);
-  }
+  // Close on button
+  closeBtn?.addEventListener('click', () => closeKanjiDetailsModal());
 
   // Close on overlay click
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', (event) => {
-      if (event.target === modalOverlay) {
-        closeKanjiDetailsModal();
-      }
-    });
-  }
+  modalOverlay?.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeKanjiDetailsModal();
+  });
 
-  // Show with animation
+  // Animate in
   setTimeout(() => modalOverlay?.classList.add('active'), 10);
 
-  // Close on Escape (cleanly add/remove listener)
-  function escapeHandler(event) {
-    if (event.key === 'Escape') {
+  // Close on Escape (clean up the listener)
+  function escapeHandler(e) {
+    if (e.key === 'Escape') {
       closeKanjiDetailsModal();
       document.removeEventListener('keydown', escapeHandler);
     }
@@ -9140,19 +9154,28 @@ function showKanjiDetailsModal() {
   document.addEventListener('keydown', escapeHandler);
 }
 
-function closeKanjiDetailsModal() {
+function closeKanjiDetailsModal(opts = {}) {
+  const fromHistory = opts.fromHistory === true;
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
-  if (modalOverlay && modalOverlay.classList.contains('active')) {
+  if (!modalOverlay) return;
+
+  if (modalOverlay.classList.contains('active')) {
     modalOverlay.classList.remove('active');
     document.body.classList.remove('modal-open');
-    setTimeout(() => modalOverlay.remove(), 300);
 
-    // If modal was opened via pushState, go back one step
-    if (history.state && history.state.modalOpen) {
+    setTimeout(() => modalOverlay.remove(), 300);
+  } else {
+    modalOverlay.remove();
+  }
+
+  // If user initiated the close (button/overlay/Escape), go back one step to drop #kanji-modal
+  if (!fromHistory) {
+    if (location.hash === '#kanji-modal' || history.state?.modalOpen) {
       history.back();
     }
   }
 }
+
 
 // Close modal when back button is pressed
 window.addEventListener("popstate", (event) => {
