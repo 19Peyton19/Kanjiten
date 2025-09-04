@@ -547,7 +547,8 @@ background: var(--bg-primary);
 
       .study-interface {
         text-align: center;
-        padding: 40px;
+        padding: 0px;
+        background: transparent;
       }
 
       .study-info {
@@ -578,16 +579,16 @@ background: var(--bg-primary);
       }
 
       .question-card {
-        background: var(--card-bg);
-        padding: 60px;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        margin: 30px 0;
-        min-height: 300px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
+  background: transparent; /* Changed from var(--card-bg) */
+  padding: 20px 0; /* Changed from 60px */
+  border-radius: 0; /* Changed from 20px */
+  box-shadow: none; /* Changed from shadow */
+  margin: 15px 0; /* Changed from 30px 0 */
+  min-height: auto; /* Changed from 300px */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Changed from center */
+}
 
       .question-text {
         font-size: 32px;
@@ -805,6 +806,8 @@ background: var(--bg-primary);
           flex-direction: column;
           gap: 15px;
         }
+
+        
        /* Fixed modal positioning */
 .kanji-details-modal-overlay {
   position: fixed;
@@ -818,7 +821,7 @@ background: var(--bg-primary);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 10001; /* Change from 10000 to 10001 */
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -1183,8 +1186,8 @@ background: var(--bg-primary);
           ></div>
         </div>
 
-        <div class="study-interface">
-          <div class="question-card">
+     <div class="study-interface" style="background: none; padding: 0;">
+  <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
             <div id="questionText" class="question-text">
               Click "Show Answer" to begin
             </div>
@@ -8989,7 +8992,14 @@ function showAnswer() {
     }
   }, 10);
 }
-
+function closeKanjiDetailsModal(event) {
+  if (event) event.stopPropagation();
+  const modal = document.getElementById('kanjiDetailsModal');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => modal.remove(), 300);
+  }
+}
 // Dark mode functions
 function toggleDarkMode() {
   const isDarkMode = document.getElementById('darkModeToggle').checked;
@@ -9001,6 +9011,30 @@ function toggleDarkMode() {
     document.documentElement.removeAttribute('data-theme');
     localStorage.setItem('darkMode', 'disabled');
   }
+
+  updateChartColors();
+}
+
+          function updateChartColors() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const charts = document.querySelectorAll('canvas');
+  
+  charts.forEach(canvas => {
+    const ctx = canvas.getContext('2d');
+    if (isDark) {
+      canvas.style.background = '#3a3a3a';
+      ctx.fillStyle = '#cccccc';
+      ctx.strokeStyle = '#777777';
+    } else {
+      canvas.style.background = 'white';
+      ctx.fillStyle = '#333';
+      ctx.strokeStyle = '#666';
+    }
+  });
+  
+  // Redraw charts if they exist
+  if (typeof drawUpcomingReviewsChart === 'function') drawUpcomingReviewsChart();
+  if (typeof drawReviewHistoryChart === 'function') drawReviewHistoryChart();
 }
 
 function loadDarkModePreference() {
