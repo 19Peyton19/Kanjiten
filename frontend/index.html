@@ -10997,6 +10997,8 @@ function closeKanjiDetailsModal(event) {
   function initializeApp() {
     initializeKanjiData();
     startAutoSave();
+initializeSearch();
+    
   
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
