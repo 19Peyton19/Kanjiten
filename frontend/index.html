@@ -1,4 +1,4 @@
-
+  
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -9155,6 +9155,7 @@ function showKanjiDetailsModal() {
 }
 
 function closeKanjiDetailsModal(opts = {}) {
+  console.log("closing modal")
   const fromHistory = opts.fromHistory === true;
   const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
   if (!modalOverlay) return;
