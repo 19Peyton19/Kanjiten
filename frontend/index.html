@@ -1133,22 +1133,8 @@ background: var(--bg-primary);
   </div>
   <h1>Welcome back, <span id="welcomeName">Guest</span></h1>
   <!-- Combined stats in single box spanning 2 grid spaces -->
-  <div style="margin: 30px 0;">
-    <div class="stat-card" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px; text-align: center; padding: 30px;">
-      <div>
-        <div class="stat-value" id="kanjiLearned">0</div>
-        <div class="stat-label">Kanji in Review</div>
-      </div>
-      <div>
-        <div class="stat-value" id="reviewsDue">0</div>
-        <div class="stat-label">Reviews Due</div>
-      </div>
-      <div>
-        <div class="stat-value" id="accuracy">0%</div>
-        <div class="stat-label">Accuracy</div>
-      </div>
-    </div>
-  </div>
+<div style="margin:30px 0;"><div class="stat-card" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;text-align:center;padding:30px;"><div style="display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;"><div class="stat-value" id="kanjiLearned">0</div><div class="stat-label">Kanji in Review</div></div><div style="display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;"><div class="stat-value" id="reviewsDue">0</div><div class="stat-label">Reviews Due</div></div><div style="display:flex;flex-direction:row;justify-content:center;align-items:center;gap:10px;"><div class="stat-value" id="accuracy">0%</div><div class="stat-label">Accuracy</div></div></div></div>
+
   <!-- Main content layout: Charts on left (2/3), Buttons on right (1/3) -->
   <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; margin: 20px 0;">
     <!-- Charts section (left side, 2/3) -->
