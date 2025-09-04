@@ -10862,8 +10862,8 @@ function toggleDarkMode() {
 document.addEventListener('DOMContentLoaded', function() {
   // Initial chart draw
   setTimeout(() => {
-    drawUpcomingReviewsChart();
-    drawReviewHistoryChart();
+    getUpcomingReviewsData();
+    getReviewHistoryData();
   }, 100);
 });
 
