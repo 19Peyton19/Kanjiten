@@ -8279,8 +8279,7 @@ function getUpcomingReviewsData() {
 }
 
 function getReviewHistoryData() {
-  const correctData = [];
-  const incorrectData = [];
+  const data = [];
   const labels = [];
   const now = new Date();
   
@@ -8288,27 +8287,18 @@ function getReviewHistoryData() {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
     
-    // Count correct and incorrect reviews done on this date
-    let correctCount = 0;
-    let incorrectCount = 0;
-    
+    // Count reviews done on this date
+    let reviewCount = 0;
     gameState.kanjiData.forEach((kanji) => {
       if (kanji.lastReview) {
         const reviewDate = new Date(kanji.lastReview);
         if (reviewDate.toDateString() === date.toDateString()) {
-          // Assuming we have a way to track correct/incorrect - you may need to adjust this
-          // For now, we'll simulate based on SRS level or use a placeholder
-          if (kanji.srsLevel && kanji.srsLevel > 1) {
-            correctCount++;
-          } else {
-            incorrectCount++;
-          }
+          reviewCount++;
         }
       }
     });
     
-    correctData.push(correctCount);
-    incorrectData.push(incorrectCount);
+    data.push(reviewCount);
     
     // Format label
     if (i === 0) {
@@ -8322,7 +8312,7 @@ function getReviewHistoryData() {
   
   // Now draw the chart
   const canvas = document.getElementById('reviewHistoryChart');
-  if (!canvas) return { data: { correct: correctData, incorrect: incorrectData }, labels };
+  if (!canvas) return { data, labels };
   
   const ctx = canvas.getContext('2d');
   const rect = canvas.getBoundingClientRect();
@@ -8333,12 +8323,11 @@ function getReviewHistoryData() {
   // Get theme-aware colors
   const textColor = getCSSVariable('--chart-text');
   const lineColor = getCSSVariable('--chart-lines');
-  const correctColor = '#4CAF50'; // Keep green for correct
-  const incorrectColor = '#F44336'; // Keep red for incorrect
+  const barColor = getCSSVariable('--text-primary');
   
   ctx.clearRect(0, 0, rect.width, rect.height);
   
-  const maxTotal = Math.max(...labels.map((_, i) => correctData[i] + incorrectData[i]), 1);
+  const maxReviews = Math.max(...data, 1); // Ensure at least 1 to avoid division by zero
   
   const padding = 40;
   const chartWidth = rect.width - padding * 2;
@@ -8355,28 +8344,14 @@ function getReviewHistoryData() {
   ctx.lineTo(rect.width - padding, rect.height - padding);
   ctx.stroke();
   
-  // Draw stacked bars
-  labels.forEach((label, index) => {
-    const correctCount = correctData[index];
-    const incorrectCount = incorrectData[index];
-    const total = correctCount + incorrectCount;
+  // Draw bars
+  ctx.fillStyle = barColor;
+  data.forEach((count, index) => {
+    const barHeight = (count / maxReviews) * chartHeight * 0.8;
+    const x = padding + index * barSpacing + (barSpacing - barWidth) / 2;
+    const y = rect.height - padding - barHeight;
     
-    if (total > 0) {
-      const totalBarHeight = (total / maxTotal) * chartHeight * 0.8;
-      const correctBarHeight = (correctCount / total) * totalBarHeight;
-      const incorrectBarHeight = (incorrectCount / total) * totalBarHeight;
-      
-      const x = padding + index * barSpacing + (barSpacing - barWidth) / 2;
-      const baseY = rect.height - padding;
-      
-      // Draw correct (bottom) bar
-      ctx.fillStyle = correctColor;
-      ctx.fillRect(x, baseY - correctBarHeight, barWidth, correctBarHeight);
-      
-      // Draw incorrect (top) bar
-      ctx.fillStyle = incorrectColor;
-      ctx.fillRect(x, baseY - correctBarHeight - incorrectBarHeight, barWidth, incorrectBarHeight);
-    }
+    ctx.fillRect(x, y, barWidth, barHeight);
   });
   
   // Draw labels
@@ -8389,20 +8364,16 @@ function getReviewHistoryData() {
     ctx.fillText(label, x, rect.height - padding + 20);
   });
   
-  // Draw legend
-  ctx.fillStyle = correctColor;
-  ctx.fillRect(rect.width - 120, 20, 15, 15);
-  ctx.fillStyle = textColor;
-  ctx.font = '12px Arial';
-  ctx.textAlign = 'left';
-  ctx.fillText('Correct', rect.width - 100, 32);
+  // Draw values on bars
+  ctx.textAlign = 'center';
+  data.forEach((count, index) => {
+    const barHeight = (count / maxReviews) * chartHeight * 0.8;
+    const x = padding + index * barSpacing + barSpacing / 2;
+    const y = rect.height - padding - barHeight - 5;
+    ctx.fillText(count.toString(), x, y);
+  });
   
-  ctx.fillStyle = incorrectColor;
-  ctx.fillRect(rect.width - 120, 40, 15, 15);
-  ctx.fillStyle = textColor;
-  ctx.fillText('Incorrect', rect.width - 100, 52);
-  
-  return { data: { correct: correctData, incorrect: incorrectData }, labels };
+  return { data, labels };
 }
 
 function updateReviewCharts() {
