@@ -1177,28 +1177,15 @@ background: var(--bg-primary);
       <!-- Study Scene -->
       <div class="scene" id="studyScene">
 
-        <div class="study-info">
-          <div class="study-info-item">
-            <div class="study-info-label">Progress</div>
-            <div class="study-info-value" id="studyProgress">0/0</div>
-          </div>
-          <div class="study-info-item">
-            <div class="study-info-label">Current Level</div>
-            <div class="study-info-value" id="currentKanjiLevel">-</div>
-          </div>
-          <div class="study-info-item">
-            <div class="study-info-label">Reviews Remaining</div>
-            <div class="study-info-value" id="reviewsRemaining">0</div>
-          </div>
-        </div>
+        <div class="progress-bar" style="margin-bottom: 15px;">
+  <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
+</div>
 
-        <div class="progress-bar">
-          <div
-            class="progress-fill"
-            id="studyProgressBar"
-            style="width: 0%"
-          ></div>
-        </div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; margin-bottom: 20px; font-size: 14px; color: var(--text-secondary);">
+  <span>Progress: <strong id="studyProgress">0/0</strong></span>
+  <span>Level: <strong id="currentKanjiLevel">-</strong></span>
+  <span>Remaining: <strong id="reviewsRemaining">0</strong></span>
+</div>
 
      <div class="study-interface" style="background: none; padding: 0;">
   <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
