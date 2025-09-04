@@ -10774,7 +10774,7 @@ function performSearch(query) {
 function searchKanji(query) {
   const normalizedQuery = query.toLowerCase();
   
-  return kanjiData.filter(kanji => {
+  return gameState.kanjiData.filter(kanji => {
     // Search by character (exact match)
     if (kanji.character === query) {
       return true;
@@ -10872,8 +10872,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Also redraw charts when window is resized
 window.addEventListener('resize', function() {
-  drawUpcomingReviewsChart();
-  drawReviewHistoryChart();
+  getUpcomingReviewsData();
+    getReviewHistoryData();
 });
 
 function loadDarkModePreference() {
