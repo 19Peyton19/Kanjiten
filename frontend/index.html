@@ -9154,7 +9154,7 @@ function showAnswer() {
   gameState.studySession.showingAnswer = true;
 }
 
-  function showKanjiDetailsModal() {
+ function showKanjiDetailsModal() {
   const session = gameState.studySession;
   if (!session || !session.kanji || session.currentIndex >= session.kanji.length) {
     return;
@@ -9164,70 +9164,77 @@ function showAnswer() {
   if (!currentKanji) return;
   
   // Remove existing modal if present
-  const existingModal = document.getElementById('kanjiDetailsModal');
+  const existingModal = document.getElementById('kanjiDetailsModalOverlay');
   if (existingModal) {
     existingModal.remove();
   }
   
+  // Create the complete modal structure
   const modalHtml = `
-    <div class="kanji-details-header">
-      <h2>${currentKanji.character}</h2>
-      <button class="close-btn" id="kanjiModalCloseBtn">&times;</button>
-    </div>
-    <div class="kanji-details-content">
-      <div class="kanji-details-grid">
-        <div class="detail-item">
-          <div class="detail-label">Readings</div>
-          <div class="detail-value">${currentKanji.readings}</div>
+    <div id="kanjiDetailsModalOverlay" class="kanji-details-modal-overlay">
+      <div class="kanji-details-modal">
+        <div class="kanji-details-header">
+          <h2>${currentKanji.character}</h2>
+          <button class="close-btn" id="kanjiModalCloseBtn">&times;</button>
         </div>
-        <div class="detail-item">
-          <div class="detail-label">English Meaning</div>
-          <div class="detail-value">${currentKanji.meanings.join(', ')}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Kanji Kentei Level</div>
-          <div class="detail-value">Level ${currentKanji.level}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">JLPT Level</div>
-          <div class="detail-value">Level ${currentKanji.jlpt}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">WaniKani Level</div>
-          <div class="detail-value">Level ${currentKanji.level}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Study Accuracy</div>
-          <div class="detail-value">${currentKanji.totalReviews > 0 ? 
-            `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})` : 
-            'No reviews yet'}</div>
-        </div>
-        ${currentKanji.mnemonic ? `
-        <div class="detail-item full-width">
-          <div class="detail-label">Your Personal Mnemonic</div>
-          <div class="detail-value">
-            <div class="mnemonic-text">${currentKanji.mnemonic}</div>
+        <div class="kanji-details-content">
+          <div class="kanji-details-grid">
+            <div class="detail-item">
+              <div class="detail-label">Readings</div>
+              <div class="detail-value">${currentKanji.readings}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">English Meaning</div>
+              <div class="detail-value">${currentKanji.meanings.join(', ')}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Kanji Kentei Level</div>
+              <div class="detail-value">Level ${currentKanji.level}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">JLPT Level</div>
+              <div class="detail-value">Level ${currentKanji.jlpt}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">WaniKani Level</div>
+              <div class="detail-value">Level ${currentKanji.level}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Study Accuracy</div>
+              <div class="detail-value">${currentKanji.totalReviews > 0 ? 
+                `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})` : 
+                'No reviews yet'}</div>
+            </div>
+            ${currentKanji.mnemonic ? `
+            <div class="detail-item full-width">
+              <div class="detail-label">Your Personal Mnemonic</div>
+              <div class="detail-value">
+                <div class="mnemonic-text">${currentKanji.mnemonic}</div>
+              </div>
+            </div>
+            ` : ''}
           </div>
         </div>
-        ` : ''}
       </div>
     </div>
   `;
   
+  // Insert the modal into the document
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   
-  // Bind event listeners
-  const modal = document.getElementById('kanjiDetailsModal');
+  // Get references to the modal elements
+  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
   const closeBtn = document.getElementById('kanjiModalCloseBtn');
   
+  // Bind event listeners
   if (closeBtn) {
     closeBtn.addEventListener('click', closeKanjiDetailsModal);
   }
   
   // Close on overlay click
-  if (modal) {
-    modal.addEventListener('click', function(event) {
-      if (event.target === modal) {
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', function(event) {
+      if (event.target === modalOverlay) {
         closeKanjiDetailsModal();
       }
     });
@@ -9235,8 +9242,8 @@ function showAnswer() {
   
   // Show modal with animation
   setTimeout(() => {
-    if (modal) {
-      modal.classList.add('active');
+    if (modalOverlay) {
+      modalOverlay.classList.add('active');
     }
   }, 10);
   
@@ -9248,29 +9255,21 @@ function showAnswer() {
     }
   });
 }
+
 function closeKanjiDetailsModal(event) {
   if (event) {
     event.preventDefault();
     event.stopPropagation();
   }
   
-  const modal = document.getElementById('kanjiDetailsModal');
-  if (modal && modal.classList.contains('active')) {
-    modal.classList.remove('active');
+  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
+  if (modalOverlay && modalOverlay.classList.contains('active')) {
+    modalOverlay.classList.remove('active');
     setTimeout(() => {
-      modal.remove();
-    }, 400);
+      modalOverlay.remove();
+    }, 300); // Match the CSS transition duration
   }
 }
-  
-  const container = document.getElementById('kanjiDetailsContainer');
-  if (container && container.classList.contains('active')) {
-    container.classList.remove('active');
-    setTimeout(() => {
-      container.style.display = 'none';
-      container.innerHTML = '';
-    }, 400); // Match the CSS transition duration
-  }
 // Dark mode functions
 function toggleDarkMode() {
   const isDarkMode = document.getElementById('darkModeToggle').checked;
