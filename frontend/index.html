@@ -180,6 +180,14 @@
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+      [data-theme="dark"] .Kanclose-btn {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .Kanclose-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 [data-theme="dark"] .detail-item {
   background: var(--bg-secondary);
   border-left-color: #666666;
@@ -394,7 +402,7 @@ background: var(--bg-primary);
             letter-spacing: 2px;
         }
 
-        .close-btn {
+        .Kanclose-btn {
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.3);
             font-size: 24px;
@@ -412,7 +420,7 @@ background: var(--bg-primary);
             line-height: 1;
         }
 
-        .close-btn:hover {
+        .Kanclose-btn:hover {
             background-color: rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.5);
             transform: scale(1.1) rotate(90deg);
@@ -528,7 +536,7 @@ background: var(--bg-primary);
                 font-size: 18px;
             }
 
-            .close-btn {
+            .Kanclose-btn {
                 width: 40px;
                 height: 40px;
                 font-size: 20px;
@@ -9037,7 +9045,7 @@ function showAnswer() {
   const existingModal = document.getElementById('kanjiDetailsModalOverlay');
   if (existingModal) {
     existingModal.remove();
-  }
+  }  
   
   // Create the complete modal structure
   const modalHtml = `
@@ -9045,7 +9053,7 @@ function showAnswer() {
       <div class="kanji-details-modal">
         <div class="kanji-details-header">
           <h2>${currentKanji.character}</h2>
-          <button class="close-btn" onclick="closeKanjiDetailsModal()">&times;</button>
+          <button class="Kanclose-btn" onclick="closeKanjiDetailsModal()">&times;</button>
                         </div>
         <div class="kanji-details-content">
           <div class="kanji-details-grid">
