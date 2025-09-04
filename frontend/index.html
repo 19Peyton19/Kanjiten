@@ -9056,7 +9056,8 @@ function showKanjiDetailsModal() {
   if (!currentKanji) return;
 
   // Remove existing modal if present
-  document.getElementById('kanjiDetailsModalOverlay')?.remove();
+  const existingModal = document.getElementById("kanjiDetailsModalOverlay");
+  if (existingModal) existingModal.remove();
 
   // Create modal structure
   const modalHtml = `
@@ -9074,7 +9075,7 @@ function showKanjiDetailsModal() {
             </div>
             <div class="detail-item">
               <div class="detail-label">English Meaning</div>
-              <div class="detail-value">${currentKanji.meanings.join(', ')}</div>
+              <div class="detail-value">${currentKanji.meanings.join(", ")}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Kanji Kentei Level</div>
@@ -9090,13 +9091,14 @@ function showKanjiDetailsModal() {
             </div>
             <div class="detail-item">
               <div class="detail-label">Study Accuracy</div>
-              <div class="detail-value">
-                ${
-                  currentKanji.totalReviews > 0
-                    ? `${Math.round((currentKanji.correctReviews / currentKanji.totalReviews) * 100)}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})`
-                    : 'No reviews yet'
-                }
-              </div>
+              <div class="detail-value">${
+                currentKanji.totalReviews > 0
+                  ? `${Math.round(
+                      (currentKanji.correctReviews / currentKanji.totalReviews) *
+                        100
+                    )}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})`
+                  : "No reviews yet"
+              }</div>
             </div>
             ${
               currentKanji.mnemonic
@@ -9107,7 +9109,7 @@ function showKanjiDetailsModal() {
                 <div class="mnemonic-text">${currentKanji.mnemonic}</div>
               </div>
             </div>`
-                : ''
+                : ""
             }
           </div>
         </div>
@@ -9116,71 +9118,61 @@ function showKanjiDetailsModal() {
   `;
 
   // Insert into document
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
 
   // Prevent background scroll
-  document.body.classList.add('modal-open');
+  document.body.classList.add("modal-open");
 
-  // *** History + hash: guarantee a same-document back step ***
-  // Ensure current entry is marked as a "page" state without adding history
-  history.replaceState({ ...(history.state || {}), pageState: true }, "", location.href);
-  // Push a new entry that includes the modal marker and a tiny hash
-  const url = new URL(location.href);
-  if (url.hash !== '#kanji-modal') url.hash = 'kanji-modal';
-  history.pushState({ ...(history.state || {}), modalOpen: true }, "", url.href);
+  // Push a history state so Back button can close the modal
+  history.pushState({ modalOpen: true }, "", "#kanji-modal");
 
-  // Refs
-  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
-  const closeBtn = document.getElementById('kanjiModalCloseBtn');
+  const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+  const closeBtn = document.getElementById("kanjiModalCloseBtn");
 
-  // Close on button
-  closeBtn?.addEventListener('click', () => closeKanjiDetailsModal());
+  // Close on button click
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeKanjiDetailsModal);
+  }
 
   // Close on overlay click
-  modalOverlay?.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) closeKanjiDetailsModal();
-  });
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (event) => {
+      if (event.target === modalOverlay) {
+        closeKanjiDetailsModal();
+      }
+    });
+  }
 
-  // Animate in
-  setTimeout(() => modalOverlay?.classList.add('active'), 10);
+  // Animate open
+  setTimeout(() => modalOverlay?.classList.add("active"), 10);
 
-  // Close on Escape (clean up the listener)
-  function escapeHandler(e) {
-    if (e.key === 'Escape') {
+  // Close on Escape
+  function escapeHandler(event) {
+    if (event.key === "Escape") {
       closeKanjiDetailsModal();
-      document.removeEventListener('keydown', escapeHandler);
+      document.removeEventListener("keydown", escapeHandler);
     }
   }
-  document.addEventListener('keydown', escapeHandler);
+  document.addEventListener("keydown", escapeHandler);
 }
 
-function closeKanjiDetailsModal(opts = {}) {
-  console.log("closing modal")
-  const fromHistory = opts.fromHistory === true;
-  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
-  if (!modalOverlay) return;
-
-  if (modalOverlay.classList.contains('active')) {
-    modalOverlay.classList.remove('active');
-    document.body.classList.remove('modal-open');
-
+function closeKanjiDetailsModal() {
+  const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+  if (modalOverlay && modalOverlay.classList.contains("active")) {
+    modalOverlay.classList.remove("active");
+    document.body.classList.remove("modal-open");
     setTimeout(() => modalOverlay.remove(), 300);
-  } else {
-    modalOverlay.remove();
-  }
 
-  // If user initiated the close (button/overlay/Escape), go back one step to drop #kanji-modal
-  if (!fromHistory) {
-    if (location.hash === '#kanji-modal' || history.state?.modalOpen) {
+    // If we opened via pushState, go back one step in history
+    if (history.state && history.state.modalOpen) {
       history.back();
     }
   }
 }
 
-
-// Close modal when back button is pressed
+// Handle browser Back button (popstate)
 window.addEventListener("popstate", (event) => {
-  const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
+  const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
   if (modalOverlay) {
     closeKanjiDetailsModal();
   }
