@@ -1351,12 +1351,12 @@
               <canvas id="mainDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
                  <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
              </div>
-<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; margin-bottom: 20px; font-size: 14px; color: var(--text-secondary);">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; font-size: 14px; color: var(--text-secondary);">
     <span>Progress: <strong id="studyProgress">0/0</strong></span>
     <span>Level: <strong id="currentKanjiLevel">-</strong></span>
     <span>Remaining: <strong id="reviewsRemaining">0</strong></span>
 </div>
-              <div style="display: flex; align-items: center; padding: 10px 20px; gap: 8px;">
+              <div style="display: flex; align-items: right; gap: 8px;">
         <button class="btn btn-secondary" onclick="clearMainCanvas()" style="padding: 8px 12px; font-size: 12px;">Clear</button>
         <button class="btn btn-secondary" id="eraserToggleBtn" onclick="toggleMainEraser()" style="padding: 8px 12px; font-size: 12px;">Eraser</button>
     </div>
