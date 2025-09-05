@@ -16533,50 +16533,56 @@
              displayCurrentQuestion();
          }
 
-         function displayCurrentQuestion() {
-             const session = gameState.studySession;
-             if (!session.kanji || session.kanji.length === 0) {
-                 alert('No kanji in study session!');
-                 loadScene('dashboardScene');
-                 return;
-             }
-             if (session.currentIndex >= session.kanji.length) {
-                 alert(`Study session complete! Score: ${session.correct}/${session.total}`);
-                 saveGameData();
-                 loadScene('dashboardScene');
-                 return;
-             }
-             const currentKanji = session.kanji[session.currentIndex];
-             const filteredVariations = getFilteredVariations(currentKanji, gameState.settings.jlptLevel);
-             if (filteredVariations.length === 0) {
-                 session.currentIndex++;
-                 displayCurrentQuestion();
-                 return;
-             }
-             const randomVariation = filteredVariations[Math.floor(Math.random() * filteredVariations.length)];
-             let questionText, answerText;
-             if (session.questionMode === 'meaning-first') {
-                 questionText = `${randomVariation.reading}\n${randomVariation.meaning}`;
-                 answerText = randomVariation.word;
-             } else {
-                 questionText = randomVariation.word;
-                 answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
-             }
-             document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
-             document.getElementById('reviewsRemaining').textContent = session.total - session.currentIndex - 1;
-             document.getElementById('questionText').innerHTML = questionText.replace(/\n/g, '<br>');
-             document.getElementById('answerText').innerHTML = answerText.replace(/\n/g, '<br>');
-             document.getElementById('answerText').style.display = 'none';
-             document.getElementById('showAnswerBtn').style.display = 'block';
-             document.getElementById('answerButtons').style.display = 'none';
-             // Hide the Show Details button until answer is shown
-             const detailsBtn = document.getElementById('showDetailsBtn');
-             if (detailsBtn) {
-                 detailsBtn.style.display = 'none';
-             }
-             session.showingAnswer = false;
-             updateStudyProgress();
-         }
+         async function displayCurrentQuestion() {
+    const session = gameState.studySession;
+    if (!session.kanji || session.kanji.length === 0) {
+        alert('No kanji in study session!');
+        loadScene('dashboardScene');
+        return;
+    }
+    if (session.currentIndex >= session.kanji.length) {
+        alert(`Study session complete! Score: ${session.correct}/${session.total}`);
+        saveGameData();
+        loadScene('dashboardScene');
+        return;
+    }
+
+    const currentKanji = session.kanji[session.currentIndex];
+    const filteredVariations = await getFilteredVariations(currentKanji, gameState.settings.jlptLevel);
+    
+    if (filteredVariations.length === 0) {
+        session.currentIndex++;
+        displayCurrentQuestion();
+        return;
+    }
+
+    const randomVariation = filteredVariations[Math.floor(Math.random() * filteredVariations.length)];
+    
+    // Rest of your existing displayCurrentQuestion code remains the same...
+    let questionText, answerText;
+    if (session.questionMode === 'meaning-first') {
+        questionText = `${randomVariation.reading}\n${randomVariation.meaning}`;
+        answerText = randomVariation.word;
+    } else {
+        questionText = randomVariation.word;
+        answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
+    }
+
+    document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
+    document.getElementById('reviewsRemaining').textContent = session.total - session.currentIndex - 1;
+    document.getElementById('questionText').innerHTML = questionText.replace(/\n/g, '<br>');
+    document.getElementById('answerText').innerHTML = answerText.replace(/\n/g, '<br>');
+    document.getElementById('answerText').style.display = 'none';
+    document.getElementById('showAnswerBtn').style.display = 'block';
+    document.getElementById('answerButtons').style.display = 'none';
+    
+    const detailsBtn = document.getElementById('showDetailsBtn');
+    if (detailsBtn) {
+        detailsBtn.style.display = 'none';
+    }
+    session.showingAnswer = false;
+    updateStudyProgress();
+}
 
          function showAnswer() {
              document.getElementById('answerText').style.display = 'block';
@@ -16986,25 +16992,43 @@
     // Simply check if nextReview is now or in the past
     return kanji.nextReview <= new Date();
 }
-         function getFilteredVariations(kanji, jlptLevel) {
-             if (jlptLevel === 'all') return kanji.variations;
-             const exactMatches = kanji.variations.filter(
-                 (variation) => variation.jlpt === jlptLevel);
-             return exactMatches.length > 0 ? exactMatches : kanji.variations;
-         }
-
-         function initializeApp() {
-             initializeKanjiData();
-             startAutoSave();
-             const storedToken = localStorage.getItem('authToken');
-             if (storedToken) {
-                 gameState.authToken = storedToken;
-                 validateTokenAndAutoLogin(storedToken);
-             } else {
-                 loadScene('loginScene');
-                 updateNavigationUI();
-             }
-         }
+         async function getFilteredVariations(kanji, jlptLevel) {
+    // Get built-in variations
+    let builtInVariations = kanji.variations || [];
+    
+    // Get custom words
+    const customWords = await getCustomWords(kanji.id);
+    
+    // Convert custom words to the same format as built-in variations
+    const customVariations = customWords.map(word => ({
+        word: word.word,
+        reading: word.reading,
+        meaning: word.meaning,
+        type: word.word_type,
+        jlpt: word.jlpt_level
+    }));
+    
+    // Combine both arrays
+    const allVariations = [...builtInVariations, ...customVariations];
+    
+    if (jlptLevel === 'all') return allVariations;
+    
+    // Filter by JLPT level - N5 is easiest, N1 is hardest
+    // So if user selected N3, they should see N5, N4, and N3 (easier and same level)
+    const jlptOrder = ['N5', 'N4', 'N3', 'N2', 'N1'];
+    const userLevelIndex = jlptOrder.indexOf(jlptLevel);
+    
+    if (userLevelIndex === -1) return allVariations; // If invalid level, show all
+    
+    // Include all levels from N5 up to and including the user's level
+    const allowedLevels = jlptOrder.slice(0, userLevelIndex + 1);
+    const filteredVariations = allVariations.filter(variation => 
+        allowedLevels.includes(variation.jlpt)
+    );
+    
+    // If no variations match the JLPT filter, return all variations to avoid empty sets
+    return filteredVariations.length > 0 ? filteredVariations : allVariations;
+}
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
              const levelsDiv = document.getElementById('kanjiLevels');
