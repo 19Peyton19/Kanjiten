@@ -17053,7 +17053,7 @@
     let html = '';
     for (let level = 10; level >= 1; level--) {
         const levelKanji = Array.from(gameState.kanjiData.values()).filter(
-            (k) => k.level === level && (gameState.settings.jlptLevel === 'all' || k.jlpt === gameState.settings.jlptLevel));
+    (k) => k.level === level);
         if (levelKanji.length === 0) continue;
         html += `
           <div class="level-header" onclick="toggleCramLevel(${level})">
