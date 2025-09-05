@@ -17029,6 +17029,19 @@
     // If no variations match the JLPT filter, return all variations to avoid empty sets
     return filteredVariations.length > 0 ? filteredVariations : allVariations;
 }
+
+      function initializeApp() {
+             initializeKanjiData();
+             startAutoSave();
+             const storedToken = localStorage.getItem('authToken');
+             if (storedToken) {
+                 gameState.authToken = storedToken;
+                 validateTokenAndAutoLogin(storedToken);
+             } else {
+                 loadScene('loginScene');
+                 updateNavigationUI();
+             }
+         }
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
              const levelsDiv = document.getElementById('kanjiLevels');
