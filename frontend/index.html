@@ -17284,36 +17284,27 @@ function handleTouch(e) {
          }
 
          function selectAllKanji() {
-    // Filter kanji based on current JLPT setting, same as in updateCramScene
-    const filteredKanji = Array.from(gameState.kanjiData.values()).filter(
-        (k) => gameState.settings.jlptLevel === 'all' || k.jlpt === gameState.settings.jlptLevel
-    );
-    
-    filteredKanji.forEach((kanji) => {
-        gameState.cramSession.selectedKanji.add(kanji.id);
-        const card = document.getElementById(`cramKanji${kanji.id}`);
-        const check = document.getElementById(`cramCheck${kanji.id}`); // Fixed ID reference
-        if (card) {
-            card.classList.add('selected');
-        }
-        if (check) {
-            check.style.display = 'block';
-        }
-    });
-    updateCramButton();
-}
-
-// Fixed deselectAllKanji function
-function deselectAllKanji() {
-    gameState.cramSession.selectedKanji.clear();
-    document.querySelectorAll('#cramKanjiLevels .kanji-card').forEach((card) => {
-        card.classList.remove('selected');
-    });
-    document.querySelectorAll('[id^="cramCheck"]').forEach((check) => {
-        check.style.display = 'none';
-    });
-    updateCramButton();
-}
+             Array.from(gameState.kanjiData.values()).forEach((kanji) => {
+                 gameState.cramSession.selectedKanji.add(kanji.id);
+                 const card = document.getElementById(cramKanji${kanji.id});
+                 const check = document.getElementById(check${kanji.id});
+                 if (card) {
+                     card.classList.add('selected');
+                     check.style.display = 'block';
+                 }
+             });
+             updateCramButton();
+         }
+         function deselectAllKanji() {
+             gameState.cramSession.selectedKanji.clear();
+             document.querySelectorAll('.kanji-card').forEach((card) => {
+                 card.classList.remove('selected');
+             });
+             document.querySelectorAll('[id^="check"]').forEach((check) => {
+                 check.style.display = 'none';
+             });
+             updateCramButton();
+         }
 
          function startCramSession() {
              if (gameState.cramSession.selectedKanji.size === 0) {
@@ -17333,6 +17324,10 @@ function deselectAllKanji() {
              loadScene('cramStudyScene');
              displayCramQuestion();
          }
+         function updateCramQuestionMode() {
+             const mode = document.getElementById('cramQuestionMode').value;
+             gameState.cramSession.questionMode = mode;
+         }
 
          function updateCramQuestionMode() {
              const mode = document.getElementById('cramQuestionMode').value;
@@ -17340,20 +17335,11 @@ function deselectAllKanji() {
          }
 
          function showCramAnswer() {
-    document.getElementById('cramAnswerText').style.display = 'block';
-    document.getElementById('cramShowAnswerBtn').style.display = 'none';
-    document.getElementById('cramAnswerButtons').style.display = 'flex';
-    document.getElementById('cramShowDetailsBtn').style.display = 'block';
-    gameState.cramSession.showingAnswer = true;
-}
-
-      window.addEventListener('resize', () => {
-    if (cramCanvas) {
-        cramCanvas.width = window.innerWidth;
-        cramCanvas.height = window.innerHeight;
-    }
-});
-
+             document.getElementById('cramAnswerText').style.display = 'block';
+             document.getElementById('cramShowAnswerBtn').style.display = 'none';
+             document.getElementById('cramAnswerButtons').style.display = 'flex';
+             gameState.cramSession.showingAnswer = true;
+         }
          function submitCramAnswer(isCorrect) {
              const session = gameState.cramSession;
              if (isCorrect) {
@@ -17362,7 +17348,7 @@ function deselectAllKanji() {
              session.currentIndex++;
              if (session.currentIndex >= session.kanji.length) {
                  const percentage = Math.round((session.correct / session.total) * 100);
-                 alert(`Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%)`);
+                 alert(Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%));
                  loadScene('cramScene');
              } else {
                  displayCramQuestion();
