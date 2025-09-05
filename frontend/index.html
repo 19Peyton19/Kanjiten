@@ -17286,8 +17286,8 @@ function handleTouch(e) {
           function selectAllKanji() {
              Array.from(gameState.kanjiData.values()).forEach((kanji) => {
                  gameState.cramSession.selectedKanji.add(kanji.id);
-                 const card = document.getElementById(cramKanji${kanji.id});
-                 const check = document.getElementById(check${kanji.id});
+                 const card = document.getElementById(`cramKanji${kanji.id}`);
+                 const check = document.getElementById(`check${kanji.id}`);
                  if (card) {
                      card.classList.add('selected');
                      check.style.display = 'block';
