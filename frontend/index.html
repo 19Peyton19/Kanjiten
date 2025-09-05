@@ -16915,6 +16915,8 @@
              if (difficulty >= 3) {
                  session.correct++;
              }
+
+            clearMainCanvas()
              // Save immediately after updating kanji data
              saveGameData().catch(error => console.error('Failed to save after answer:', error));
              session.currentIndex++;
