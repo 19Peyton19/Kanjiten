@@ -259,6 +259,35 @@
              background: linear-gradient(90deg, #666666, #555555);
          }
 
+      #mainDrawingCanvas {
+    cursor: crosshair;
+}
+
+#mainDrawingCanvas.erasing {
+    cursor: grab;
+}
+
+/* Dark mode canvas styling */
+[data-theme="dark"] #mainDrawingCanvas {
+    background: transparent;
+}
+
+/* Fixed positioning for drawing controls */
+.drawing-controls-fixed {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+}
+
+.drawing-controls-fixed .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-width: auto;
+}
+
          /* Search Section Styles */
          .search-section {
              max-width: 600px;
@@ -1319,6 +1348,7 @@
          <!-- Study Scene -->
          <div class="scene" id="studyScene">
              <div class="progress-bar" style="margin-bottom: 15px;">
+              <canvas id="mainDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
                  <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
              </div>
              <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; margin-bottom: 20px; font-size: 14px; color: var(--text-secondary);">
@@ -1326,6 +1356,10 @@
                  <span>Level: <strong id="currentKanjiLevel">-</strong></span>
                  <span>Remaining: <strong id="reviewsRemaining">0</strong></span>
              </div>
+          <div style="position: fixed; top: 80px; right: 20px; z-index: 100; display: flex; gap: 10px;">
+    <button class="btn btn-secondary" onclick="clearMainCanvas()" style="padding: 8px 12px; font-size: 12px;">Clear</button>
+    <button class="btn btn-secondary" id="eraserToggleBtn" onclick="toggleMainEraser()" style="padding: 8px 12px; font-size: 12px;">Eraser</button>
+</div>
              <div class="study-interface" style="background: none; padding: 0;">
                  <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
                      <div id="questionText" class="question-text"> Click "Show Answer" to begin </div>
@@ -16476,6 +16510,9 @@
                  questionMode: gameState.settings.defaultQuestionMode,
              };
              loadScene('studyScene');
+          setTimeout(() => {
+        initializeStudyDrawing();
+    }, 100); 
              const modeDropdown = document.getElementById('studyQuestionMode');
              if (modeDropdown) {
                  modeDropdown.value = gameState.studySession.questionMode;
@@ -17093,6 +17130,48 @@
              alert('Mnemonic saved!');
              saveGameData();
          }
+
+         let drawingState = {
+    isDrawing: false,
+    lastX: 0,
+    lastY: 0,
+    isErasing: false
+};
+
+      window.addEventListener('resize', () => {
+    const canvas = document.getElementById('mainDrawingCanvas');
+    if (canvas && document.getElementById('studyScene').classList.contains('active')) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initializeDrawingCanvas();
+    }
+});
+
+function initializeStudyDrawing() {
+    const canvas = document.getElementById('mainDrawingCanvas');
+    if (canvas) {
+        // Set canvas size to match viewport
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initializeDrawingCanvas();
+    }
+}
+
+function getDrawingColor() {
+    // Return white for dark mode, black for light mode
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? '#ffffff' : '#000000';
+}
+
+function handleTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                     e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    e.target.dispatchEvent(mouseEvent);
+}
 
          function openDrawingScene() {
              if (!gameState.selectedKanji) return;
