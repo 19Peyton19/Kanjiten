@@ -16979,23 +16979,13 @@
     }
 }
 
-         function isKanjiDueForReview(kanji) {
+        function isKanjiDueForReview(kanji) {
     if (!kanji.inReview) return false;
     if (!kanji.nextReview) return true;
     
-    // Get today at 2am
-    const today2am = new Date();
-    today2am.setHours(2, 0, 0, 0);
-    
-    // If it's currently before 2am, use yesterday's 2am
-    const now = new Date();
-    if (now.getHours() < 2) {
-        today2am.setDate(today2am.getDate() - 1);
-    }
-    
-    return kanji.nextReview <= today2am;
+    // Simply check if nextReview is now or in the past
+    return kanji.nextReview <= new Date();
 }
-
          function getFilteredVariations(kanji, jlptLevel) {
              if (jlptLevel === 'all') return kanji.variations;
              const exactMatches = kanji.variations.filter(
