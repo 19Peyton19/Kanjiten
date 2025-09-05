@@ -1348,7 +1348,7 @@
          <!-- Study Scene -->
         <!-- Study Scene -->
 <div class="scene" id="studyScene">
-    <canvas id="mainDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 10; background: transparent;"></canvas>
+    <canvas id="mainDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
  <div class="progress-bar" style="margin-bottom: 15px;">
         <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
     </div>
@@ -1367,14 +1367,14 @@
               <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
                   <div id="questionText" class="question-text"> Click "Show Answer" to begin </div>
                   <div id="answerText" class="answer-text" style="display: none"></div>
-                  <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()"> Show Answer </button>
-                  <div class="answer-buttons" id="answerButtons" style="display: none">
+                  <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100;"> Show Answer </button>
+                  <div class="answer-buttons" id="answerButtons" style="display: none; position: relative; z-index: 100;">
                       <button class="btn btn-danger" onclick="submitAnswer(1)"> Wrong </button>
                       <button class="btn btn-warning" onclick="submitAnswer(2)"> Hard </button>
                       <button class="btn btn-success" onclick="submitAnswer(3)"> Good </button>
                       <button class="btn btn-primary" onclick="submitAnswer(4)"> Easy </button>
                   </div>
-                  <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px;"> Show Details </button>
+                  <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px; position: relative; z-index: 100;"> Show Details </button>
               </div>
           </div>
       </div>
