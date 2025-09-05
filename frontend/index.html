@@ -17348,7 +17348,7 @@ function handleTouch(e) {
              session.currentIndex++;
              if (session.currentIndex >= session.kanji.length) {
                  const percentage = Math.round((session.correct / session.total) * 100);
-                 alert(Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%));
+                 alert(`Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%)`);
                  loadScene('cramScene');
              } else {
                  displayCramQuestion();
