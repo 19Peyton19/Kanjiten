@@ -166,6 +166,26 @@
              border-color: #5f2d2d;
          }
 
+         [data-theme="dark"] .kanji-card.selected {
+    background: #555555;
+    border-color: #777777;
+    color: var(--text-primary);
+    transform: scale(0.95);
+}
+
+      [data-theme="dark"] #addWordForm {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] #addWordForm h4 {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] #addWordForm label {
+    color: var(--text-primary);
+}
+
          [data-theme="dark"] .guest-notice {
              background: #4a3d1a;
              color: #f4e4a6;
@@ -17100,7 +17120,7 @@
               </div>
             </div>
           </div>
-          <div class="kanji-grid expanded" id="cramLevel${level}Grid">
+          <div class="kanji-grid" id="cramLevel${level}Grid">
             ${levelKanji.map(kanji => `
               <div class="kanji-card" onclick="toggleKanjiSelection(${kanji.id})" id="cramKanji${kanji.id}">
                 <div class="kanji-character">${kanji.character}</div>
@@ -17113,6 +17133,19 @@
     }
     levelsDiv.innerHTML = html;
     updateCramButton();
+}
+
+      function toggleCramLevel(level) {
+    const grid = document.getElementById(`cramLevel${level}Grid`);
+    const header = grid.previousElementSibling;
+    
+    if (grid.classList.contains('expanded')) {
+        grid.classList.remove('expanded');
+        header.classList.remove('expanded');
+    } else {
+        grid.classList.add('expanded');
+        header.classList.add('expanded');
+    }
 }
 
          function updateSettingsScene() {
