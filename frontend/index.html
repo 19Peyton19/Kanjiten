@@ -1364,20 +1364,20 @@
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
-        <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
-            <div id="questionText" class="question-text"> Click "Show Answer" to begin </div>
-            <div id="answerText" class="answer-text" style="display: none"></div>
-            <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100; position: relative;"> Show Answer </button>
-            <div class="answer-buttons" id="answerButtons" style="display: none; z-index: 100; position: relative;">
-                <button class="btn btn-danger" onclick="submitAnswer(1)"> Wrong </button>
-                <button class="btn btn-warning" onclick="submitAnswer(2)"> Hard </button>
-                <button class="btn btn-success" onclick="submitAnswer(3)"> Good </button>
-                <button class="btn btn-primary" onclick="submitAnswer(4)"> Easy </button>
-            </div>
-            <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px; z-index: 100; position: relative;"> Show Details </button>
-        </div>
-    </div>
-</div>
+              <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
+                  <div id="questionText" class="question-text"> Click "Show Answer" to begin </div>
+                  <div id="answerText" class="answer-text" style="display: none"></div>
+                  <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()"> Show Answer </button>
+                  <div class="answer-buttons" id="answerButtons" style="display: none">
+                      <button class="btn btn-danger" onclick="submitAnswer(1)"> Wrong </button>
+                      <button class="btn btn-warning" onclick="submitAnswer(2)"> Hard </button>
+                      <button class="btn btn-success" onclick="submitAnswer(3)"> Good </button>
+                      <button class="btn btn-primary" onclick="submitAnswer(4)"> Easy </button>
+                  </div>
+                  <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px;"> Show Details </button>
+              </div>
+          </div>
+      </div>
          <!-- Kanji Detail Scene -->
          <div class="scene" id="kanjiDetailScene">
              <div style="text-align: center">
