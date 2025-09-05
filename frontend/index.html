@@ -17030,7 +17030,7 @@
              levelsDiv.innerHTML = html;
          }
 
-       function updateCramScene() {
+      function updateCramScene() {
     gameState.cramSession.selectedKanji.clear();
     const modeDropdown = document.getElementById('cramQuestionMode');
     if (modeDropdown) {
@@ -17038,37 +17038,31 @@
     }
     const levelsDiv = document.getElementById('cramKanjiLevels');
     let html = '';
-    
-    // Filter kanji based on current JLPT setting
-    const filteredKanji = Array.from(gameState.kanjiData.values()).filter(
-        (k) => gameState.settings.jlptLevel === 'all' || k.jlpt === gameState.settings.jlptLevel
-    );
-    
     for (let level = 10; level >= 1; level--) {
-        const levelKanji = filteredKanji.filter(k => k.level === level);
+        const levelKanji = Array.from(gameState.kanjiData.values()).filter(
+            (k) => k.level === level && (gameState.settings.jlptLevel === 'all' || k.jlpt === gameState.settings.jlptLevel));
         if (levelKanji.length === 0) continue;
-        
         html += `
-        <div class="level-header" onclick="toggleCramLevel(${level})">
+          <div class="level-header" onclick="toggleCramLevel(${level})">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3>Level ${level} (${levelKanji.length} kanji)</h3>
-                </div>
-                <div>
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); selectLevelKanji(${level})">Select All</button>
-                    <button class="btn btn-secondary" onclick="event.stopPropagation(); deselectLevelKanji(${level})">Deselect All</button>
-                </div>
+              <div>
+                <h3>Level ${level} (${levelKanji.length} kanji)</h3>
+              </div>
+              <div>
+                <button class="btn btn-secondary" onclick="event.stopPropagation(); selectLevelKanji(${level})">Select All</button>
+                <button class="btn btn-secondary" onclick="event.stopPropagation(); deselectLevelKanji(${level})">Deselect All</button>
+              </div>
             </div>
-        </div>
-        <div class="kanji-grid expanded" id="cramLevel${level}Grid">
+          </div>
+          <div class="kanji-grid expanded" id="cramLevel${level}Grid">
             ${levelKanji.map(kanji => `
-                <div class="kanji-card" onclick="toggleKanjiSelection(${kanji.id})" id="cramKanji${kanji.id}">
-                    <div class="kanji-character">${kanji.character}</div>
-                    <div class="kanji-translation">${kanji.meanings.join(', ')}</div>
-                    <div style="position: absolute; top: 5px; right: 5px; font-size: 20px; display: none;" id="cramCheck${kanji.id}">✓</div>
-                </div>
+              <div class="kanji-card" onclick="toggleKanjiSelection(${kanji.id})" id="cramKanji${kanji.id}">
+                <div class="kanji-character">${kanji.character}</div>
+                <div class="kanji-translation">${kanji.meanings.join(', ')}</div>
+                <div style="position: absolute; top: 5px; right: 5px; font-size: 20px; display: none;" id="check${kanji.id}">✓</div>
+              </div>
             `).join('')}
-        </div>
+          </div>
         `;
     }
     levelsDiv.innerHTML = html;
