@@ -17248,14 +17248,43 @@ function loadScene(sceneName, pushState = true) {
             updateSettingsScene();
             break;
         case 'studyScene':
-            setTimeout(() => {
-                initializeStudyDrawing();
-                initializeStudyProgressDisplay();
-            }, 100);
-            break;
-        case 'cramStudyScene':
-            initializeStudyProgressDisplay();
-            break;
+    // Check if we have an active study session, if not try to start one
+    if (!gameState.studySession.kanji || gameState.studySession.kanji.length === 0) {
+        const reviewKanji = Array.from(gameState.kanjiData.values()).filter(
+            (k) => isKanjiDueForReview(k)
+        );
+        if (reviewKanji.length > 0) {
+            console.log('No active study session, starting with due reviews');
+            gameState.studySession = {
+                kanji: [...reviewKanji].sort(() => Math.random() - 0.5),
+                currentIndex: 0,
+                showingAnswer: false,
+                correct: 0,
+                total: reviewKanji.length,
+                questionMode: gameState.settings.defaultQuestionMode,
+            };
+        } else {
+            console.log('No reviews due, redirecting to dashboard');
+            loadScene('dashboardScene');
+            return;
+        }
+    }
+    setTimeout(() => {
+        initializeStudyDrawing();
+        initializeStudyProgressDisplay();
+        displayCurrentQuestion();
+    }, 100);
+    break;
+case 'cramStudyScene':
+    // If no active cram session, redirect to cram scene
+    if (!gameState.cramSession.kanji || gameState.cramSession.kanji.length === 0) {
+        console.log('No active cram session, redirecting to cram selection');
+        loadScene('cramScene');
+        return;
+    }
+    initializeStudyProgressDisplay();
+    displayCramQuestion();
+    break;
     }
     
     // Scroll to top
@@ -17433,22 +17462,42 @@ function getSceneFromPath(path) {
     }
     
     if (gameState.intendedPath) {
-        // Check if it's a kanji detail path - redirect to decks instead
-        if (gameState.intendedPath.startsWith('/kanji/')) {
-            console.log('Intended path was kanji detail, redirecting to decks');
-            loadScene('decksScene');
-        } else {
-            // Handle other intended paths normally
-            const scene = getSceneFromPath(gameState.intendedPath);
-            if (scene !== 'loginScene' || !gameState.isSignedIn) {
-                loadScene(scene);
+        console.log('Handling intended path:', gameState.intendedPath);
+        
+        // Get the scene from the intended path
+        const scene = getSceneFromPath(gameState.intendedPath);
+        
+        // Special handling for study scene - restore or redirect to dashboard
+        if (gameState.intendedPath === '/study') {
+            const reviewKanji = Array.from(gameState.kanjiData.values()).filter(
+                (k) => isKanjiDueForReview(k)
+            );
+            if (reviewKanji.length > 0) {
+                console.log('Found reviews due, starting review session');
+                startStudySession(reviewKanji);
+            } else {
+                console.log('No reviews due, redirecting to dashboard');
+                loadScene('dashboardScene');
             }
         }
+        // Special handling for cram study scene - redirect to cram selection
+        else if (gameState.intendedPath === '/cram/study') {
+            console.log('Cram study scene on reload, redirecting to cram selection');
+            loadScene('cramScene');
+        }
+        // Special handling for kanji detail URLs - redirect to decks
+        else if (gameState.intendedPath.startsWith('/kanji/')) {
+            console.log('Intended path was kanji detail, redirecting to decks');
+            loadScene('decksScene');
+        }
+        // Handle other scenes normally
+        else if (scene !== 'loginScene' || !gameState.isSignedIn) {
+            loadScene(scene);
+        }
+        
         gameState.intendedPath = null;
+        gameState.intendedKanjiChar = null;
     }
-    
-    // Clear any intended kanji character since we're not going to kanji detail
-    gameState.intendedKanjiChar = null;
 }
          // Dashboard Functions
          function updateDashboard() {
