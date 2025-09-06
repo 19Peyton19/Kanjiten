@@ -199,8 +199,7 @@
              border-color: #6b5720;
          }
 
-      const loadingCSS = `
-.loading-scene {
+    .loading-scene {
     position: fixed;
     top: 0;
     left: 0;
@@ -239,7 +238,6 @@
     font-size: 14px;
     color: var(--text-secondary);
 }
-`;
 
 
          [data-theme="dark"] .variation-item {
@@ -1371,13 +1369,11 @@
 
  <body>
 
-  const loadingHTML = `
-<div id="loadingScene" class="loading-scene">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Loading Kanji Master</div>
-    <div class="loading-progress" id="loadingProgress">Initializing...</div>
-</div>
-`;
+     <div id="loadingScene" class="loading-scene">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Kanji Master</div>
+        <div class="loading-progress" id="loadingProgress">Initializing...</div>
+    </div>
      <!-- Top Navigation Bar -->
      <div class="top-nav">
          <div class="nav-logo">🌸 Kanjiten</div>
