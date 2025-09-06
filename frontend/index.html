@@ -17297,6 +17297,11 @@ function getSceneFromPath(path) {
 }
 
       function handleIntendedURL() {
+    // Ensure kanji data is initialized before handling URLs
+    if (gameState.kanjiData.size === 0) {
+        initializeKanjiData();
+    }
+    
     if (gameState.intendedKanjiChar) {
         // Find and select the kanji
         const kanji = Array.from(gameState.kanjiData.values()).find(k => k.character === gameState.intendedKanjiChar);
@@ -18170,7 +18175,10 @@ window.addEventListener("popstate", (event) => {
 }
 
     function initializeApp() {
+    // Initialize kanji data FIRST, before any URL handling
     initializeKanjiData();
+    
+    // Then handle URL routing
     initializeURLHandling();
     startAutoSave();
     
