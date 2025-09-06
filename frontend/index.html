@@ -17474,6 +17474,7 @@ function getSceneFromPath(path) {
             );
             if (reviewKanji.length > 0) {
                 console.log('Found reviews due, starting review session');
+                startStudySession()
                 
             } else {
                 console.log('No reviews due, redirecting to dashboard');
