@@ -17180,6 +17180,7 @@ function getSceneConfig(sceneName) {
         title: 'Kanji Master'
     };
 }
+
       window.addEventListener('popstate', (event) => {
     // Close any open modals first
     const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
@@ -17188,13 +17189,18 @@ function getSceneConfig(sceneName) {
         return;
     }
     
-    if (event.state && event.state.scene) {
-        // Load the scene without pushing new state
-        loadScene(event.state.scene, false);
-    } else {
-        // Default to login scene if no state
+    // Only handle popstate if we're properly initialized
+    if (!gameState.isSignedIn && !gameState.intendedPath) {
         loadScene('loginScene', false);
+        return;
     }
+    
+    // Get scene from current URL path instead of relying on state
+    const path = window.location.pathname;
+    const scene = getSceneFromPath(path);
+    
+    // Load scene without pushing new state
+    loadScene(scene, false);
 });
 
          function startAutoSave() {
@@ -18175,19 +18181,16 @@ window.addEventListener("popstate", (event) => {
 }
 
     function initializeApp() {
-    // Initialize kanji data FIRST, before any URL handling
     initializeKanjiData();
-    
-    // Then handle URL routing
     initializeURLHandling();
     startAutoSave();
     
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
-        gameState.authToken = storedToken;
+        // Don't immediately load intended scene - wait for validation
         validateTokenAndAutoLogin(storedToken);
     } else {
-        // Not signed in, but check if we can handle the URL anyway
+        // Handle the current URL immediately for non-authenticated pages
         const path = window.location.pathname;
         if (path === '/' || path === '') {
             loadScene('loginScene');
