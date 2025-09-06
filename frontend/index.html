@@ -17399,8 +17399,10 @@
         loadScene('dashboardScene');
         return;
     }
-
     const currentKanji = session.kanji[session.currentIndex];
+    // Store current kanji in session for access in showAnswer()
+    session.currentKanji = currentKanji;
+    
     const filteredVariations = await getFilteredVariations(currentKanji, gameState.settings.jlptLevel);
     
     if (filteredVariations.length === 0) {
@@ -17408,10 +17410,8 @@
         displayCurrentQuestion();
         return;
     }
-
     const randomVariation = filteredVariations[Math.floor(Math.random() * filteredVariations.length)];
     
-    // Rest of your existing displayCurrentQuestion code remains the same...
     let questionText, answerText;
     if (session.questionMode === 'meaning-first') {
         questionText = `${randomVariation.reading}\n${randomVariation.meaning}`;
@@ -17420,7 +17420,6 @@
         questionText = randomVariation.word;
         answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
     }
-
     document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
     document.getElementById('reviewsRemaining').textContent = session.total - session.currentIndex - 1;
     document.getElementById('questionText').innerHTML = questionText.replace(/\n/g, '<br>');
@@ -17438,7 +17437,7 @@
     updateStudyProgress();
 }
 
-         function showAnswer() {
+function showAnswer() {
     const currentKanji = gameState.studySession.currentKanji;
     
     document.getElementById('answerText').style.display = 'block';
@@ -17464,21 +17463,6 @@
     
     gameState.studySession.showingAnswer = true;
 }
-         // Prevent duplicate global listeners
-         if (!window.__kanjiModalHistoryBound) {
-             window.__kanjiModalHistoryBound = true;
-             const handleHistoryOrHash = () => {
-                 const modalOverlay = document.getElementById('kanjiDetailsModalOverlay');
-                 // If the modal is open but the URL no longer has our hash/state, close it.
-                 if (modalOverlay && (location.hash !== '#kanji-modal' || !history.state?.modalOpen)) {
-                     closeKanjiDetailsModal({
-                         fromHistory: true
-                     });
-                 }
-             };
-             window.addEventListener('popstate', handleHistoryOrHash);
-             window.addEventListener('hashchange', handleHistoryOrHash);
-         }
 
          function showKanjiDetailsModal() {
              const session = gameState.studySession;
