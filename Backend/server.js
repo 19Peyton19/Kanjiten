@@ -426,6 +426,9 @@ app.post('/api/progress/bulk-update', authenticateUser, async (req, res) => {
     }
 });
 // Add these routes to your backend
+// Update your existing backend code with these changes
+
+// In the GET /api/settings endpoint, update the defaultSettings and settings objects:
 app.get('/api/settings', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -440,27 +443,29 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
         }
 
         // If no settings exist, return defaults
-const defaultSettings = {
-    profileName: req.user.username || 'User',
-    maxLevel: 10,
-    jlptLevel: 'all',
-    maxInterval: 180,
-    showProgress: true,
-    showDrawing: true,
-    defaultQuestionMode: 'meaning-first',
-    darkMode: false
-};
+        const defaultSettings = {
+            profileName: req.user.username || 'User',
+            maxLevel: 10,
+            jlptLevel: 'all',
+            maxInterval: 180,
+            showProgress: true,
+            showDrawing: true,
+            showStudyProgress: true, // Add this new default
+            defaultQuestionMode: 'meaning-first',
+            darkMode: false
+        };
 
         const settings = data ? {
-    profileName: data.profile_name || defaultSettings.profileName,
-    maxLevel: data.max_level || defaultSettings.maxLevel,
-    jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
-    maxInterval: data.max_interval || defaultSettings.maxInterval,
-    showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
-    showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
-    defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode,
-    darkMode: data.dark_mode !== null ? data.dark_mode : defaultSettings.darkMode
-} : defaultSettings;
+            profileName: data.profile_name || defaultSettings.profileName,
+            maxLevel: data.max_level || defaultSettings.maxLevel,
+            jlptLevel: data.jlpt_level || defaultSettings.jlptLevel,
+            maxInterval: data.max_interval || defaultSettings.maxInterval,
+            showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
+            showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
+            showStudyProgress: data.show_study_progress !== null ? data.show_study_progress : defaultSettings.showStudyProgress, // Add this line
+            defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode,
+            darkMode: data.dark_mode !== null ? data.dark_mode : defaultSettings.darkMode
+        } : defaultSettings;
 
         res.json({ success: true, settings });
         
@@ -470,24 +475,36 @@ const defaultSettings = {
     }
 });
 
-// Save user  endpoint
+// In the PUT /api/settings endpoint, update the destructuring and settingsData:
 app.put('/api/settings', authenticateUser, async (req, res) => {
     try {
-        // Add defaultQuestionMode to the destructuring
-        const { profileName, maxLevel, jlptLevel, maxInterval, showProgress, showDrawing, defaultQuestionMode, darkMode } = req.body;
+        // Add showStudyProgress to the destructuring
+        const { 
+            profileName, 
+            maxLevel, 
+            jlptLevel, 
+            maxInterval, 
+            showProgress, 
+            showDrawing, 
+            showStudyProgress, // Add this line
+            defaultQuestionMode, 
+            darkMode 
+        } = req.body;
         
         const settingsData = {
-    user_id: req.user.id,
-    profile_name: profileName,
-    max_level: maxLevel,
-    jlpt_level: jlptLevel,
-    max_interval: maxInterval,
-    show_progress: showProgress,
-    show_drawing: showDrawing,
-    default_question_mode: defaultQuestionMode,
-    dark_mode: darkMode,
-    updated_at: new Date().toISOString()
-};
+            user_id: req.user.id,
+            profile_name: profileName,
+            max_level: maxLevel,
+            jlpt_level: jlptLevel,
+            max_interval: maxInterval,
+            show_progress: showProgress,
+            show_drawing: showDrawing,
+            show_study_progress: showStudyProgress, // Add this line
+            default_question_mode: defaultQuestionMode,
+            dark_mode: darkMode,
+            updated_at: new Date().toISOString()
+        };
+        
         const { error } = await supabase
             .from('user_settings')
             .upsert(settingsData, {
