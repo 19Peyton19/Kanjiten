@@ -199,6 +199,49 @@
              border-color: #6b5720;
          }
 
+      const loadingCSS = `
+.loading-scene {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--bg-secondary);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.loading-progress {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+`;
+
+
          [data-theme="dark"] .variation-item {
              background: var(--bg-secondary);
              border-left-color: #666666;
@@ -1327,6 +1370,14 @@
  </head>
 
  <body>
+
+  const loadingHTML = `
+<div id="loadingScene" class="loading-scene">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading Kanji Master</div>
+    <div class="loading-progress" id="loadingProgress">Initializing...</div>
+</div>
+`;
      <!-- Top Navigation Bar -->
      <div class="top-nav">
          <div class="nav-logo">🌸 Kanjiten</div>
@@ -16516,39 +16567,37 @@
          }
         async function validateTokenAndAutoLogin(token) {
     try {
+        updateLoadingProgress('Validating authentication...');
         gameState.authToken = token;
-        // Try to get user settings to validate token
+        
         const settingsResponse = await apiCall('/settings', 'GET');
         
-        // If successful, we have a valid token
+        updateLoadingProgress('Loading user settings...');
         gameState.isSignedIn = true;
         gameState.settings = {
             ...gameState.settings,
             ...settingsResponse.settings,
         };
         
-        // Update UI
         document.getElementById('signOutBtn').style.display = 'block';
         document.getElementById('signInBtn').style.display = 'none';
         
-        // Load game data first, then handle URL routing
+        updateLoadingProgress('Loading game data...');
         await loadGameData();
         
     } catch (error) {
         console.error('Token validation failed:', error);
+        updateLoadingProgress('Session expired, please sign in...');
         localStorage.removeItem('authToken');
         
-        // Reset state
         gameState.authToken = null;
         gameState.isSignedIn = false;
         gameState.isAnonymous = false;
         gameState.user = null;
         
-        // Show sign in UI
         document.getElementById('signOutBtn').style.display = 'none';
         document.getElementById('signInBtn').style.display = 'block';
         
-        // If we have an intended path, keep it for after login
         if (!gameState.intendedPath) {
             const path = window.location.pathname;
             if (path !== '/' && path !== '') {
@@ -16556,6 +16605,7 @@
             }
         }
         
+        await new Promise(resolve => setTimeout(resolve, 500));
         loadScene('loginScene');
     }
 }
@@ -16971,6 +17021,45 @@
              }
              variationsDiv.innerHTML = html;
          }
+
+      function addLoadingCSS() {
+    const style = document.createElement('style');
+    style.textContent = loadingCSS;
+    document.head.appendChild(style);
+}
+
+// Show loading scene
+function showLoadingScene(message = 'Loading...') {
+    let loadingElement = document.getElementById('loadingScene');
+    if (!loadingElement) {
+        // Create loading scene if it doesn't exist
+        document.body.insertAdjacentHTML('afterbegin', loadingHTML);
+        loadingElement = document.getElementById('loadingScene');
+    }
+    
+    const progressElement = document.getElementById('loadingProgress');
+    if (progressElement) {
+        progressElement.textContent = message;
+    }
+    
+    loadingElement.style.display = 'flex';
+}
+
+// Hide loading scene
+function hideLoadingScene() {
+    const loadingElement = document.getElementById('loadingScene');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+}
+
+// Update loading progress
+function updateLoadingProgress(message) {
+    const progressElement = document.getElementById('loadingProgress');
+    if (progressElement) {
+        progressElement.textContent = message;
+    }
+}
          // 7. Add a new function to update dashboard UI:
          function updateNavigationUI() {
              if (gameState.isSignedIn) {
@@ -17416,9 +17505,9 @@ function getSceneFromPath(path) {
                  localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
              }
          }
-         async function loadGameData() {
+        async function loadGameData() {
     if (gameState.isAnonymous || !gameState.authToken) {
-        // For anonymous users, still try to load from localStorage
+        updateLoadingProgress('Loading local data...');
         const savedData = localStorage.getItem('kanjiMasterSave');
         if (savedData) {
             try {
@@ -17447,22 +17536,20 @@ function getSceneFromPath(path) {
             }
         }
         
-        // Handle intended URL after data loads
         handleIntendedURL();
         return;
     }
 
     try {
-        // Initialize with base kanji data first
         if (gameState.kanjiData.size === 0) {
             initializeKanjiData();
         }
         
-        // Load user progress
+        updateLoadingProgress('Loading progress data...');
         const progressResponse = await apiCall('/progress', 'GET');
         
-        // Merge with user progress
         if (progressResponse.progress && progressResponse.progress.length > 0) {
+            updateLoadingProgress('Processing kanji data...');
             progressResponse.progress.forEach((userKanji) => {
                 if (gameState.kanjiData.has(userKanji.kanji_id)) {
                     const existingKanji = gameState.kanjiData.get(userKanji.kanji_id);
@@ -17483,7 +17570,7 @@ function getSceneFromPath(path) {
             });
         }
         
-        // Load user settings
+        updateLoadingProgress('Loading user preferences...');
         const settingsResponse = await apiCall('/settings', 'GET');
         if (settingsResponse.success && settingsResponse.settings) {
             gameState.settings = {
@@ -17494,16 +17581,15 @@ function getSceneFromPath(path) {
         
         console.log('Data loaded successfully from server');
         
-        // Handle intended URL after data loads
+        updateLoadingProgress('Finalizing...');
         handleIntendedURL();
-        
-        // Update UI elements that depend on settings
         updateDashboard();
         updateStudyProgressDisplay();
         
     } catch (error) {
         console.error('Failed to load from database:', error);
-        // Fallback to localStorage
+        updateLoadingProgress('Loading backup data...');
+        
         const savedData = localStorage.getItem('kanjiMasterSave');
         if (savedData) {
             try {
@@ -17533,11 +17619,9 @@ function getSceneFromPath(path) {
             }
         }
         
-        // Handle intended URL after data loads
         handleIntendedURL();
     }
 }
-         // Study Functions
          function startReview() {
              if (gameState.kanjiData.size === 0) {
                  alert('Kanji data not loaded yet. Please wait...');
@@ -18168,27 +18252,61 @@ window.addEventListener("popstate", (event) => {
     return filteredVariations.length > 0 ? filteredVariations : allVariations;
 }
 
-   function initializeApp() {
-    // Always initialize kanji data first, regardless of authentication state
-    initializeKanjiData();
+   async function initializeApp() {
+    // Add loading CSS
+    addLoadingCSS();
     
-    initializeURLHandling();
-    startAutoSave();
+    // Show loading screen immediately
+    showLoadingScene('Initializing application...');
     
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-        validateTokenAndAutoLogin(storedToken);
-    } else {
-        const path = window.location.pathname;
-        if (path === '/' || path === '') {
-            loadScene('loginScene');
+    try {
+        // Initialize kanji data
+        updateLoadingProgress('Loading kanji data...');
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to show progress
+        initializeKanjiData();
+        
+        // Initialize URL handling
+        updateLoadingProgress('Setting up navigation...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        initializeURLHandling();
+        
+        // Start auto-save
+        updateLoadingProgress('Starting auto-save...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        startAutoSave();
+        
+        const storedToken = localStorage.getItem('authToken');
+        if (storedToken) {
+            updateLoadingProgress('Validating session...');
+            await validateTokenAndAutoLogin(storedToken);
         } else {
-            gameState.intendedPath = path;
-            loadScene('loginScene');
+            updateLoadingProgress('Loading interface...');
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const path = window.location.pathname;
+            if (path === '/' || path === '') {
+                loadScene('loginScene');
+            } else {
+                gameState.intendedPath = path;
+                loadScene('loginScene');
+            }
+            updateNavigationUI();
         }
-        updateNavigationUI();
+        
+        // Final setup
+        updateLoadingProgress('Finishing setup...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+        updateLoadingProgress('Error loading app. Retrying...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    } finally {
+        // Hide loading screen
+        hideLoadingScene();
     }
 }
+
 
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
