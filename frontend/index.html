@@ -532,6 +532,68 @@
              text-align: center;
          }
 
+      .kanji-display-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.kanji-display-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.kanji-display-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.kanji-char-standard {
+    font-size: 72px;
+    line-height: 1;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.kanji-char-stroke {
+    font-family: 'KanjiStrokeOrders', serif;
+    font-size: 72px;
+    line-height: 1;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .kanji-display-label {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .kanji-char-standard,
+[data-theme="dark"] .kanji-char-stroke {
+    color: var(--text-primary);
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .kanji-display-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .kanji-char-standard,
+    .kanji-char-stroke {
+        font-size: 60px;
+    }
+}
+
          .kanji-details-modal-overlay {
              position: fixed;
              top: 0;
@@ -1415,8 +1477,16 @@
          <!-- Kanji Detail Scene -->
          <div class="scene" id="kanjiDetailScene">
              <div style="text-align: center">
-                 <div class="kanji-character" id="detailKanjiChar" style="font-size: 120px"> 漢 </div>
-                 <h2 id="detailKanjiReading">かん</h2>
+                 <div class="kanji-display-container">
+    <div class="kanji-display-item">
+        <div class="kanji-display-label">Standard</div>
+        <div id="detailKanjiChar" class="kanji-char-standard"></div>
+    </div>
+    <div class="kanji-display-item">
+        <div class="kanji-display-label">Stroke Order</div>
+        <div id="detailKanjiStroke" class="kanji-char-stroke"></div>
+    </div>
+</div>
                  <p id="detailKanjiMeaning" style="font-size: 24px; margin-bottom: 30px"> chinese </p>
              </div>
              <div style="
@@ -18020,10 +18090,8 @@ function showCramKanjiDetailsModal() {
              const kanji = gameState.kanjiData.get(kanjiId);
              if (!kanji) return;
              gameState.selectedKanji = kanji;
-             const detailKanjiChar = document.getElementById('detailKanjiChar');
-             detailKanjiChar.textContent = kanji.character;
-             detailKanjiChar.style.fontFamily = "'KanjiStrokeOrders', serif";
-             detailKanjiChar.style.fontSize = "72px"; 
+             document.getElementById('detailKanjiChar').textContent = kanji.character;
+             document.getElementById('detailKanjiStroke').textContent = kanji.character;
              document.getElementById('detailKanjiReading').textContent = kanji.readings.join(', ');
              document.getElementById('detailKanjiMeaning').textContent = kanji.meanings.join(', ');
              document.getElementById('detailLevel').textContent = kanji.level;
