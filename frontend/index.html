@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
  <html lang="en">
 
@@ -17474,8 +17475,7 @@ function getSceneFromPath(path) {
             );
             if (reviewKanji.length > 0) {
                 console.log('Found reviews due, starting review session');
-                startStudySession()
-                
+                startStudySession(reviewKanji);
             } else {
                 console.log('No reviews due, redirecting to dashboard');
                 loadScene('dashboardScene');
