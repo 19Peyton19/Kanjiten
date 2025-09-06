@@ -17296,11 +17296,6 @@ function getSceneFromPath(path) {
     return pathMappings[path] || 'loginScene';
 }
     
-    // Handle kanji detail URLs
-    if (path.startsWith('/kanji/')) {
-        return 'kanjiDetailScene';
-    }
-    
     return pathMappings[path] || 'loginScene';
 }
 
