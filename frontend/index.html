@@ -17470,8 +17470,161 @@ function showAnswer() {
     session.showingAnswer = true;
 }
 
-        showkanjidetailsmodal
-         // Search functionality
+        function showKanjiDetailsModal() {
+    const session = gameState.studySession;
+    if (!session || !session.kanji || session.currentIndex >= session.kanji.length) return;
+    const currentKanji = session.kanji[session.currentIndex];
+    if (!currentKanji) return;
+
+    // Remove existing modal if present
+    const existingModal = document.getElementById("kanjiDetailsModalOverlay");
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Create modal structure
+    const modalHtml = `
+        <div id="kanjiDetailsModalOverlay" class="kanji-details-modal-overlay">
+            <div class="kanji-details-modal">
+                <div class="kanji-details-header">
+                    <h2>${currentKanji.character}</h2>
+                    <button type="button" id="kanjiModalCloseBtn" class="close-btn">&times;</button>
+                </div>
+                <div class="kanji-details-content">
+                    <div class="kanji-details-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Readings</div>
+                            <div class="detail-value">${currentKanji.readings}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">English Meaning</div>
+                            <div class="detail-value">${currentKanji.meanings.join(", ")}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Kanji Kentei Level</div>
+                            <div class="detail-value">Level ${currentKanji.level}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">JLPT Level</div>
+                            <div class="detail-value">Level ${currentKanji.jlpt}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">WaniKani Level</div>
+                            <div class="detail-value">Level ${currentKanji.level}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Study Accuracy</div>
+                            <div class="detail-value">${
+                                currentKanji.totalReviews > 0
+                                    ? `${Math.round(
+                                        (currentKanji.correctReviews / currentKanji.totalReviews) * 100
+                                    )}% (${currentKanji.correctReviews}/${currentKanji.totalReviews})`
+                                    : "No reviews yet"
+                            }</div>
+                        </div>
+                        ${
+                            currentKanji.mnemonic
+                                ? `
+                        <div class="detail-item full-width">
+                            <div class="detail-label">Your Personal Mnemonic</div>
+                            <div class="detail-value">
+                                <div class="mnemonic-text">${currentKanji.mnemonic}</div>
+                            </div>
+                        </div>`
+                                : ""
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Insert into document
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    
+    // Prevent background scroll
+    document.body.classList.add("modal-open");
+
+    // Get modal elements AFTER they're added to DOM
+    const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+    const closeBtn = document.getElementById("kanjiModalCloseBtn");
+
+    // Store escape handler reference for proper cleanup
+    function escapeHandler(event) {
+        if (event.key === "Escape") {
+            closeKanjiDetailsModal();
+        }
+    }
+
+    // Store the handler on the modal for later cleanup
+    modalOverlay._escapeHandler = escapeHandler;
+
+    // Add event listeners
+    if (closeBtn) {
+        closeBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeKanjiDetailsModal();
+        });
+    }
+
+    // Close on overlay click (but not on modal content click)
+    if (modalOverlay) {
+        modalOverlay.addEventListener("click", (event) => {
+            if (event.target === modalOverlay) {
+                closeKanjiDetailsModal();
+            }
+        });
+    }
+
+    // Add escape key listener
+    document.addEventListener("keydown", escapeHandler);
+
+    // Animate open after a small delay
+    requestAnimationFrame(() => {
+        modalOverlay?.classList.add("active");
+    });
+
+    // Push a history state so Back button can close the modal
+    history.pushState({ modalOpen: true }, "", "#kanji-modal");
+}
+
+function closeKanjiDetailsModal() {
+    const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+    if (!modalOverlay) return;
+
+    // Remove active class to trigger close animation
+    modalOverlay.classList.remove("active");
+    
+    // Remove body scroll lock
+    document.body.classList.remove("modal-open");
+
+    // Clean up escape key listener
+    if (modalOverlay._escapeHandler) {
+        document.removeEventListener("keydown", modalOverlay._escapeHandler);
+        delete modalOverlay._escapeHandler;
+    }
+
+    // Remove modal from DOM after animation completes
+    setTimeout(() => {
+        if (modalOverlay && modalOverlay.parentNode) {
+            modalOverlay.remove();
+        }
+    }, 300);
+
+    // Handle history state
+    if (window.location.hash === "#kanji-modal") {
+        history.back();
+    }
+}
+
+// Handle browser Back button (popstate)
+window.addEventListener("popstate", (event) => {
+    const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+    if (modalOverlay && modalOverlay.classList.contains("active")) {
+        closeKanjiDetailsModal();
+    }
+});
          function initializeSearch() {
              const searchInput = document.getElementById('kanjiSearch');
              const searchResults = document.getElementById('searchResults');
@@ -17646,16 +17799,7 @@ function showAnswer() {
          document.addEventListener('DOMContentLoaded', function() {
              loadDarkModePreference();
          });
-         // Function to close the kanji details modal
-         function closeKanjiDetailsModal(event) {
-             const modal = document.getElementById('kanjiDetailsModal');
-             if (modal) {
-                 if (event && event.target !== modal) return; // Only close if clicking overlay
-                 modal.classList.remove('active');
-                 setTimeout(() => modal.remove(), 300);
-             }
-         }
-
+      
          function submitAnswer(difficulty) {
              const session = gameState.studySession;
              const currentKanji = session.kanji[session.currentIndex];
