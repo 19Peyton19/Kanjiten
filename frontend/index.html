@@ -17273,6 +17273,10 @@ function initializeURLHandling() {
 
       // Map URL paths to scene names
 function getSceneFromPath(path) {
+
+ if (gameState.kanjiData.size === 0) {
+        initializeKanjiData();
+    }
     const pathMappings = {
         '/': 'loginScene',
         '/dashboard': 'dashboardScene',
@@ -18180,22 +18184,21 @@ window.addEventListener("popstate", (event) => {
     return filteredVariations.length > 0 ? filteredVariations : allVariations;
 }
 
-    function initializeApp() {
+   function initializeApp() {
+    // Always initialize kanji data first, regardless of authentication state
     initializeKanjiData();
+    
     initializeURLHandling();
     startAutoSave();
     
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
-        // Don't immediately load intended scene - wait for validation
         validateTokenAndAutoLogin(storedToken);
     } else {
-        // Handle the current URL immediately for non-authenticated pages
         const path = window.location.pathname;
         if (path === '/' || path === '') {
             loadScene('loginScene');
         } else {
-            // Store intended destination and show login
             gameState.intendedPath = path;
             loadScene('loginScene');
         }
