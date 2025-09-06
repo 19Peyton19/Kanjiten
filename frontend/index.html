@@ -12,6 +12,13 @@
              box-sizing: border-box;
          }
 
+      @font-face {
+    font-family: 'KanjiStrokeOrders';
+    src: url('./KanjiStrokeOrders_v4.005.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
          /* Dark mode variables - Updated for dark gray theme */
          :root {
              --bg-primary: white;
@@ -863,6 +870,13 @@
          .dashboard-card:hover {
              transform: translateY(-5px);
          }
+         #detailKanjiChar {
+    font-family: 'KanjiStrokeOrders', serif;
+    font-size: 72px;
+    line-height: 1;
+    text-align: center;
+    margin: 10px 0;
+}
 
          .progress-bar {
              width: 100%;
@@ -18006,7 +18020,10 @@ function showCramKanjiDetailsModal() {
              const kanji = gameState.kanjiData.get(kanjiId);
              if (!kanji) return;
              gameState.selectedKanji = kanji;
-             document.getElementById('detailKanjiChar').textContent = kanji.character;
+             const detailKanjiChar = document.getElementById('detailKanjiChar');
+             detailKanjiChar.textContent = kanji.character;
+             detailKanjiChar.style.fontFamily = "'KanjiStrokeOrders', serif";
+             detailKanjiChar.style.fontSize = "72px"; 
              document.getElementById('detailKanjiReading').textContent = kanji.readings.join(', ');
              document.getElementById('detailKanjiMeaning').textContent = kanji.meanings.join(', ');
              document.getElementById('detailLevel').textContent = kanji.level;
