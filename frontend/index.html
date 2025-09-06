@@ -16514,36 +16514,51 @@
                  signInBtn.textContent = originalText;
              }
          }
-         async function validateTokenAndAutoLogin(token) {
-             try {
-                 gameState.authToken = token;
-                 // Try to get user settings to validate token
-                 const settingsResponse = await apiCall('/settings', 'GET');
-                 // If successful, we have a valid token
-                 gameState.isSignedIn = true;
-                 gameState.settings = {
-                     ...gameState.settings,
-                     ...settingsResponse.settings,
-                 };
-                 // Update UI
-                 document.getElementById('signOutBtn').style.display = 'block';
-                 document.getElementById('signInBtn').style.display = 'none';
-                 loadScene('dashboardScene');
-                 await loadGameData();
-             } catch (error) {
-                 console.error('Token validation failed:', error);
-                 localStorage.removeItem('authToken');
-                 // Reset state
-                 gameState.authToken = null;
-                 gameState.isSignedIn = false;
-                 gameState.isAnonymous = false;
-                 gameState.user = null;
-                 // Show sign in UI
-                 document.getElementById('signOutBtn').style.display = 'none';
-                 document.getElementById('signInBtn').style.display = 'block';
-                 loadScene('loginScene');
-             }
-         } // 6. Fix the signOut function:
+        async function validateTokenAndAutoLogin(token) {
+    try {
+        gameState.authToken = token;
+        // Try to get user settings to validate token
+        const settingsResponse = await apiCall('/settings', 'GET');
+        
+        // If successful, we have a valid token
+        gameState.isSignedIn = true;
+        gameState.settings = {
+            ...gameState.settings,
+            ...settingsResponse.settings,
+        };
+        
+        // Update UI
+        document.getElementById('signOutBtn').style.display = 'block';
+        document.getElementById('signInBtn').style.display = 'none';
+        
+        // Load game data first, then handle URL routing
+        await loadGameData();
+        
+    } catch (error) {
+        console.error('Token validation failed:', error);
+        localStorage.removeItem('authToken');
+        
+        // Reset state
+        gameState.authToken = null;
+        gameState.isSignedIn = false;
+        gameState.isAnonymous = false;
+        gameState.user = null;
+        
+        // Show sign in UI
+        document.getElementById('signOutBtn').style.display = 'none';
+        document.getElementById('signInBtn').style.display = 'block';
+        
+        // If we have an intended path, keep it for after login
+        if (!gameState.intendedPath) {
+            const path = window.location.pathname;
+            if (path !== '/' && path !== '') {
+                gameState.intendedPath = path;
+            }
+        }
+        
+        loadScene('loginScene');
+    }
+}
          async function signOut() {
              try {
                  if (gameState.authToken) {
@@ -17238,14 +17253,15 @@ function goBack() {
 
 // Initialize URL handling when app starts
 function initializeURLHandling() {
-    // Set initial state based on current URL
     const path = window.location.pathname;
-    const initialScene = getSceneFromPath(path);
     
-    // Load the appropriate scene without authentication check initially
-    if (initialScene && initialScene !== 'loginScene') {
-        // Store the intended scene for after authentication
-        gameState.intendedScene = initialScene;
+    // Store the intended path for after data loads
+    gameState.intendedPath = path;
+    
+    // If it's a kanji detail path, we need to wait for kanji data to load
+    if (path.startsWith('/kanji/')) {
+        const kanjiChar = decodeURIComponent(path.split('/kanji/')[1]);
+        gameState.intendedKanjiChar = kanjiChar;
     }
 }
 
@@ -17262,12 +17278,53 @@ function getSceneFromPath(path) {
         '/drawing': 'drawingScene'
     };
     
+    // Handle kanji detail URLs - extract kanji character from URL
+    if (path.startsWith('/kanji/')) {
+        const kanjiChar = decodeURIComponent(path.split('/kanji/')[1]);
+        if (kanjiChar) {
+            // Find the kanji by character and set it as selected
+            const kanji = Array.from(gameState.kanjiData.values()).find(k => k.character === kanjiChar);
+            if (kanji) {
+                gameState.selectedKanji = kanji;
+                return 'kanjiDetailScene';
+            }
+        }
+        // If kanji not found, redirect to decks
+        return 'decksScene';
+    }
+    
+    return pathMappings[path] || 'loginScene';
+}
+    
     // Handle kanji detail URLs
     if (path.startsWith('/kanji/')) {
         return 'kanjiDetailScene';
     }
     
     return pathMappings[path] || 'loginScene';
+}
+
+      function handleIntendedURL() {
+    if (gameState.intendedKanjiChar) {
+        // Find and select the kanji
+        const kanji = Array.from(gameState.kanjiData.values()).find(k => k.character === gameState.intendedKanjiChar);
+        if (kanji) {
+            gameState.selectedKanji = kanji;
+            loadScene('kanjiDetailScene');
+        } else {
+            // Kanji not found, go to decks
+            loadScene('decksScene');
+        }
+        // Clear the intended kanji
+        gameState.intendedKanjiChar = null;
+    } else if (gameState.intendedPath) {
+        // Handle other intended paths
+        const scene = getSceneFromPath(gameState.intendedPath);
+        if (scene !== 'loginScene' || !gameState.isSignedIn) {
+            loadScene(scene);
+        }
+        gameState.intendedPath = null;
+    }
 }
          // Dashboard Functions
          function updateDashboard() {
@@ -17369,110 +17426,126 @@ function getSceneFromPath(path) {
              }
          }
          async function loadGameData() {
-             if (gameState.isAnonymous || !gameState.authToken) {
-                 // For anonymous users, still try to load from localStorage
-                 const savedData = localStorage.getItem('kanjiMasterSave');
-                 if (savedData) {
-                     try {
-                         const data = JSON.parse(savedData);
-                         if (data.settings) {
-                             gameState.settings = {
-                                 ...gameState.settings,
-                                 ...data.settings
-                             };
-                         }
-                         if (data.kanjiData) {
-                             data.kanjiData.forEach(([id, kanjiData]) => {
-                                 if (gameState.kanjiData.has(id)) {
-                                     const existingKanji = gameState.kanjiData.get(id);
-                                     gameState.kanjiData.set(id, {
-                                         ...existingKanji,
-                                         ...kanjiData,
-                                         lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                                         nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
-                                     });
-                                 }
-                             });
-                         }
-                     } catch (e) {
-                         console.error('Failed to load local save data:', e);
-                     }
-                 }
-                 return;
-             }
-             try {
-                 // Initialize with base kanji data first
-                 if (gameState.kanjiData.size === 0) {
-                     initializeKanjiData();
-                 }
-                 // Load user progress
-                 const progressResponse = await apiCall('/progress', 'GET');
-                 // Merge with user progress
-                 if (progressResponse.progress && progressResponse.progress.length > 0) {
-                     progressResponse.progress.forEach((userKanji) => {
-                         if (gameState.kanjiData.has(userKanji.kanji_id)) {
-                             const existingKanji = gameState.kanjiData.get(userKanji.kanji_id);
-                             gameState.kanjiData.set(userKanji.kanji_id, {
-                                 ...existingKanji,
-                                 learned: userKanji.learned || false,
-                                 inReview: userKanji.in_review || false,
-                                 interval: userKanji.srs_interval || 1,
-                                 ease: userKanji.ease_factor || 2.5,
-                                 consecutiveCorrect: userKanji.consecutive_correct || 0,
-                                 totalReviews: userKanji.total_reviews || 0,
-                                 correctReviews: userKanji.correct_reviews || 0,
-                                 lastReview: userKanji.last_review ? new Date(userKanji.last_review) : null,
-                                 nextReview: userKanji.next_review ? new Date(userKanji.next_review) : null,
-                                 mnemonic: userKanji.mnemonic || '',
-                             });
-                         }
-                     });
-                 }
-                 // Load user settings
-                 const settingsResponse = await apiCall('/settings', 'GET');
-                 if (settingsResponse.success && settingsResponse.settings) {
-                     gameState.settings = {
-                         ...gameState.settings,
-                         ...settingsResponse.settings,
-                     };
-                 }
-                 console.log('Data loaded successfully from server');
-                 // Update UI elements that depend on settings
-                 updateDashboard();
-                 updateStudyProgressDisplay();
-             } catch (error) {
-                 console.error('Failed to load from database:', error);
-                 // Fallback to localStorage
-                 const savedData = localStorage.getItem('kanjiMasterSave');
-                 if (savedData) {
-                     try {
-                         const data = JSON.parse(savedData);
-                         if (data.settings) {
-                             gameState.settings = {
-                                 ...gameState.settings,
-                                 ...data.settings
-                             };
-                         }
-                         if (data.kanjiData) {
-                             data.kanjiData.forEach(([id, kanjiData]) => {
-                                 if (gameState.kanjiData.has(id)) {
-                                     const existingKanji = gameState.kanjiData.get(id);
-                                     gameState.kanjiData.set(id, {
-                                         ...existingKanji,
-                                         ...kanjiData,
-                                         lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                                         nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
-                                     });
-                                 }
-                             });
-                         }
-                         console.log('Data loaded from localStorage backup');
-                     } catch (e) {
-                         console.error('Failed to load local save data:', e);
-                     }
-                 }
-             }
-         }
+    if (gameState.isAnonymous || !gameState.authToken) {
+        // For anonymous users, still try to load from localStorage
+        const savedData = localStorage.getItem('kanjiMasterSave');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                if (data.settings) {
+                    gameState.settings = {
+                        ...gameState.settings,
+                        ...data.settings
+                    };
+                }
+                if (data.kanjiData) {
+                    data.kanjiData.forEach(([id, kanjiData]) => {
+                        if (gameState.kanjiData.has(id)) {
+                            const existingKanji = gameState.kanjiData.get(id);
+                            gameState.kanjiData.set(id, {
+                                ...existingKanji,
+                                ...kanjiData,
+                                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
+                                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                            });
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load local save data:', e);
+            }
+        }
+        
+        // Handle intended URL after data loads
+        handleIntendedURL();
+        return;
+    }
+
+    try {
+        // Initialize with base kanji data first
+        if (gameState.kanjiData.size === 0) {
+            initializeKanjiData();
+        }
+        
+        // Load user progress
+        const progressResponse = await apiCall('/progress', 'GET');
+        
+        // Merge with user progress
+        if (progressResponse.progress && progressResponse.progress.length > 0) {
+            progressResponse.progress.forEach((userKanji) => {
+                if (gameState.kanjiData.has(userKanji.kanji_id)) {
+                    const existingKanji = gameState.kanjiData.get(userKanji.kanji_id);
+                    gameState.kanjiData.set(userKanji.kanji_id, {
+                        ...existingKanji,
+                        learned: userKanji.learned || false,
+                        inReview: userKanji.in_review || false,
+                        interval: userKanji.srs_interval || 1,
+                        ease: userKanji.ease_factor || 2.5,
+                        consecutiveCorrect: userKanji.consecutive_correct || 0,
+                        totalReviews: userKanji.total_reviews || 0,
+                        correctReviews: userKanji.correct_reviews || 0,
+                        lastReview: userKanji.last_review ? new Date(userKanji.last_review) : null,
+                        nextReview: userKanji.next_review ? new Date(userKanji.next_review) : null,
+                        mnemonic: userKanji.mnemonic || '',
+                    });
+                }
+            });
+        }
+        
+        // Load user settings
+        const settingsResponse = await apiCall('/settings', 'GET');
+        if (settingsResponse.success && settingsResponse.settings) {
+            gameState.settings = {
+                ...gameState.settings,
+                ...settingsResponse.settings,
+            };
+        }
+        
+        console.log('Data loaded successfully from server');
+        
+        // Handle intended URL after data loads
+        handleIntendedURL();
+        
+        // Update UI elements that depend on settings
+        updateDashboard();
+        updateStudyProgressDisplay();
+        
+    } catch (error) {
+        console.error('Failed to load from database:', error);
+        // Fallback to localStorage
+        const savedData = localStorage.getItem('kanjiMasterSave');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                if (data.settings) {
+                    gameState.settings = {
+                        ...gameState.settings,
+                        ...data.settings
+                    };
+                }
+                if (data.kanjiData) {
+                    data.kanjiData.forEach(([id, kanjiData]) => {
+                        if (gameState.kanjiData.has(id)) {
+                            const existingKanji = gameState.kanjiData.get(id);
+                            gameState.kanjiData.set(id, {
+                                ...existingKanji,
+                                ...kanjiData,
+                                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
+                                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                            });
+                        }
+                    });
+                }
+                console.log('Data loaded from localStorage backup');
+            } catch (e) {
+                console.error('Failed to load local save data:', e);
+            }
+        }
+        
+        // Handle intended URL after data loads
+        handleIntendedURL();
+    }
+}
          // Study Functions
          function startReview() {
              if (gameState.kanjiData.size === 0) {
@@ -18114,7 +18187,15 @@ window.addEventListener("popstate", (event) => {
         gameState.authToken = storedToken;
         validateTokenAndAutoLogin(storedToken);
     } else {
-        loadScene('loginScene');
+        // Not signed in, but check if we can handle the URL anyway
+        const path = window.location.pathname;
+        if (path === '/' || path === '') {
+            loadScene('loginScene');
+        } else {
+            // Store intended destination and show login
+            gameState.intendedPath = path;
+            loadScene('loginScene');
+        }
         updateNavigationUI();
     }
 }
