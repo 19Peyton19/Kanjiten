@@ -16287,7 +16287,6 @@
                  maxLevel: 10,
                  jlptLevel: 'all',
                  maxInterval: 180,
-                 showProgress: true,
                  showDrawing: true,
                  showStudyProgress: true,
                  defaultQuestionMode: 'meaning-first',
@@ -18217,7 +18216,6 @@ window.addEventListener("popstate", (event) => {
     document.getElementById('jlptLevel').value = settings.jlptLevel || 'all';
     document.getElementById('defaultQuestionMode').value = settings.defaultQuestionMode || 'meaning-first';
     document.getElementById('maxInterval').value = settings.maxInterval || 180;
-    document.getElementById('showProgress').checked = settings.showProgress || false;
     document.getElementById('showStudyProgress').checked = settings.showStudyProgress !== false; // Default to true
     document.getElementById('darkModeToggle').checked = localStorage.getItem('darkMode') === 'enabled';
 }
@@ -18513,7 +18511,6 @@ function handleTouch(e) {
     const jlptLevel = document.getElementById('jlptLevel').value;
     const defaultQuestionMode = document.getElementById('defaultQuestionMode').value;
     const maxInterval = parseInt(document.getElementById('maxInterval').value);
-    const showProgress = document.getElementById('showProgress').checked;
     const showStudyProgress = document.getElementById('showStudyProgress').checked;
     const darkMode = document.getElementById('darkModeToggle').checked;
     
@@ -18523,7 +18520,6 @@ function handleTouch(e) {
         jlptLevel,
         defaultQuestionMode,
         maxInterval,
-        showProgress,
         showStudyProgress
     };
     
