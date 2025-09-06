@@ -1449,7 +1449,6 @@
     <div class="progress-bar" style="margin-bottom: 15px;">
         <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
     </div>
-    <!-- This div will be toggled on/off based on settings -->
     <div class="study-progress-info" style="display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">
         <span>Progress: <strong id="studyProgress">0/0</strong></span>
         <span>Level: <strong id="currentKanjiLevel">-</strong></span>
@@ -1645,7 +1644,7 @@
     </div>
 </div>
    <div class="scene" id="settingsScene">
-    <h2>⚙️ Settings</h2>
+    <h2>Settings</h2>
     <div style="max-width: 600px; margin: 0 auto">
         <div class="input-group">
             <label for="profileName">Profile Name</label>
@@ -1676,12 +1675,7 @@
         </div>
         <div class="input-group">
             <label>
-                <input type="checkbox" id="showProgress" /> Show progress bars during study
-            </label>
-        </div>
-        <div class="input-group">
-            <label>
-                <input type="checkbox" id="showStudyProgress" onchange="toggleStudyProgress()" /> Show detailed progress info (Level, Remaining, etc.)
+                <input type="checkbox" id="showStudyProgress" onchange="toggleStudyProgress()" /> Show Study progress info
             </label>
         </div>
         <div class="input-group">
