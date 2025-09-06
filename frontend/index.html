@@ -1465,14 +1465,16 @@
               <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
                                  <div id="questionText" class="question-text"> Loading </div>
                   <div id="answerText" class="answer-text" style="display: none"></div>
-                  <div id="studyKanjiDisplay" class="kanji-display-container" style="display: none; margin: 20px 0;">
-                      <div class="kanji-display-item">
-                          <div id="studyKanjiStandard" class="kanji-char-standard"></div>
-                      </div>
-                      <div class="kanji-display-item">
-                          <div id="studyKanjiStroke" class="kanji-char-stroke"></div>
-                      </div>
-                  </div>
+<div id="answerDisplayContainer" style="display: none; margin: 20px 0;">
+    <div style="display: flex; justify-content: center; align-items: flex-start; gap: 40px;">
+        <div style="text-align: center;">
+            <div id="answerStandard" style="font-size: 72px; font-weight: bold; color: #495057; margin: 20px 0;"></div>
+        </div>
+        <div style="text-align: center;">
+            <div id="answerStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 72px; font-weight: bold; color: #495057; margin: 20px 0;"></div>
+        </div>
+    </div>
+</div>
                   <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100;"> Show Answer </button>
                   <div class="answer-buttons" id="answerButtons" style="display: none; position: relative; z-index: 100;">
                       <button class="btn btn-danger" onclick="submitAnswer(1)"> Wrong </button>
@@ -17400,7 +17402,6 @@
         return;
     }
     const currentKanji = session.kanji[session.currentIndex];
-    // Store current kanji in session for access in showAnswer()
     session.currentKanji = currentKanji;
     
     const filteredVariations = await getFilteredVariations(currentKanji, gameState.settings.jlptLevel);
@@ -17420,12 +17421,15 @@
         questionText = randomVariation.word;
         answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
     }
+    
+    // Store the answer text for later use
+    session.currentAnswerText = answerText;
+    
     document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
     document.getElementById('reviewsRemaining').textContent = session.total - session.currentIndex - 1;
     document.getElementById('questionText').innerHTML = questionText.replace(/\n/g, '<br>');
-    document.getElementById('answerText').innerHTML = answerText.replace(/\n/g, '<br>');
     document.getElementById('answerText').style.display = 'none';
-    document.getElementById('studyKanjiDisplay').style.display = 'none';
+    document.getElementById('answerDisplayContainer').style.display = 'none';
     document.getElementById('showAnswerBtn').style.display = 'block';
     document.getElementById('answerButtons').style.display = 'none';
     
@@ -17438,30 +17442,32 @@
 }
 
 function showAnswer() {
-    const currentKanji = gameState.studySession.currentKanji;
+    const session = gameState.studySession;
+    const answerText = session.currentAnswerText;
     
-    document.getElementById('answerText').style.display = 'block';
+    // Hide the old answer text element
+    document.getElementById('answerText').style.display = 'none';
+    
+    // Show the dual font display
+    const answerContainer = document.getElementById('answerDisplayContainer');
+    const answerStandard = document.getElementById('answerStandard');
+    const answerStroke = document.getElementById('answerStroke');
+    
+    if (answerContainer && answerStandard && answerStroke && answerText) {
+        answerStandard.innerHTML = answerText.replace(/\n/g, '<br>');
+        answerStroke.innerHTML = answerText.replace(/\n/g, '<br>');
+        answerContainer.style.display = 'block';
+    }
+    
     document.getElementById('showAnswerBtn').style.display = 'none';
     document.getElementById('answerButtons').style.display = 'flex';
     
-    // Show and populate the kanji displays
-    const kanjiDisplay = document.getElementById('studyKanjiDisplay');
-    const kanjiStandard = document.getElementById('studyKanjiStandard');
-    const kanjiStroke = document.getElementById('studyKanjiStroke');
-    
-    if (currentKanji && kanjiDisplay && kanjiStandard && kanjiStroke) {
-        kanjiStandard.textContent = currentKanji.character;
-        kanjiStroke.textContent = currentKanji.character;
-        kanjiDisplay.style.display = 'flex';
-    }
-    
-    // Add the Show Details button
     const detailsBtn = document.getElementById('showDetailsBtn');
     if (detailsBtn) {
         detailsBtn.style.display = 'block';
     }
     
-    gameState.studySession.showingAnswer = true;
+    session.showingAnswer = true;
 }
 
          function showKanjiDetailsModal() {
