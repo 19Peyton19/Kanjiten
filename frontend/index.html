@@ -17152,12 +17152,12 @@ function getSceneConfig(sceneName) {
             title: 'Settings'
         },
         'kanjiDetailScene': {
-            url: '/kanji/' + (gameState.selectedKanji ? gameState.selectedKanji.id : ''),
-            title: 'Kanji Master - ' + (gameState.selectedKanji ? gameState.selectedKanji.character : 'Kanji Details')
+            url: '/kanji/' + (gameState.selectedKanji.character),
+            title: (gameState.selectedKanji.character : 'Kanji Details') + 'Details'
         },
         'drawingScene': {
             url: '/drawing',
-            title: 'Kanji Master - Drawing Practice'
+            title: 'Drawing Practice'
         }
     };
     
