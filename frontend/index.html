@@ -17008,6 +17008,37 @@
              };
          }
 
+      async function handleAuthSuccess(response, isAnonymous = false) {
+    gameState.user = {
+        username: response.user?.username || 'User',
+        id: response.user?.id,
+        isAnonymous: isAnonymous,
+    };
+    gameState.isSignedIn = true;
+    gameState.isAnonymous = isAnonymous;
+    gameState.authToken = response.session.access_token;
+    gameState.settings.profileName = gameState.user.username;
+    
+    if (gameState.authToken) {
+        localStorage.setItem('authToken', gameState.authToken);
+    }
+    
+    // Update UI
+    document.getElementById('signOutBtn').style.display = 'block';
+    document.getElementById('signInBtn').style.display = 'none';
+    
+    if (isAnonymous) {
+        document.getElementById('guestNotice').style.display = 'block';
+    }
+    
+    setTimeout(async () => {
+        // Load intended scene or default to dashboard
+        const targetScene = gameState.intendedScene || 'dashboardScene';
+        loadScene(targetScene);
+        await loadGameData();
+    }, 1000);
+}
+
          function isPasswordValid(password) {
              if (!password || password.length < 8 || password.length > 128) {
                  return false;
@@ -17025,51 +17056,132 @@
              setTimeout(() => (statusDiv.innerHTML = ''), 3000);
          }
          // Scene Management
-         function loadScene(sceneName) {
-             document.querySelectorAll('.scene').forEach((scene) => scene.classList.remove('active'));
-             document.getElementById(sceneName).classList.add('active');
-             gameState.currentScene = sceneName;
-             document.addEventListener('DOMContentLoaded', () => {
-                 // Your existing initialization code...
-                 // Initialize search when decks scene becomes active
-                 const decksSceneObserver = new MutationObserver((mutations) => {
-                     mutations.forEach((mutation) => {
-                         if (mutation.target.classList.contains('active') && mutation.target.id === 'decksScene') {
-                             initializeSearch();
-                         }
-                     });
-                 });
-                 const decksScene = document.getElementById('decksScene');
-                 if (decksScene) {
-                     decksSceneObserver.observe(decksScene, {
-                         attributes: true,
-                         attributeFilter: ['class']
-                     });
-                 }
-             });
-             // Show back button for all scenes except login and dashboard
-             const showBackButton = !['loginScene', 'dashboardScene'].includes(sceneName);
-             const backBtn = document.getElementById('backBtn');
-             if (backBtn) {
-                 backBtn.style.display = showBackButton ? 'block' : 'none';
-             }
-             switch (sceneName) {
-                 case 'dashboardScene':
-                     updateDashboard();
-                     break;
-                 case 'decksScene':
-                     updateDecksScene();
-                     showDecksScene();
-                     break;
-                 case 'cramScene':
-                     setTimeout(() => updateCramScene(), 0);
-                     break;
-                 case 'settingsScene':
-                     updateSettingsScene();
-                     break;
-             }
-             window.scrollTo(0, 0);
-         }
+        // Enhanced Scene Management with URL and Title Updates
+function loadScene(sceneName, pushState = true) {
+    // Hide all scenes
+    document.querySelectorAll('.scene').forEach((scene) => scene.classList.remove('active'));
+    
+    // Show the target scene
+    document.getElementById(sceneName).classList.add('active');
+    gameState.currentScene = sceneName;
+    
+    // Update browser URL and page title
+    if (pushState) {
+        const sceneConfig = getSceneConfig(sceneName);
+        const url = sceneConfig.url;
+        const title = sceneConfig.title;
+        
+        // Update page title
+        document.title = title;
+        
+        // Update URL without reloading the page
+        history.pushState({ scene: sceneName }, title, url);
+    }
+    
+    // Handle back button visibility
+    const showBackButton = !['loginScene', 'dashboardScene'].includes(sceneName);
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.style.display = showBackButton ? 'block' : 'none';
+    }
+    
+    // Initialize scene-specific functionality
+    switch (sceneName) {
+        case 'dashboardScene':
+            updateDashboard();
+            break;
+        case 'decksScene':
+            updateDecksScene();
+            showDecksScene();
+            break;
+        case 'cramScene':
+            setTimeout(() => updateCramScene(), 0);
+            break;
+        case 'settingsScene':
+            updateSettingsScene();
+            break;
+        case 'studyScene':
+            setTimeout(() => {
+                initializeStudyDrawing();
+                initializeStudyProgressDisplay();
+            }, 100);
+            break;
+        case 'cramStudyScene':
+            initializeStudyProgressDisplay();
+            break;
+    }
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+    
+    // Initialize search when decks scene becomes active
+    if (sceneName === 'decksScene') {
+        setTimeout(initializeSearch, 100);
+    }
+}
+
+// Configuration for each scene
+function getSceneConfig(sceneName) {
+    const configs = {
+        'loginScene': {
+            url: '/',
+            title: 'Login'
+        },
+        'dashboardScene': {
+            url: '/dashboard',
+            title: 'Dashboard'
+        },
+        'decksScene': {
+            url: '/decks',
+            title: 'Decks'
+        },
+        'studyScene': {
+            url: '/study',
+            title: 'Study'
+        },
+        'cramScene': {
+            url: '/cram',
+            title: 'Cram Mode'
+        },
+        'cramStudyScene': {
+            url: '/cram/study',
+            title: 'Cram'
+        },
+        'settingsScene': {
+            url: '/settings',
+            title: 'Settings'
+        },
+        'kanjiDetailScene': {
+            url: '/kanji/' + (gameState.selectedKanji ? gameState.selectedKanji.id : ''),
+            title: 'Kanji Master - ' + (gameState.selectedKanji ? gameState.selectedKanji.character : 'Kanji Details')
+        },
+        'drawingScene': {
+            url: '/drawing',
+            title: 'Kanji Master - Drawing Practice'
+        }
+    };
+    
+    return configs[sceneName] || {
+        url: '/' + sceneName.replace('Scene', ''),
+        title: 'Kanji Master'
+    };
+}
+      window.addEventListener('popstate', (event) => {
+    // Close any open modals first
+    const modalOverlay = document.getElementById("kanjiDetailsModalOverlay");
+    if (modalOverlay && modalOverlay.classList.contains("active")) {
+        closeKanjiDetailsModal();
+        return;
+    }
+    
+    if (event.state && event.state.scene) {
+        // Load the scene without pushing new state
+        loadScene(event.state.scene, false);
+    } else {
+        // Default to login scene if no state
+        loadScene('loginScene', false);
+    }
+});
 
          function startAutoSave() {
              setInterval(async () => {
@@ -17094,35 +17206,70 @@
              showKanjiDetail(kanjiId);
          }
 
-         function goBack() {
-             switch (gameState.currentScene) {
-                 case 'decksScene':
-                 case 'cramScene':
-                 case 'settingsScene':
-                     loadScene('dashboardScene');
-                     break;
-                 case 'studyScene':
-                     loadScene('dashboardScene');
-                     break;
-                 case 'kanjiDetailScene':
-                     loadScene('decksScene');
-                     showDecksScene();
-                     break;
-                 case 'drawingScene':
-                     if (gameState.selectedKanji) {
-                         loadScene('kanjiDetailScene');
-                     } else {
-                         loadScene('decksScene');
-                         showDecksScene();
-                     }
-                     break;
-                 case 'cramStudyScene':
-                     loadScene('cramScene');
-                     break;
-                 default:
-                     loadScene('dashboardScene');
-             }
-         }
+         // Enhanced goBack function with proper navigation
+function goBack() {
+    // Define navigation hierarchy
+    const navigationMap = {
+        'decksScene': 'dashboardScene',
+        'cramScene': 'dashboardScene',
+        'settingsScene': 'dashboardScene',
+        'studyScene': 'dashboardScene',
+        'kanjiDetailScene': 'decksScene',
+        'drawingScene': () => {
+            return gameState.selectedKanji ? 'kanjiDetailScene' : 'decksScene';
+        },
+        'cramStudyScene': 'cramScene'
+    };
+    
+    const currentScene = gameState.currentScene;
+    let targetScene = navigationMap[currentScene];
+    
+    // Handle function-based navigation
+    if (typeof targetScene === 'function') {
+        targetScene = targetScene();
+    }
+    
+    // Default to dashboard if no mapping found
+    if (!targetScene) {
+        targetScene = 'dashboardScene';
+    }
+    
+    loadScene(targetScene);
+}
+
+// Initialize URL handling when app starts
+function initializeURLHandling() {
+    // Set initial state based on current URL
+    const path = window.location.pathname;
+    const initialScene = getSceneFromPath(path);
+    
+    // Load the appropriate scene without authentication check initially
+    if (initialScene && initialScene !== 'loginScene') {
+        // Store the intended scene for after authentication
+        gameState.intendedScene = initialScene;
+    }
+}
+
+      // Map URL paths to scene names
+function getSceneFromPath(path) {
+    const pathMappings = {
+        '/': 'loginScene',
+        '/dashboard': 'dashboardScene',
+        '/decks': 'decksScene',
+        '/study': 'studyScene',
+        '/cram': 'cramScene',
+        '/cram/study': 'cramStudyScene',
+        '/settings': 'settingsScene',
+        '/drawing': 'drawingScene'
+    };
+    
+    // Handle kanji detail URLs
+    if (path.startsWith('/kanji/')) {
+        return 'kanjiDetailScene';
+    }
+    
+    return pathMappings[path] || 'loginScene';
+}
          // Dashboard Functions
          function updateDashboard() {
              document.getElementById('welcomeName').textContent = gameState.settings.profileName || 'User';
@@ -17958,18 +18105,21 @@ window.addEventListener("popstate", (event) => {
     return filteredVariations.length > 0 ? filteredVariations : allVariations;
 }
 
-      function initializeApp() {
-             initializeKanjiData();
-             startAutoSave();
-             const storedToken = localStorage.getItem('authToken');
-             if (storedToken) {
-                 gameState.authToken = storedToken;
-                 validateTokenAndAutoLogin(storedToken);
-             } else {
-                 loadScene('loginScene');
-                 updateNavigationUI();
-             }
-         }
+    function initializeApp() {
+    initializeKanjiData();
+    initializeURLHandling();
+    startAutoSave();
+    
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+        gameState.authToken = storedToken;
+        validateTokenAndAutoLogin(storedToken);
+    } else {
+        loadScene('loginScene');
+        updateNavigationUI();
+    }
+}
+
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
              const levelsDiv = document.getElementById('kanjiLevels');
