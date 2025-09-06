@@ -17152,9 +17152,9 @@ function getSceneConfig(sceneName) {
             title: 'Settings'
         },
         'kanjiDetailScene': {
-            url: '/kanji/' + (gameState.selectedKanji.character),
-            title: (gameState.selectedKanji.character : 'Kanji Details') + 'Details'
-        },
+    url: '/kanji/' + (gameState.selectedKanji ? encodeURIComponent(gameState.selectedKanji.character) : ''),
+    title: (gameState.selectedKanji ? gameState.selectedKanji.character + ' Details' : 'Kanji Details')
+},
         'drawingScene': {
             url: '/drawing',
             title: 'Drawing Practice'
