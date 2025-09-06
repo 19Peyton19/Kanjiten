@@ -1444,13 +1444,13 @@
              <div id="kanjiLevels"></div>
          </div>
          <!-- Study Scene -->
-        <!-- Study Scene -->
-<div class="scene" id="studyScene">
+   <div class="scene" id="studyScene">
     <canvas id="mainDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
- <div class="progress-bar" style="margin-bottom: 15px;">
+    <div class="progress-bar" style="margin-bottom: 15px;">
         <div class="progress-fill" id="studyProgressBar" style="width: 0%"></div>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">
+    <!-- This div will be toggled on/off based on settings -->
+    <div class="study-progress-info" style="display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">
         <span>Progress: <strong id="studyProgress">0/0</strong></span>
         <span>Level: <strong id="currentKanjiLevel">-</strong></span>
         <span>Remaining: <strong id="reviewsRemaining">0</strong></span>
@@ -1462,30 +1462,30 @@
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
-              <div style="background: none; padding: 5px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
-                                 <div id="questionText" class="question-text"> Loading </div>
-                  <div id="answerText" class="answer-text" style="display: none"></div>
-<div id="answerDisplayContainer" style="display: none; margin: 20px 0;">
-    <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
-        <div style="text-align: center;">
-            <div id="answerStandard" style="font-size: 124px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
-        </div>
-        <div style="text-align: center;">
-            <div id="answerStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 144px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
+        <div style="background: none; padding: 5px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
+            <div id="questionText" class="question-text">Loading</div>
+            <div id="answerText" class="answer-text" style="display: none"></div>
+            <div id="answerDisplayContainer" style="display: none; margin: 20px 0;">
+                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
+                    <div style="text-align: center;">
+                        <div id="answerStandard" style="font-size: 124px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div id="answerStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 144px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100;">Show Answer</button>
+            <div class="answer-buttons" id="answerButtons" style="display: none; position: relative; z-index: 100;">
+                <button class="btn btn-danger" onclick="submitAnswer(1)">Wrong</button>
+                <button class="btn btn-warning" onclick="submitAnswer(2)">Hard</button>
+                <button class="btn btn-success" onclick="submitAnswer(3)">Good</button>
+                <button class="btn btn-primary" onclick="submitAnswer(4)">Easy</button>
+            </div>
+            <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px; position: relative; z-index: 100;">Show Details</button>
         </div>
     </div>
 </div>
-                  <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100;"> Show Answer </button>
-                  <div class="answer-buttons" id="answerButtons" style="display: none; position: relative; z-index: 100;">
-                      <button class="btn btn-danger" onclick="submitAnswer(1)"> Wrong </button>
-                      <button class="btn btn-warning" onclick="submitAnswer(2)"> Hard </button>
-                      <button class="btn btn-success" onclick="submitAnswer(3)"> Good </button>
-                      <button class="btn btn-primary" onclick="submitAnswer(4)"> Easy </button>
-                  </div>
-                  <button class="btn btn-info" id="showDetailsBtn" onclick="showKanjiDetailsModal()" style="display: none; margin-top: 15px; position: relative; z-index: 100;"> Show Details </button>
-              </div>
-          </div>
-      </div>
          <!-- Kanji Detail Scene -->
          <div class="scene" id="kanjiDetailScene">
              <div style="text-align: center">
@@ -1614,13 +1614,13 @@
              <div id="cramKanjiLevels"></div>
          </div>
      </div>
-     <!-- Cram Study Scene -->
-    <div class="scene" id="cramStudyScene">
+ <div class="scene" id="cramStudyScene">
     <canvas id="cramDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
     <div class="progress-bar" style="margin-bottom: 15px;">
         <div class="progress-fill" id="cramProgressBar" style="width: 0%"></div>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">
+    <!-- This div will be toggled on/off based on settings -->
+    <div class="study-progress-info" style="display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">
         <span>Progress: <strong id="cramProgress">0/0</strong></span>
         <span>Correct: <strong id="cramCorrect">0</strong></span>
         <span>Remaining: <strong id="cramRemaining">0</strong></span>
@@ -1644,51 +1644,57 @@
         </div>
     </div>
 </div>
-     <!-- Settings Scene -->
-     <div class="scene" id="settingsScene">
-         <h2>⚙️ Settings</h2>
-         <div style="max-width: 600px; margin: 0 auto">
-             <div class="input-group">
-                 <label for="profileName">Profile Name</label>
-                 <input type="text" id="profileName" placeholder="Enter your name" />
-                 <button class="btn btn-primary" onclick="saveProfileName()"> Save Name </button>
-             </div>
-             <div class="input-group">
-                 <label for="jlptLevel">JLPT Level Filter</label>
-                 <select id="jlptLevel">
-                     <option value="all">All Levels</option>
-                     <option value="N5">N5 (Beginner)</option>
-                     <option value="N4">N4</option>
-                     <option value="N3">N3</option>
-                     <option value="N2">N2</option>
-                     <option value="N1">N1 (Advanced)</option>
-                 </select>
-             </div>
-             <div class="input-group">
-                 <label for="defaultQuestionMode">Default Question Mode</label>
-                 <select id="defaultQuestionMode">
-                     <option value="meaning-first">Show Reading + Meaning → Word</option>
-                     <option value="kanji-first">Show Word → Reading + Meaning</option>
-                 </select>
-             </div>
-             <div class="input-group">
-                 <label for="maxInterval">Maximum SRS Interval (days)</label>
-                 <input type="number" id="maxInterval" min="1" max="365" value="180" />
-             </div>
-             <div class="input-group">
-                 <label>
-                     <input type="checkbox" id="showProgress" /> Show progress bars during study </label>
-             </div>
-             <div class="input-group">
-                 <label>
-                     <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" /> Enable dark mode </label>
-             </div>
-             <div style="text-align: center; margin-top: 40px">
-                 <button class="btn btn-primary" onclick="saveSettings()"> Save Settings </button>
-                 <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
-             </div>
-         </div>
-     </div>
+   <div class="scene" id="settingsScene">
+    <h2>⚙️ Settings</h2>
+    <div style="max-width: 600px; margin: 0 auto">
+        <div class="input-group">
+            <label for="profileName">Profile Name</label>
+            <input type="text" id="profileName" placeholder="Enter your name" />
+            <button class="btn btn-primary" onclick="saveProfileName()">Save Name</button>
+        </div>
+        <div class="input-group">
+            <label for="jlptLevel">JLPT Level Filter</label>
+            <select id="jlptLevel">
+                <option value="all">All Levels</option>
+                <option value="N5">N5 (Beginner)</option>
+                <option value="N4">N4</option>
+                <option value="N3">N3</option>
+                <option value="N2">N2</option>
+                <option value="N1">N1 (Advanced)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="defaultQuestionMode">Default Question Mode</label>
+            <select id="defaultQuestionMode">
+                <option value="meaning-first">Show Reading + Meaning → Word</option>
+                <option value="kanji-first">Show Word → Reading + Meaning</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="maxInterval">Maximum SRS Interval (days)</label>
+            <input type="number" id="maxInterval" min="1" max="365" value="180" />
+        </div>
+        <div class="input-group">
+            <label>
+                <input type="checkbox" id="showProgress" /> Show progress bars during study
+            </label>
+        </div>
+        <div class="input-group">
+            <label>
+                <input type="checkbox" id="showStudyProgress" onchange="toggleStudyProgress()" /> Show detailed progress info (Level, Remaining, etc.)
+            </label>
+        </div>
+        <div class="input-group">
+            <label>
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" /> Enable dark mode
+            </label>
+        </div>
+        <div style="text-align: center; margin-top: 40px">
+            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+        </div>
+    </div>
+</div>
      <script>
          const SAMPLE_KANJI = [
              // Level 10 (Easiest)
@@ -16289,6 +16295,7 @@
                  maxInterval: 180,
                  showProgress: true,
                  showDrawing: true,
+                 showStudyProgress: true,
                  defaultQuestionMode: 'meaning-first',
              },
              kanjiData: new Map(),
@@ -17292,6 +17299,7 @@
                  console.log('Data loaded successfully from server');
                  // Update UI elements that depend on settings
                  updateDashboard();
+                 updateStudyProgressDisplay();
              } catch (error) {
                  console.error('Failed to load from database:', error);
                  // Fallback to localStorage
@@ -17380,6 +17388,7 @@
              loadScene('studyScene');
           setTimeout(() => {
         initializeStudyDrawing();
+           initializeStudyProgressDisplay();
     }, 100); 
              const modeDropdown = document.getElementById('studyQuestionMode');
              if (modeDropdown) {
@@ -17388,7 +17397,7 @@
              displayCurrentQuestion();
          }
 
-         async function displayCurrentQuestion() {
+       async function displayCurrentQuestion() {
     const session = gameState.studySession;
     if (!session.kanji || session.kanji.length === 0) {
         alert('No kanji in study session!');
@@ -17422,7 +17431,6 @@
         answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
     }
     
-    // Store the answer text for later use
     session.currentAnswerText = answerText;
     
     document.getElementById('currentKanjiLevel').textContent = currentKanji.level;
@@ -17439,6 +17447,16 @@
     }
     session.showingAnswer = false;
     updateStudyProgress();
+    
+    // Apply the progress display setting
+    updateStudyProgressDisplay();
+}
+
+      function initializeStudyProgressDisplay() {
+    // Ensure the setting is applied when study scene loads
+    setTimeout(() => {
+        updateStudyProgressDisplay();
+    }, 100);
 }
 
 function showAnswer() {
@@ -17468,6 +17486,36 @@ function showAnswer() {
     }
     
     session.showingAnswer = true;
+}
+
+      function toggleStudyProgress() {
+    const checkbox = document.getElementById('showStudyProgress');
+    gameState.settings.showStudyProgress = checkbox.checked;
+    
+    // Update the UI immediately
+    updateStudyProgressDisplay();
+    
+    // Save to server
+    saveSettings().catch(error => {
+        console.error('Failed to save study progress setting:', error);
+        // Revert checkbox if save failed
+        checkbox.checked = !checkbox.checked;
+        gameState.settings.showStudyProgress = checkbox.checked;
+        alert('Failed to save setting. Please try again.');
+    });
+}
+
+function updateStudyProgressDisplay() {
+    const progressContainer = document.querySelector('#studyScene .study-progress-info');
+    const cramProgressContainer = document.querySelector('#cramStudyScene .study-progress-info');
+    
+    if (progressContainer) {
+        progressContainer.style.display = gameState.settings.showStudyProgress ? 'flex' : 'none';
+    }
+    
+    if (cramProgressContainer) {
+        cramProgressContainer.style.display = gameState.settings.showStudyProgress ? 'flex' : 'none';
+    }
 }
 
         function showKanjiDetailsModal() {
@@ -18019,12 +18067,16 @@ window.addEventListener("popstate", (event) => {
 }
 
          function updateSettingsScene() {
-             document.getElementById('profileName').value = gameState.settings.profileName;
-             document.getElementById('jlptLevel').value = gameState.settings.jlptLevel;
-             document.getElementById('maxInterval').value = gameState.settings.maxInterval;
-             document.getElementById('showProgress').checked = gameState.settings.showProgress;
-             document.getElementById('defaultQuestionMode').value = gameState.settings.defaultQuestionMode;
-         }
+    const settings = gameState.settings;
+    
+    document.getElementById('profileName').value = settings.profileName || '';
+    document.getElementById('jlptLevel').value = settings.jlptLevel || 'all';
+    document.getElementById('defaultQuestionMode').value = settings.defaultQuestionMode || 'meaning-first';
+    document.getElementById('maxInterval').value = settings.maxInterval || 180;
+    document.getElementById('showProgress').checked = settings.showProgress || false;
+    document.getElementById('showStudyProgress').checked = settings.showStudyProgress !== false; // Default to true
+    document.getElementById('darkModeToggle').checked = localStorage.getItem('darkMode') === 'enabled';
+}
 
          function toggleKanjiVisibility() {
              const kanjiChar = document.getElementById('drawingKanjiChar');
@@ -18272,6 +18324,7 @@ function handleTouch(e) {
                  questionMode: gameState.cramSession.questionMode,
              };
              loadScene('cramStudyScene');
+             initializeStudyProgressDisplay();
              displayCramQuestion();
          }
          function updateCramQuestionMode() {
@@ -18311,43 +18364,52 @@ function handleTouch(e) {
              alert('Profile name saved!');
              saveGameData();
          }
-         async function saveSettings() {
-             // Update gameState with form values
-             gameState.settings.profileName = document.getElementById('profileName').value;
-             gameState.settings.jlptLevel = document.getElementById('jlptLevel').value;
-             gameState.settings.maxInterval = parseInt(document.getElementById('maxInterval').value);
-             gameState.settings.showProgress = document.getElementById('showProgress').checked;
-             gameState.settings.defaultQuestionMode = document.getElementById('defaultQuestionMode').value;
-             // Add this line to your existing saveSettings() function
-             localStorage.setItem('darkMode', document.getElementById('darkModeToggle').checked ? 'enabled' : 'disabled');
-             try {
-                 if (gameState.isSignedIn && !gameState.isAnonymous && gameState.authToken) {
-                     // Save to server
-                     await apiCall('/settings', 'PUT', gameState.settings);
-                     console.log('Settings saved to server');
-                 }
-                 // Always save to localStorage as backup
-                 const saveData = {
-                     settings: gameState.settings,
-                     kanjiData: Array.from(gameState.kanjiData.entries()),
-                     lastSave: new Date().toISOString(),
-                 };
-                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-                 alert('Settings saved successfully!');
-                 // Update dashboard to reflect changes
-                 updateDashboard();
-             } catch (error) {
-                 console.error('Failed to save settings:', error);
-                 // Still save locally
-                 const saveData = {
-                     settings: gameState.settings,
-                     kanjiData: Array.from(gameState.kanjiData.entries()),
-                     lastSave: new Date().toISOString(),
-                 };
-                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-                 alert('Settings saved locally (server error)');
-             }
-         }
+       async function saveSettings() {
+    const profileName = document.getElementById('profileName').value;
+    const jlptLevel = document.getElementById('jlptLevel').value;
+    const defaultQuestionMode = document.getElementById('defaultQuestionMode').value;
+    const maxInterval = parseInt(document.getElementById('maxInterval').value);
+    const showProgress = document.getElementById('showProgress').checked;
+    const showStudyProgress = document.getElementById('showStudyProgress').checked;
+    const darkMode = document.getElementById('darkModeToggle').checked;
+    
+    gameState.settings = {
+        ...gameState.settings,
+        profileName,
+        jlptLevel,
+        defaultQuestionMode,
+        maxInterval,
+        showProgress,
+        showStudyProgress
+    };
+    
+    // Save dark mode preference to localStorage
+    if (darkMode) {
+        localStorage.setItem('darkMode', 'enabled');
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+    }
+    
+    try {
+        if (gameState.isSignedIn && !gameState.isAnonymous) {
+            await apiCall('/settings', 'PUT', gameState.settings);
+        }
+        
+        // Also save to localStorage as backup
+        const saveData = {
+            settings: gameState.settings,
+            kanjiData: Array.from(gameState.kanjiData.entries()),
+            lastSave: new Date().toISOString(),
+        };
+        localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
+        
+        alert('Settings saved successfully!');
+        updateStudyProgressDisplay(); // Update UI after saving
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+        alert('Failed to save settings: ' + error.message);
+    }
+}
 
          function clearMainCanvas() {
              const canvas = document.getElementById('mainDrawingCanvas');
