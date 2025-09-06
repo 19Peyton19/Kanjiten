@@ -17273,10 +17273,6 @@ function initializeURLHandling() {
 
       // Map URL paths to scene names
 function getSceneFromPath(path) {
-
- if (gameState.kanjiData.size === 0) {
-        initializeKanjiData();
-    }
     const pathMappings = {
         '/': 'loginScene',
         '/dashboard': 'dashboardScene',
@@ -17288,18 +17284,9 @@ function getSceneFromPath(path) {
         '/drawing': 'drawingScene'
     };
     
-    // Handle kanji detail URLs - extract kanji character from URL
+    // Handle kanji detail URLs - redirect to decks on reload
     if (path.startsWith('/kanji/')) {
-        const kanjiChar = decodeURIComponent(path.split('/kanji/')[1]);
-        if (kanjiChar) {
-            // Find the kanji by character and set it as selected
-            const kanji = Array.from(gameState.kanjiData.values()).find(k => k.character === kanjiChar);
-            if (kanji) {
-                gameState.selectedKanji = kanji;
-                return 'kanjiDetailScene';
-            }
-        }
-        // If kanji not found, redirect to decks
+        console.log('Kanji detail URL detected on reload, redirecting to decks');
         return 'decksScene';
     }
     
@@ -17312,26 +17299,23 @@ function getSceneFromPath(path) {
         initializeKanjiData();
     }
     
-    if (gameState.intendedKanjiChar) {
-        // Find and select the kanji
-        const kanji = Array.from(gameState.kanjiData.values()).find(k => k.character === gameState.intendedKanjiChar);
-        if (kanji) {
-            gameState.selectedKanji = kanji;
-            loadScene('kanjiDetailScene');
-        } else {
-            // Kanji not found, go to decks
+    if (gameState.intendedPath) {
+        // Check if it's a kanji detail path - redirect to decks instead
+        if (gameState.intendedPath.startsWith('/kanji/')) {
+            console.log('Intended path was kanji detail, redirecting to decks');
             loadScene('decksScene');
-        }
-        // Clear the intended kanji
-        gameState.intendedKanjiChar = null;
-    } else if (gameState.intendedPath) {
-        // Handle other intended paths
-        const scene = getSceneFromPath(gameState.intendedPath);
-        if (scene !== 'loginScene' || !gameState.isSignedIn) {
-            loadScene(scene);
+        } else {
+            // Handle other intended paths normally
+            const scene = getSceneFromPath(gameState.intendedPath);
+            if (scene !== 'loginScene' || !gameState.isSignedIn) {
+                loadScene(scene);
+            }
         }
         gameState.intendedPath = null;
     }
+    
+    // Clear any intended kanji character since we're not going to kanji detail
+    gameState.intendedKanjiChar = null;
 }
          // Dashboard Functions
          function updateDashboard() {
