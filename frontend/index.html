@@ -17248,7 +17248,7 @@ function loadScene(sceneName, pushState = true) {
         case 'settingsScene':
             updateSettingsScene();
             break;
-        case 'studyScene':
+       case 'studyScene':
     // Check if we have an active study session, if not try to start one
     if (!gameState.studySession.kanji || gameState.studySession.kanji.length === 0) {
         const reviewKanji = Array.from(gameState.kanjiData.values()).filter(
@@ -17264,17 +17264,25 @@ function loadScene(sceneName, pushState = true) {
                 total: reviewKanji.length,
                 questionMode: gameState.settings.defaultQuestionMode,
             };
+            // Only call displayCurrentQuestion if we just created a new session
+            setTimeout(() => {
+                initializeStudyDrawing();
+                initializeStudyProgressDisplay();
+                displayCurrentQuestion();
+            }, 100);
         } else {
             console.log('No reviews due, redirecting to dashboard');
             loadScene('dashboardScene');
             return;
         }
+    } else {
+        // Session already exists, just initialize the UI
+        setTimeout(() => {
+            initializeStudyDrawing();
+            initializeStudyProgressDisplay();
+            // Don't call displayCurrentQuestion() here since session is ongoing
+        }, 100);
     }
-    setTimeout(() => {
-        initializeStudyDrawing();
-        initializeStudyProgressDisplay();
-        displayCurrentQuestion();
-    }, 100);
     break;
 case 'cramStudyScene':
     // If no active cram session, redirect to cram scene
