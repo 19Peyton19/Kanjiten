@@ -200,6 +200,52 @@
              border-color: #6b5720;
          }
 
+.confirmation-message {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(0, 123, 255, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.email-highlight {
+    color: #007bff;
+    font-size: 1.1em;
+    margin: 10px 0;
+}
+
+.confirmation-help {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+/* Dark mode confirmation styles */
+[data-theme="dark"] .confirmation-message {
+    background: rgba(0, 123, 255, 0.2);
+    border-left-color: #0d6efd;
+}
+
+[data-theme="dark"] .email-highlight {
+    color: #66b3ff;
+}
+
+[data-theme="dark"] .confirmation-help {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .status-warning {
+    background: #4a3d1a;
+    color: #f4e4a6;
+    border-color: #6b5720;
+}
    
 
     .loading-scene {
@@ -1413,6 +1459,36 @@
                  <div id="authStatus"></div>
              </div>
          </div>
+
+      <!-- Email Confirmation Scene -->
+<div class="scene" id="confirmationScene">
+    <div class="auth-form">
+        <h1>Confirm Your Email</h1>
+        <div class="confirmation-message">
+            <p>We've sent a confirmation email to:</p>
+            <p class="email-highlight"><strong id="confirmationEmail">your@email.com</strong></p>
+            <p>Please click the link in the email to activate your account, then click the button below to continue.</p>
+        </div>
+        
+        <div id="confirmationStatus"></div>
+        
+        <div style="text-align: center">
+            <button class="btn btn-primary" onclick="checkConfirmation()" id="checkConfirmBtn">
+                I've Confirmed My Email
+            </button>
+            <button class="btn btn-secondary" onclick="resendConfirmation()" id="resendBtn">
+                Resend Email
+            </button>
+            <button class="btn btn-secondary" onclick="backToLogin()">
+                Back to Login
+            </button>
+        </div>
+        
+        <div class="confirmation-help">
+            <p><small>Can't find the email? Check your spam folder.</small></p>
+        </div>
+    </div>
+</div>
          <!-- Dashboard Scene -->
          <div class="scene active" id="dashboardScene">
              <div id="guestNotice" class="guest-notice" style="display: none;"> You're in guest mode. Your progress won't be saved permanently. <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">Sign up</a> to save your progress! </div>
@@ -17959,6 +18035,7 @@ let drawingCanvasState = {
              isSignedIn: false,
              isAnonymous: false,
              authToken: null,
+             pendingUser: null,
              currentScene: 'loginScene',
              studySession: {
                  kanji: [],
@@ -18106,70 +18183,210 @@ let drawingCanvasState = {
              }
          }
          async function signUp() {
-             const email = document.getElementById('email').value.trim();
-             const username = document.getElementById('username').value.trim();
-             const password = document.getElementById('password').value;
-             const signUpBtn = document.querySelector('.btn-secondary[onclick="signUp()"]');
-             if (!signUpBtn) return;
-             const originalText = signUpBtn.textContent;
-             signUpBtn.disabled = true;
-             signUpBtn.textContent = 'Creating account...';
-             if (!email || !username || !password) {
-                 showAuthStatus('Please enter email, username, and password', 'error');
-                 signUpBtn.disabled = false;
-                 signUpBtn.textContent = originalText;
-                 return;
-             }
-             if (username.length < 3) {
-                 showAuthStatus('Username must be at least 3 characters long', 'error');
-                 signUpBtn.disabled = false;
-                 signUpBtn.textContent = originalText;
-                 return;
-             }
-             if (!isPasswordValid(password)) {
-                 showAuthStatus('Password must be at least 8 characters with uppercase, lowercase, number, and special character', 'error');
-                 signUpBtn.disabled = false;
-                 signUpBtn.textContent = originalText;
-                 return;
-             }
-             try {
-                 const response = await apiCall('/auth/register', 'POST', {
-                     username,
-                     password,
-                     email
-                 });
-                 if (response.success && response.session) {
-                     gameState.user = {
-                         username: response.user?.username || username,
-                         id: response.user?.id,
-                         isAnonymous: false,
-                     };
-                     gameState.isSignedIn = true;
-                     gameState.isAnonymous = false;
-                     gameState.authToken = response.session.access_token; // Use access_token from session
-                     gameState.settings.profileName = gameState.user.username;
-                     if (gameState.authToken) {
-                         localStorage.setItem('authToken', gameState.authToken);
-                     }
-                     showAuthStatus('Account created successfully!', 'success');
-                     // Update UI
-                     document.getElementById('signOutBtn').style.display = 'block';
-                     document.getElementById('signInBtn').style.display = 'none';
-                     setTimeout(async () => {
-                         loadScene('dashboardScene');
-                         await loadGameData();
-                     }, 1000);
-                 } else {
-                     throw new Error('Invalid response from server');
-                 }
-             } catch (error) {
-                 console.error('Sign up error:', error);
-                 showAuthStatus(`Sign up failed: ${error.message}`, 'error');
-             } finally {
-                 signUpBtn.disabled = false;
-                 signUpBtn.textContent = originalText;
-             }
-         }
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const signUpBtn = document.querySelector('.btn-secondary[onclick="signUp()"]');
+    
+    if (!signUpBtn) return;
+    
+    const originalText = signUpBtn.textContent;
+    signUpBtn.disabled = true;
+    signUpBtn.textContent = 'Creating account...';
+    
+    if (!email || !username || !password) {
+        showAuthStatus('Please enter email, username, and password', 'error');
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = originalText;
+        return;
+    }
+    
+    if (username.length < 3) {
+        showAuthStatus('Username must be at least 3 characters long', 'error');
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = originalText;
+        return;
+    }
+    
+    if (!isPasswordValid(password)) {
+        showAuthStatus('Password must be at least 8 characters with uppercase, lowercase, number, and special character', 'error');
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = originalText;
+        return;
+    }
+    
+    try {
+        const response = await apiCall('/auth/register', 'POST', {
+            username,
+            password,
+            email
+        });
+        
+        if (!response.success) {
+            throw new Error(response.error || 'Registration failed');
+        }
+        
+        // Handle email confirmation case
+        if (response.needsConfirmation) {
+            gameState.pendingUser = {
+                email,
+                password,
+                username: response.user.username
+            };
+            
+            showConfirmationScreen(email);
+            return;
+        }
+        
+        // Handle successful registration with immediate session
+        if (response.session && response.session.access_token) {
+            await handleAuthSuccess(response, false);
+        } else {
+            throw new Error('No session returned - please try again');
+        }
+        
+    } catch (error) {
+        console.error('Sign up error:', error);
+        showAuthStatus(`Sign up failed: ${error.message}`, 'error');
+    } finally {
+        signUpBtn.disabled = false;
+        signUpBtn.textContent = originalText;
+    }
+}
+
+// 3. Add confirmation screen function
+function showConfirmationScreen(email) {
+    const confirmationHTML = `
+        <div id="confirmationScene" class="scene">
+            <div class="auth-container">
+                <h2>Confirm Your Email</h2>
+                <div class="confirmation-message">
+                    <p>We've sent a confirmation email to:</p>
+                    <p class="email-highlight"><strong>${email}</strong></p>
+                    <p>Please click the link in the email to activate your account, then click the button below to continue.</p>
+                </div>
+                
+                <div id="confirmationStatus"></div>
+                
+                <div class="auth-buttons">
+                    <button class="btn-primary" onclick="checkConfirmation()" id="checkConfirmBtn">
+                        I've Confirmed My Email
+                    </button>
+                    <button class="btn-secondary" onclick="resendConfirmation()" id="resendBtn">
+                        Resend Email
+                    </button>
+                    <button class="btn-secondary" onclick="backToLogin()">
+                        Back to Login
+                    </button>
+                </div>
+                
+                <div class="confirmation-help">
+                    <p><small>Can't find the email? Check your spam folder.</small></p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add the scene to the page if it doesn't exist
+    let confirmationScene = document.getElementById('confirmationScene');
+    if (!confirmationScene) {
+        document.body.insertAdjacentHTML('beforeend', confirmationHTML);
+    } else {
+        confirmationScene.innerHTML = confirmationHTML.match(/<div class="auth-container">[\s\S]*<\/div>/)[0];
+    }
+    
+    loadScene('confirmationScene');
+}
+
+// 4. Add confirmation check function
+async function checkConfirmation() {
+    if (!gameState.pendingUser) {
+        showConfirmationStatus('Session expired. Please try signing up again.', 'error');
+        return;
+    }
+    
+    const checkBtn = document.getElementById('checkConfirmBtn');
+    const originalText = checkBtn.textContent;
+    checkBtn.disabled = true;
+    checkBtn.textContent = 'Checking...';
+    
+    try {
+        const response = await apiCall('/auth/check-confirmation', 'POST', {
+            email: gameState.pendingUser.email,
+            password: gameState.pendingUser.password
+        });
+        
+        if (response.success && response.confirmed) {
+            showConfirmationStatus('Email confirmed! Signing you in...', 'success');
+            
+            // Clear pending user data
+            gameState.pendingUser = null;
+            
+            // Handle successful auth
+            await handleAuthSuccess(response, false);
+        } else if (response.needsConfirmation) {
+            showConfirmationStatus('Email not yet confirmed. Please check your email and try again.', 'warning');
+        } else {
+            throw new Error(response.error || 'Confirmation check failed');
+        }
+        
+    } catch (error) {
+        console.error('Confirmation check error:', error);
+        showConfirmationStatus(`Error: ${error.message}`, 'error');
+    } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = originalText;
+    }
+}
+
+// 5. Add resend confirmation function
+async function resendConfirmation() {
+    if (!gameState.pendingUser) {
+        showConfirmationStatus('Session expired. Please try signing up again.', 'error');
+        return;
+    }
+    
+    const resendBtn = document.getElementById('resendBtn');
+    const originalText = resendBtn.textContent;
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Sending...';
+    
+    try {
+        const response = await apiCall('/auth/resend-confirmation', 'POST', {
+            email: gameState.pendingUser.email
+        });
+        
+        if (response.success) {
+            showConfirmationStatus(response.message, 'success');
+        } else {
+            throw new Error(response.error || 'Failed to resend email');
+        }
+        
+    } catch (error) {
+        console.error('Resend confirmation error:', error);
+        showConfirmationStatus(`Error: ${error.message}`, 'error');
+    } finally {
+        resendBtn.disabled = false;
+        resendBtn.textContent = originalText;
+    }
+}
+
+// 6. Add confirmation status display function
+function showConfirmationStatus(message, type) {
+    const statusDiv = document.getElementById('confirmationStatus');
+    statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+    setTimeout(() => {
+        if (type !== 'success') { // Keep success messages visible longer
+            statusDiv.innerHTML = '';
+        }
+    }, type === 'success' ? 5000 : 4000);
+}
+
+// 7. Add back to login function
+function backToLogin() {
+    gameState.pendingUser = null;
+    loadScene('loginScene');
+}
          async function signInAnonymous() {
              const signInBtn = document.querySelector('.btn-secondary[onclick="signInAnonymous()"]');
              if (!signInBtn) return;
