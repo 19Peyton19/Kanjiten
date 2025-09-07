@@ -1630,22 +1630,22 @@
              </div>
          </div>
          <!-- Drawing Scene -->
-         <div class="scene" id="drawingScene">
-             <h2>✏️ Practice Writing</h2>
-             <div class="drawing-container">
-                 <canvas id="mainDrawingCanvas" class="drawing-canvas" width="400" height="400"></canvas>
-                 <div class="drawing-info" id="drawingInfo">
-                     <div class="kanji-character" id="drawingKanjiChar" style="font-size: 120px"> 漢 </div>
-                     <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
-                     <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
-                 </div>
-             </div>
-             <div class="drawing-controls">
-                 <button class="btn btn-secondary" onclick="clearMainCanvas()"> Clear Canvas </button>
-                 <button class="btn btn-secondary" onclick="toggleMainEraser()"> Toggle Eraser </button>
-                 <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
-             </div>
-         </div>
+<div class="scene" id="drawingScene">
+    <h2>Practice Writing</h2>
+    <div class="drawing-container">
+        <canvas id="drawingCanvas" class="drawing-canvas" width="400" height="400"></canvas>
+        <div class="drawing-info" id="drawingInfo">
+            <div class="kanji-character" id="drawingKanjiChar" style="font-size: 120px"> 漢 </div>
+            <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
+            <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
+        </div>
+    </div>
+    <div class="drawing-controls">
+        <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
+        <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
+        <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
+    </div>
+</div>
          <!-- Cram Scene -->
          <div class="scene" id="cramScene">
              <h2>🎯 Cram Session Setup</h2>
@@ -17945,6 +17945,14 @@
              lastX: 0,
              lastY: 0,
          };
+
+      let drawingCanvas, drawingCtx;
+let drawingCanvasState = {
+    isDrawing: false,
+    isErasing: false,
+    lastX: 0,
+    lastY: 0
+};
          // Application State
          let gameState = {
              user: null,
@@ -18873,66 +18881,72 @@ function loadScene(sceneName, pushState = true) {
     
     // Initialize scene-specific functionality
     switch (sceneName) {
-        case 'dashboardScene':
-            updateDashboard();
-            break;
-        case 'decksScene':
-            updateDecksScene();
-            showDecksScene();
-            break;
-        case 'cramScene':
-            setTimeout(() => updateCramScene(), 0);
-            break;
-        case 'settingsScene':
-            updateSettingsScene();
-            break;
-       case 'studyScene':
-    // Check if we have an active study session, if not try to start one
-    if (!gameState.studySession.kanji || gameState.studySession.kanji.length === 0) {
-        const reviewKanji = Array.from(gameState.kanjiData.values()).filter(
-            (k) => isKanjiDueForReview(k)
-        );
-        if (reviewKanji.length > 0) {
-            console.log('No active study session, starting with due reviews');
-            gameState.studySession = {
-                kanji: [...reviewKanji].sort(() => Math.random() - 0.5),
-                currentIndex: 0,
-                showingAnswer: false,
-                correct: 0,
-                total: reviewKanji.length,
-                questionMode: gameState.settings.defaultQuestionMode,
-            };
-            // Only call displayCurrentQuestion if we just created a new session
+    case 'dashboardScene':
+        updateDashboard();
+        break;
+    case 'decksScene':
+        updateDecksScene();
+        showDecksScene();
+        break;
+    case 'cramScene':
+        setTimeout(() => updateCramScene(), 0);
+        break;
+    case 'settingsScene':
+        updateSettingsScene();
+        break;
+    case 'drawingScene':
+        // Initialize drawing scene after DOM update
+        setTimeout(() => {
+            initializeDrawingScene();
+        }, 100);
+        break;
+    case 'studyScene':
+        // Check if we have an active study session, if not try to start one
+        if (!gameState.studySession.kanji || gameState.studySession.kanji.length === 0) {
+            const reviewKanji = Array.from(gameState.kanjiData.values()).filter(
+                (k) => isKanjiDueForReview(k)
+            );
+            if (reviewKanji.length > 0) {
+                console.log('No active study session, starting with due reviews');
+                gameState.studySession = {
+                    kanji: [...reviewKanji].sort(() => Math.random() - 0.5),
+                    currentIndex: 0,
+                    showingAnswer: false,
+                    correct: 0,
+                    total: reviewKanji.length,
+                    questionMode: gameState.settings.defaultQuestionMode,
+                };
+                // Only call displayCurrentQuestion if we just created a new session
+                setTimeout(() => {
+                    initializeStudyDrawing();
+                    initializeStudyProgressDisplay();
+                    displayCurrentQuestion();
+                }, 100);
+            } else {
+                console.log('No reviews due, redirecting to dashboard');
+                loadScene('dashboardScene');
+                return;
+            }
+        } else {
+            // Session already exists, just initialize the UI
             setTimeout(() => {
                 initializeStudyDrawing();
                 initializeStudyProgressDisplay();
-                displayCurrentQuestion();
+                // Don't call displayCurrentQuestion() here since session is ongoing
             }, 100);
-        } else {
-            console.log('No reviews due, redirecting to dashboard');
-            loadScene('dashboardScene');
+        }
+        break;
+    case 'cramStudyScene':
+        // If no active cram session, redirect to cram scene
+        if (!gameState.cramSession.kanji || gameState.cramSession.kanji.length === 0) {
+            console.log('No active cram session, redirecting to cram selection');
+            loadScene('cramScene');
             return;
         }
-    } else {
-        // Session already exists, just initialize the UI
-        setTimeout(() => {
-            initializeStudyDrawing();
-            initializeStudyProgressDisplay();
-            // Don't call displayCurrentQuestion() here since session is ongoing
-        }, 100);
-    }
-    break;
-case 'cramStudyScene':
-    // If no active cram session, redirect to cram scene
-    if (!gameState.cramSession.kanji || gameState.cramSession.kanji.length === 0) {
-        console.log('No active cram session, redirecting to cram selection');
-        loadScene('cramScene');
-        return;
-    }
-    initializeStudyProgressDisplay();
-    displayCramQuestion();
-    break;
-    }
+        initializeStudyProgressDisplay();
+        displayCramQuestion();
+        break;
+}
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -20274,6 +20288,135 @@ function showCramKanjiDetailsModal() {
              displayVariations(kanji);
              loadScene('kanjiDetailScene');
          }
+
+      // Drawing Scene specific functions
+let drawingCanvas, drawingCtx;
+let drawingCanvasState = {
+    isDrawing: false,
+    isErasing: false,
+    lastX: 0,
+    lastY: 0
+};
+
+function initializeDrawingScene() {
+    drawingCanvas = document.getElementById('drawingCanvas');
+    if (!drawingCanvas) return;
+    
+    drawingCtx = drawingCanvas.getContext('2d');
+    
+    // Set canvas size
+    drawingCanvas.width = 400;
+    drawingCanvas.height = 400;
+    
+    // Set drawing styles
+    drawingCtx.strokeStyle = getDrawingColor();
+    drawingCtx.lineWidth = 3;
+    drawingCtx.lineCap = 'round';
+    
+    // Clear canvas
+    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    
+    // Add event listeners
+    drawingCanvas.addEventListener('mousedown', startDrawingSceneDrawing);
+    drawingCanvas.addEventListener('mousemove', drawingSceneDraw);
+    drawingCanvas.addEventListener('mouseup', stopDrawingSceneDrawing);
+    drawingCanvas.addEventListener('mouseout', stopDrawingSceneDrawing);
+    
+    // Touch events for mobile
+    drawingCanvas.addEventListener('touchstart', handleDrawingSceneTouch);
+    drawingCanvas.addEventListener('touchmove', handleDrawingSceneTouch);
+    drawingCanvas.addEventListener('touchend', stopDrawingSceneDrawing);
+}
+
+function startDrawingSceneDrawing(e) {
+    drawingCanvasState.isDrawing = true;
+    const rect = e.target.getBoundingClientRect();
+    drawingCanvasState.lastX = e.clientX - rect.left;
+    drawingCanvasState.lastY = e.clientY - rect.top;
+}
+
+function drawingSceneDraw(e) {
+    if (!drawingCanvasState.isDrawing) return;
+    
+    const rect = drawingCanvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    if (drawingCanvasState.isErasing) {
+        drawingCtx.globalCompositeOperation = 'destination-out';
+        drawingCtx.lineWidth = 20;
+    } else {
+        drawingCtx.globalCompositeOperation = 'source-over';
+        drawingCtx.lineWidth = 3;
+        drawingCtx.strokeStyle = getDrawingColor();
+    }
+    
+    drawingCtx.beginPath();
+    drawingCtx.moveTo(drawingCanvasState.lastX, drawingCanvasState.lastY);
+    drawingCtx.lineTo(currentX, currentY);
+    drawingCtx.stroke();
+    
+    drawingCanvasState.lastX = currentX;
+    drawingCanvasState.lastY = currentY;
+}
+
+function stopDrawingSceneDrawing() {
+    drawingCanvasState.isDrawing = false;
+}
+
+function handleDrawingSceneTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent(
+        e.type === 'touchstart' ? 'mousedown' : 
+        e.type === 'touchmove' ? 'mousemove' : 'mouseup', 
+        {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        }
+    );
+    e.target.dispatchEvent(mouseEvent);
+}
+
+function clearDrawingCanvas() {
+    if (drawingCtx) {
+        drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    }
+}
+
+function toggleDrawingEraser() {
+    drawingCanvasState.isErasing = !drawingCanvasState.isErasing;
+    const btn = event.target;
+    btn.textContent = drawingCanvasState.isErasing ? 'Drawing Mode' : 'Toggle Eraser';
+    btn.classList.toggle('btn-warning', drawingCanvasState.isErasing);
+}
+
+function toggleBackground() {
+    if (!drawingCanvas) return;
+    
+    if (drawingCanvas.style.backgroundImage) {
+        drawingCanvas.style.backgroundImage = '';
+    } else {
+        drawingCanvas.style.backgroundImage = 
+            'repeating-linear-gradient(0deg, transparent, transparent 24px, #ccc 25px), ' + 
+            'repeating-linear-gradient(90deg, transparent, transparent 24px, #ccc 25px)';
+    }
+}
+
+// Update the openDrawingScene function to initialize the canvas
+function openDrawingScene() {
+    if (!gameState.selectedKanji) return;
+    
+    document.getElementById('drawingKanjiChar').textContent = gameState.selectedKanji.character;
+    document.getElementById('drawingKanjiMeaning').textContent = gameState.selectedKanji.meanings.join(', ');
+    
+    loadScene('drawingScene');
+    
+    // Initialize the drawing canvas after the scene loads
+    setTimeout(() => {
+        initializeDrawingScene();
+    }, 100);
+}
 
          function addKanjiToReview() {
              if (!gameState.selectedKanji) return;
