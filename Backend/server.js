@@ -136,38 +136,21 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
         const { username, password, email } = req.body;
         
-        // Input validation
-        if (!username) {
-            log('WARN', 'Registration failed: Missing username');
-            return res.status(400).json({ error: 'Username is required' });
+        // Input validation (keep existing validation code)
+        if (!username || !password || !email) {
+            return res.status(400).json({ error: 'All fields are required' });
         }
         
-        if (!password) {
-            log('WARN', 'Registration failed: Missing password');
-            return res.status(400).json({ error: 'Password is required' });
-        }
-        
-        if (!email) {
-            log('WARN', 'Registration failed: Missing email');
-            return res.status(400).json({ error: 'Email is required' });
-        }
-        
-        // Username validation
         if (username.length < 3 || username.length > 50) {
-            log('WARN', 'Registration failed: Invalid username length');
             return res.status(400).json({ error: 'Username must be 3-50 characters' });
         }
         
-        // Password validation
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,30}$/;
         if (!passwordRegex.test(password)) {
-            log('WARN', 'Registration failed: Password validation failed');
             return res.status(400).json({ 
                 error: 'Password must be 8-30 characters with uppercase, lowercase, digit, and symbol' 
             });
         }
-        
-        log('INFO', 'Input validation passed, checking username availability');
         
         // Check if username exists
         const { data: existingProfile, error: checkError } = await supabase
@@ -177,7 +160,6 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
             .single();
 
         if (existingProfile && !checkError) {
-            log('WARN', 'Registration failed: Username already exists', { username });
             return res.status(400).json({ error: 'Username already exists' });
         }
 
@@ -204,7 +186,24 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
             return res.status(500).json({ error: 'User creation failed' });
         }
 
-        log('SUCCESS', 'User created successfully', { userId: authData.user.id, username });
+        // Check if email confirmation is required
+        if (!authData.session) {
+            log('INFO', 'Email confirmation required', { userId: authData.user.id, username });
+            return res.json({
+                success: true,
+                needsConfirmation: true,
+                message: 'Please check your email and click the confirmation link to activate your account.',
+                user: {
+                    id: authData.user.id,
+                    username,
+                    email,
+                    isAnonymous: false
+                }
+            });
+        }
+
+        // If no email confirmation needed, proceed normally
+        log('SUCCESS', 'User created successfully with immediate session', { userId: authData.user.id, username });
 
         res.json({
             success: true,
@@ -220,6 +219,106 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     } catch (error) {
         log('ERROR', 'Registration error', error);
         res.status(500).json({ error: 'Registration failed. Please try again.' });
+    }
+});
+
+// 2. Add endpoint to check email confirmation status
+app.post('/api/auth/check-confirmation', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
+        }
+
+        // Try to sign in - this will only work if email is confirmed
+        const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (signInError) {
+            if (signInError.message.includes('Email not confirmed')) {
+                return res.json({
+                    success: false,
+                    needsConfirmation: true,
+                    message: 'Email not yet confirmed. Please check your email.'
+                });
+            }
+            log('WARN', 'Confirmation check failed', signInError);
+            return res.status(401).json({ error: 'Invalid credentials or email not confirmed' });
+        }
+
+        if (!authData.user || !authData.session) {
+            return res.status(500).json({ error: 'Confirmation check failed' });
+        }
+
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+        if (profileError) {
+            log('ERROR', 'Failed to get user profile', profileError);
+            return res.status(500).json({ error: 'Failed to get user profile' });
+        }
+
+        // Update last login
+        await supabase
+            .from('profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', authData.user.id);
+
+        log('SUCCESS', 'Email confirmed and user signed in', { userId: authData.user.id, username: profile.username });
+        
+        res.json({
+            success: true,
+            confirmed: true,
+            user: {
+                id: authData.user.id,
+                username: profile.username,
+                email: authData.user.email,
+                isAnonymous: profile.is_anonymous
+            },
+            session: authData.session
+        });
+        
+    } catch (error) {
+        log('ERROR', 'Confirmation check error', error);
+        res.status(500).json({ error: 'Failed to check confirmation status' });
+    }
+});
+
+// 3. Add endpoint to resend confirmation email
+app.post('/api/auth/resend-confirmation', async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: email
+        });
+
+        if (error) {
+            log('ERROR', 'Failed to resend confirmation', error);
+            return res.status(400).json({ error: error.message });
+        }
+
+        log('INFO', 'Confirmation email resent', { email });
+        res.json({
+            success: true,
+            message: 'Confirmation email has been resent. Please check your inbox.'
+        });
+        
+    } catch (error) {
+        log('ERROR', 'Resend confirmation error', error);
+        res.status(500).json({ error: 'Failed to resend confirmation email' });
     }
 });
 
