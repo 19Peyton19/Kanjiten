@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
  <html lang="en">
 
@@ -1709,27 +1710,17 @@
     <h2>Practice Writing</h2>
     <div class="drawing-container">
         <canvas id="drawingCanvas" class="drawing-canvas" width="400" height="400"></canvas>
-       <div class="drawing-info" id="drawingInfo">
-    <div style="display: flex; gap: 30px; justify-content: center; margin-bottom: 20px;">
-        <div style="text-align: center;">
-            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Standard</div>
+        <div class="drawing-info" id="drawingInfo">
             <div class="kanji-character" id="drawingKanjiChar" style="font-size: 120px"> 漢 </div>
+            <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
+            <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
         </div>
-        <div style="text-align: center;">
-            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Stroke Order</div>
-            <div id="drawingKanjiStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 120px;"> 漢 </div>
-        </div>
-    </div>
-    <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
-    <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
-</div>
     </div>
     <div class="drawing-controls">
-    <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
-    <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
-    <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
-    <button class="btn btn-secondary" onclick="toggleCanvasKanji()"> Toggle Canvas Guide </button>
-</div>
+        <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
+        <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
+        <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
+    </div>
 </div>
          <!-- Cram Scene -->
          <div class="scene" id="cramScene">
@@ -20543,8 +20534,6 @@ function initializeDrawingScene() {
     drawingCanvas.addEventListener('touchstart', handleDrawingSceneTouch);
     drawingCanvas.addEventListener('touchmove', handleDrawingSceneTouch);
     drawingCanvas.addEventListener('touchend', stopDrawingSceneDrawing);
-
-    redrawCanvas();
 }
 
 function startDrawingSceneDrawing(e) {
@@ -20622,11 +20611,11 @@ function toggleBackground() {
     }
 }
 
+// Update the openDrawingScene function to initialize the canvas
 function openDrawingScene() {
     if (!gameState.selectedKanji) return;
     
     document.getElementById('drawingKanjiChar').textContent = gameState.selectedKanji.character;
-    document.getElementById('drawingKanjiStroke').textContent = gameState.selectedKanji.character;
     document.getElementById('drawingKanjiMeaning').textContent = gameState.selectedKanji.meanings.join(', ');
     
     loadScene('drawingScene');
@@ -20635,67 +20624,6 @@ function openDrawingScene() {
     setTimeout(() => {
         initializeDrawingScene();
     }, 100);
-}
-
-      let showCanvasKanji = false;
-
-function toggleCanvasKanji() {
-    showCanvasKanji = !showCanvasKanji;
-    redrawCanvas();
-}
-
-function redrawCanvas() {
-    if (!drawingCanvas || !drawingCtx) return;
-    
-    // Clear canvas
-    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-    
-    // Draw guidelines if enabled
-    if (showGuidelines) {
-        drawingCtx.save();
-        drawingCtx.strokeStyle = "rgba(200, 200, 200, 0.5)";
-        drawingCtx.lineWidth = 1;
-        drawingCtx.setLineDash([5, 5]);
-        
-        // Draw grid lines
-        const gridSize = 50;
-        for (let x = 0; x <= drawingCanvas.width; x += gridSize) {
-            drawingCtx.beginPath();
-            drawingCtx.moveTo(x, 0);
-            drawingCtx.lineTo(x, drawingCanvas.height);
-            drawingCtx.stroke();
-        }
-        for (let y = 0; y <= drawingCanvas.height; y += gridSize) {
-            drawingCtx.beginPath();
-            drawingCtx.moveTo(0, y);
-            drawingCtx.lineTo(drawingCanvas.width, y);
-            drawingCtx.stroke();
-        }
-        
-        // Draw center cross
-        drawingCtx.setLineDash([]);
-        drawingCtx.strokeStyle = "rgba(150, 150, 150, 0.7)";
-        drawingCtx.lineWidth = 2;
-        drawingCtx.beginPath();
-        drawingCtx.moveTo(drawingCanvas.width/2, 0);
-        drawingCtx.lineTo(drawingCanvas.width/2, drawingCanvas.height);
-        drawingCtx.moveTo(0, drawingCanvas.height/2);
-        drawingCtx.lineTo(drawingCanvas.width, drawingCanvas.height/2);
-        drawingCtx.stroke();
-        
-        drawingCtx.restore();
-    }
-    
-    // Draw kanji guide if enabled
-    if (showCanvasKanji && gameState.selectedKanji) {
-        drawingCtx.save();
-        drawingCtx.font = "200px KanjiStrokeOrders, serif";
-        drawingCtx.fillStyle = "rgba(128, 128, 128, 0.3)";
-        drawingCtx.textAlign = "center";
-        drawingCtx.textBaseline = "middle";
-        drawingCtx.fillText(gameState.selectedKanji.character, drawingCanvas.width/2, drawingCanvas.height/2);
-        drawingCtx.restore();
-    }
 }
 
          function addKanjiToReview() {
