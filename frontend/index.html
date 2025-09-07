@@ -20289,15 +20289,6 @@ function showCramKanjiDetailsModal() {
              loadScene('kanjiDetailScene');
          }
 
-      // Drawing Scene specific functions
-let drawingCanvas, drawingCtx;
-let drawingCanvasState = {
-    isDrawing: false,
-    isErasing: false,
-    lastX: 0,
-    lastY: 0
-};
-
 function initializeDrawingScene() {
     drawingCanvas = document.getElementById('drawingCanvas');
     if (!drawingCanvas) return;
