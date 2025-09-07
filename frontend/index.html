@@ -1709,17 +1709,27 @@
     <h2>Practice Writing</h2>
     <div class="drawing-container">
         <canvas id="drawingCanvas" class="drawing-canvas" width="400" height="400"></canvas>
-        <div class="drawing-info" id="drawingInfo">
+       <div class="drawing-info" id="drawingInfo">
+    <div style="display: flex; gap: 30px; justify-content: center; margin-bottom: 20px;">
+        <div style="text-align: center;">
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Standard</div>
             <div class="kanji-character" id="drawingKanjiChar" style="font-size: 120px"> 漢 </div>
-            <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
-            <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Stroke Order</div>
+            <div id="drawingKanjiStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 120px;"> 漢 </div>
         </div>
     </div>
-    <div class="drawing-controls">
-        <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
-        <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
-        <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
+    <p id="drawingKanjiMeaning" style="font-size: 24px; margin: 20px 0"> chinese </p>
+    <button class="btn btn-secondary" onclick="toggleKanjiVisibility()"> Hide Kanji </button>
+</div>
     </div>
+    <div class="drawing-controls">
+    <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
+    <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
+    <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
+    <button class="btn btn-secondary" onclick="toggleCanvasKanji()"> Toggle Canvas Guide </button>
+</div>
 </div>
          <!-- Cram Scene -->
          <div class="scene" id="cramScene">
@@ -20533,6 +20543,8 @@ function initializeDrawingScene() {
     drawingCanvas.addEventListener('touchstart', handleDrawingSceneTouch);
     drawingCanvas.addEventListener('touchmove', handleDrawingSceneTouch);
     drawingCanvas.addEventListener('touchend', stopDrawingSceneDrawing);
+
+    redrawCanvas();
 }
 
 function startDrawingSceneDrawing(e) {
@@ -20610,11 +20622,11 @@ function toggleBackground() {
     }
 }
 
-// Update the openDrawingScene function to initialize the canvas
 function openDrawingScene() {
     if (!gameState.selectedKanji) return;
     
     document.getElementById('drawingKanjiChar').textContent = gameState.selectedKanji.character;
+    document.getElementById('drawingKanjiStroke').textContent = gameState.selectedKanji.character;
     document.getElementById('drawingKanjiMeaning').textContent = gameState.selectedKanji.meanings.join(', ');
     
     loadScene('drawingScene');
@@ -20623,6 +20635,33 @@ function openDrawingScene() {
     setTimeout(() => {
         initializeDrawingScene();
     }, 100);
+}
+
+      let showCanvasKanji = false;
+
+function toggleCanvasKanji() {
+    showCanvasKanji = !showCanvasKanji;
+    redrawCanvas();
+}
+
+function redrawCanvas() {
+    if (!drawingCanvas || !drawingCtx) return;
+    
+    // Clear and redraw everything
+    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    
+    // Draw kanji guide if enabled
+    if (showCanvasKanji && gameState.selectedKanji) {
+        drawingCtx.save();
+        drawingCtx.font = "200px KanjiStrokeOrders";
+        drawingCtx.fillStyle = "rgba(128, 128, 128, 0.3)"; // Semi-transparent gray
+        drawingCtx.textAlign = "center";
+        drawingCtx.textBaseline = "middle";
+        drawingCtx.fillText(gameState.selectedKanji.character, drawingCanvas.width/2, drawingCanvas.height/2);
+        drawingCtx.restore();
+    }
+    
+    // Redraw user strokes here if you're storing them
 }
 
          function addKanjiToReview() {
