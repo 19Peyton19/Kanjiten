@@ -20647,21 +20647,55 @@ function toggleCanvasKanji() {
 function redrawCanvas() {
     if (!drawingCanvas || !drawingCtx) return;
     
-    // Clear and redraw everything
+    // Clear canvas
     drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    
+    // Draw guidelines if enabled
+    if (showGuidelines) {
+        drawingCtx.save();
+        drawingCtx.strokeStyle = "rgba(200, 200, 200, 0.5)";
+        drawingCtx.lineWidth = 1;
+        drawingCtx.setLineDash([5, 5]);
+        
+        // Draw grid lines
+        const gridSize = 50;
+        for (let x = 0; x <= drawingCanvas.width; x += gridSize) {
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(x, 0);
+            drawingCtx.lineTo(x, drawingCanvas.height);
+            drawingCtx.stroke();
+        }
+        for (let y = 0; y <= drawingCanvas.height; y += gridSize) {
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(0, y);
+            drawingCtx.lineTo(drawingCanvas.width, y);
+            drawingCtx.stroke();
+        }
+        
+        // Draw center cross
+        drawingCtx.setLineDash([]);
+        drawingCtx.strokeStyle = "rgba(150, 150, 150, 0.7)";
+        drawingCtx.lineWidth = 2;
+        drawingCtx.beginPath();
+        drawingCtx.moveTo(drawingCanvas.width/2, 0);
+        drawingCtx.lineTo(drawingCanvas.width/2, drawingCanvas.height);
+        drawingCtx.moveTo(0, drawingCanvas.height/2);
+        drawingCtx.lineTo(drawingCanvas.width, drawingCanvas.height/2);
+        drawingCtx.stroke();
+        
+        drawingCtx.restore();
+    }
     
     // Draw kanji guide if enabled
     if (showCanvasKanji && gameState.selectedKanji) {
         drawingCtx.save();
-        drawingCtx.font = "200px KanjiStrokeOrders";
-        drawingCtx.fillStyle = "rgba(128, 128, 128, 0.3)"; // Semi-transparent gray
+        drawingCtx.font = "200px KanjiStrokeOrders, serif";
+        drawingCtx.fillStyle = "rgba(128, 128, 128, 0.3)";
         drawingCtx.textAlign = "center";
         drawingCtx.textBaseline = "middle";
         drawingCtx.fillText(gameState.selectedKanji.character, drawingCanvas.width/2, drawingCanvas.height/2);
         drawingCtx.restore();
     }
-    
-    // Redraw user strokes here if you're storing them
 }
 
          function addKanjiToReview() {
