@@ -609,6 +609,7 @@ app.post('/api/progress/bulk-update', authenticateUser, async (req, res) => {
 // Update your existing backend code with these changes
 
 // In the GET /api/settings endpoint, update the defaultSettings and settings objects:
+// Updated GET /api/settings - Retrieve user settings including language
 app.get('/api/settings', authenticateUser, async (req, res) => {
     try {
         const { data, error } = await supabase
@@ -616,12 +617,12 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
             .select('*')
             .eq('user_id', req.user.id)
             .single();
-
+        
         if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
             log('ERROR', 'Failed to get user settings', error);
             return res.status(500).json({ error: 'Failed to get settings' });
         }
-
+        
         // If no settings exist, return defaults
         const defaultSettings = {
             profileName: req.user.username || 'User',
@@ -630,11 +631,12 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
             maxInterval: 180,
             showProgress: true,
             showDrawing: true,
-            showStudyProgress: true, // Add this new default
+            showStudyProgress: true,
             defaultQuestionMode: 'meaning-first',
-            darkMode: false
+            darkMode: false,
+            language: 'en' // Add language default
         };
-
+        
         const settings = data ? {
             profileName: data.profile_name || defaultSettings.profileName,
             maxLevel: data.max_level || defaultSettings.maxLevel,
@@ -642,11 +644,12 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
             maxInterval: data.max_interval || defaultSettings.maxInterval,
             showProgress: data.show_progress !== null ? data.show_progress : defaultSettings.showProgress,
             showDrawing: data.show_drawing !== null ? data.show_drawing : defaultSettings.showDrawing,
-            showStudyProgress: data.show_study_progress !== null ? data.show_study_progress : defaultSettings.showStudyProgress, // Add this line
+            showStudyProgress: data.show_study_progress !== null ? data.show_study_progress : defaultSettings.showStudyProgress,
             defaultQuestionMode: data.default_question_mode || defaultSettings.defaultQuestionMode,
-            darkMode: data.dark_mode !== null ? data.dark_mode : defaultSettings.darkMode
+            darkMode: data.dark_mode !== null ? data.dark_mode : defaultSettings.darkMode,
+            language: data.language || defaultSettings.language // Add language setting
         } : defaultSettings;
-
+        
         res.json({ success: true, settings });
         
     } catch (error) {
@@ -655,10 +658,10 @@ app.get('/api/settings', authenticateUser, async (req, res) => {
     }
 });
 
-// In the PUT /api/settings endpoint, update the destructuring and settingsData:
+// Updated PUT /api/settings - Save user settings including language
 app.put('/api/settings', authenticateUser, async (req, res) => {
     try {
-        // Add showStudyProgress to the destructuring
+        // Add language to the destructuring
         const { 
             profileName, 
             maxLevel, 
@@ -666,10 +669,16 @@ app.put('/api/settings', authenticateUser, async (req, res) => {
             maxInterval, 
             showProgress, 
             showDrawing, 
-            showStudyProgress, // Add this line
+            showStudyProgress,
             defaultQuestionMode, 
-            darkMode 
+            darkMode,
+            language // Add language parameter
         } = req.body;
+        
+        // Validate language parameter
+        if (language && !['en', 'ja'].includes(language)) {
+            return res.status(400).json({ error: 'Invalid language. Must be "en" or "ja"' });
+        }
         
         const settingsData = {
             user_id: req.user.id,
@@ -679,9 +688,10 @@ app.put('/api/settings', authenticateUser, async (req, res) => {
             max_interval: maxInterval,
             show_progress: showProgress,
             show_drawing: showDrawing,
-            show_study_progress: showStudyProgress, // Add this line
+            show_study_progress: showStudyProgress,
             default_question_mode: defaultQuestionMode,
             dark_mode: darkMode,
+            language: language || 'en', // Add language to settings data
             updated_at: new Date().toISOString()
         };
         
@@ -690,18 +700,81 @@ app.put('/api/settings', authenticateUser, async (req, res) => {
             .upsert(settingsData, {
                 onConflict: 'user_id'
             });
-
+            
         if (error) {
             log('ERROR', 'Failed to save settings', error);
             return res.status(500).json({ error: 'Failed to save settings' });
         }
-
-        log('SUCCESS', 'Settings saved successfully', { userId: req.user.id });
+        
+        log('SUCCESS', 'Settings saved successfully', { 
+            userId: req.user.id, 
+            language: language 
+        });
         res.json({ success: true });
         
     } catch (error) {
         log('ERROR', 'Settings save error', error);
         res.status(500).json({ error: 'Failed to save settings' });
+    }
+});
+
+// Optional: Add endpoint to get user's language preference specifically
+app.get('/api/user/language', authenticateUser, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('user_settings')
+            .select('language')
+            .eq('user_id', req.user.id)
+            .single();
+            
+        if (error && error.code !== 'PGRST116') {
+            log('ERROR', 'Failed to get user language', error);
+            return res.status(500).json({ error: 'Failed to get language preference' });
+        }
+        
+        const language = data?.language || 'en';
+        res.json({ success: true, language });
+        
+    } catch (error) {
+        log('ERROR', 'Language get error', error);
+        res.status(500).json({ error: 'Failed to get language preference' });
+    }
+});
+
+// Optional: Add endpoint to update language preference only
+app.put('/api/user/language', authenticateUser, async (req, res) => {
+    try {
+        const { language } = req.body;
+        
+        // Validate language parameter
+        if (!language || !['en', 'ja'].includes(language)) {
+            return res.status(400).json({ error: 'Invalid language. Must be "en" or "ja"' });
+        }
+        
+        const { error } = await supabase
+            .from('user_settings')
+            .upsert({
+                user_id: req.user.id,
+                language: language,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'user_id'
+            });
+            
+        if (error) {
+            log('ERROR', 'Failed to update language', error);
+            return res.status(500).json({ error: 'Failed to update language preference' });
+        }
+        
+        log('SUCCESS', 'Language updated successfully', { 
+            userId: req.user.id, 
+            language: language 
+        });
+        res.json({ success: true, language });
+        
+    } catch (error) {
+        log('ERROR', 'Language update error', error);
+        res.status(500).json({ error: 'Failed to update language preference' });
     }
 });
 // Update kanji progress endpoint
