@@ -26664,7 +26664,7 @@ function showAnswer() {
     updateStudyProgressDisplay();
     
     // Save to server
-    saveSettings().catch(error => {
+    saveSettingsWithLanguage().catch(error => {
         console.error('Failed to save study progress setting:', error);
         // Revert checkbox if save failed
         checkbox.checked = !checkbox.checked;
@@ -28920,7 +28920,7 @@ function updateSettingsSceneText() {
         if (text) text.textContent = ` ${t('settings.enableDarkMode')}`;
     }
     
-    const saveSettingsBtn = settingsScene.querySelector('button[onclick="saveSettings()"]');
+    const saveSettingsBtn = settingsScene.querySelector('button[onclick="saveSettingsWithLanguage()"]');
     if (saveSettingsBtn) saveSettingsBtn.textContent = t('settings.saveSettings');
     
     const signOutBtn = settingsScene.querySelector('button[onclick="signOut()"]');
