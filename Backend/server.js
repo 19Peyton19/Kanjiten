@@ -476,6 +476,87 @@ app.get('/api/progress', authenticateUser, async (req, res) => {
     }
 });
 
+// Get user streak
+app.get('/api/streak', authenticateUser, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('user_streaks')
+            .select('daily_streak, last_review_date')
+            .eq('user_id', req.user.id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            log('ERROR', 'Failed to get user streak', error);
+            return res.status(500).json({ error: 'Failed to get streak' });
+        }
+
+        const streak = data ? {
+            dailyStreak: data.daily_streak || 0,
+            lastReviewDate: data.last_review_date
+        } : { dailyStreak: 0, lastReviewDate: null };
+
+        res.json({ success: true, streak });
+    } catch (error) {
+        log('ERROR', 'Streak get error', error);
+        res.status(500).json({ error: 'Failed to get streak' });
+    }
+});
+
+// Update streak when user completes a review
+app.post('/api/streak/update', authenticateUser, async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        
+        // Get current streak
+        const { data: currentStreak } = await supabase
+            .from('user_streaks')
+            .select('daily_streak, last_review_date')
+            .eq('user_id', req.user.id)
+            .single();
+
+        let newStreak = 1;
+        
+        if (currentStreak) {
+            const lastDate = currentStreak.last_review_date;
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            if (lastDate === today) {
+                // Already reviewed today, don't update
+                return res.json({ success: true, streak: currentStreak.daily_streak });
+            } else if (lastDate === yesterdayStr) {
+                // Consecutive day, increment streak
+                newStreak = currentStreak.daily_streak + 1;
+            }
+            // If gap > 1 day, streak resets to 1 (handled by newStreak = 1 above)
+        }
+
+        const streakData = {
+            user_id: req.user.id,
+            daily_streak: newStreak,
+            last_review_date: today,
+            updated_at: new Date().toISOString()
+        };
+
+        const { error } = await supabase
+            .from('user_streaks')
+            .upsert(streakData, {
+                onConflict: 'user_id'
+            });
+
+        if (error) {
+            log('ERROR', 'Failed to update streak', error);
+            return res.status(500).json({ error: 'Failed to update streak' });
+        }
+
+        res.json({ success: true, streak: newStreak });
+    } catch (error) {
+        log('ERROR', 'Streak update error', error);
+        res.status(500).json({ error: 'Failed to update streak' });
+    }
+});
+
 // Bulk update kanji progress endpoint
 app.post('/api/progress/bulk-update', authenticateUser, async (req, res) => {
     try {
