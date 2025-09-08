@@ -1578,6 +1578,7 @@
         <div style="display: flex; gap: 8px; z-index: 100; position: relative;">
             <button class="btn btn-secondary" onclick="clearMainCanvas()" style="padding: 6px 10px; font-size: 12px;">Clear</button>
             <button class="btn btn-secondary" id="eraserToggleBtn" onclick="undoLastLine()" style="padding: 6px 10px; font-size: 12px;">Eraser</button>
+         <button class="btn btn-secondary" onclick="displayCurrentQuestion()" style="padding: 6px 10px; font-size: 12px;">Change Word</button>
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
@@ -1595,7 +1596,6 @@
                 </div>
             </div>
             <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="showAnswer()" style="z-index: 100;">Show Answer</button>
-          <button class="btn btn-primary fixed-bottom-button" id="showAnswerBtn" onclick="displayCurrentQuestion()" style="z-index: 100;">Change Word</button>
             <div class="answer-buttons" id="answerButtons" style="display: none; position: relative; z-index: 100;">
                 <button class="btn btn-danger" onclick="submitAnswer(1)">Wrong</button>
                 <button class="btn btn-warning" onclick="submitAnswer(2)">Hard</button>
