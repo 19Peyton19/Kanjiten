@@ -1712,7 +1712,7 @@
     </div>
     <div class="drawing-controls">
         <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
-        <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
+        <button class="btn btn-secondary" onclick="undoDrawingLastLine()"> Toggle Eraser </button>
         <button class="btn btn-secondary" onclick="undoDrawingLastLine()"> Toggle Guidelines </button>
     </div>
 </div>
@@ -25077,16 +25077,12 @@ function redrawDrawingCanvas() {
 }
 
 function toggleBackground() {
-    if (!drawingCanvas) return;
-    
-    if (drawingCanvas.style.backgroundImage) {
-        drawingCanvas.style.backgroundImage = '';
-    } else {
-        drawingCanvas.style.backgroundImage = 
-            'repeating-linear-gradient(0deg, transparent, transparent 24px, #ccc 25px), ' + 
-            'repeating-linear-gradient(90deg, transparent, transparent 24px, #ccc 25px)';
+      const canvas = document.getElementById('mainDrawingCanvas');
+      canvas.style.backgroundImage = canvas.style.backgroundImage
+        ? ''
+        : 'repeating-linear-gradient(0deg, transparent, transparent 24px, #ccc 25px), ' +
+          'repeating-linear-gradient(90deg, transparent, transparent 24px, #ccc 25px)';
     }
-}
 
 // Update the openDrawingScene function to initialize the canvas
 function openDrawingScene() {
