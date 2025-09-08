@@ -1733,6 +1733,7 @@
              <div id="cramKanjiLevels"></div>
          </div>
      </div>
+      
  <div class="scene" id="cramStudyScene">
     <canvas id="cramDrawingCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: auto; z-index: 50; background: transparent;"></canvas>
     <div class="progress-bar" style="margin-bottom: 15px;">
@@ -24832,10 +24833,10 @@ window.addEventListener("popstate", (event) => {
     cramCanvas.width = window.innerWidth;
     cramCanvas.height = window.innerHeight;
     
-    // Set drawing styles
+    // Set drawing styles with theme-aware color
     cramCtx.lineWidth = 3;
     cramCtx.lineCap = 'round';
-    cramCtx.strokeStyle = '#333';
+    cramCtx.strokeStyle = getDrawingColor(); // Use theme-aware color function
     
     // Mouse events
     cramCanvas.addEventListener('mousedown', startCramDrawing);
@@ -24867,6 +24868,7 @@ function cramDraw(e) {
     cramCtx.beginPath();
     cramCtx.globalCompositeOperation = 'source-over';
     cramCtx.lineWidth = 3;
+    cramCtx.strokeStyle = getDrawingColor(); // Use theme-aware color
     cramCtx.moveTo(cramLastX, cramLastY);
     cramCtx.lineTo(currentX, currentY);
     cramCtx.stroke();
@@ -24912,7 +24914,7 @@ function redrawCramCanvas() {
     
     cramCtx.clearRect(0, 0, cramCanvas.width, cramCanvas.height);
     
-    cramCtx.strokeStyle = '#333';
+    cramCtx.strokeStyle = getDrawingColor(); // Use theme-aware color
     cramCtx.lineWidth = 3;
     cramCtx.lineCap = 'round';
     cramCtx.globalCompositeOperation = 'source-over';
@@ -24929,12 +24931,7 @@ function redrawCramCanvas() {
     });
 }
 
-function showCramKanjiDetailsModal() {
-    const currentKanji = gameState.cramSession.kanji[gameState.cramSession.currentIndex];
-    if (currentKanji) {
-        showKanjiDetailsModal(currentKanji);
-    }
-}
+
 
          function getDrawingColor() {
              const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -25240,26 +25237,48 @@ function handleTouch(e) {
          }
 
          function showCramAnswer() {
-             document.getElementById('cramAnswerText').style.display = 'block';
-             document.getElementById('cramShowAnswerBtn').style.display = 'none';
-             document.getElementById('cramAnswerButtons').style.display = 'flex';
-             gameState.cramSession.showingAnswer = true;
-         }
+    const session = gameState.cramSession;
+    const answerText = session.currentAnswerText;
+    
+    document.getElementById('cramAnswerText').innerHTML = answerText.replace(/\n/g, '<br>');
+    document.getElementById('cramAnswerText').style.display = 'block';
+    document.getElementById('cramShowAnswerBtn').style.display = 'none';
+    document.getElementById('cramAnswerButtons').style.display = 'flex';
+    document.getElementById('cramShowDetailsBtn').style.display = 'block';
+    
+    session.showingAnswer = true;
+}
          function submitCramAnswer(isCorrect) {
-             const session = gameState.cramSession;
-             if (isCorrect) {
-                 session.correct++;
-             }
-             session.currentIndex++;
-             if (session.currentIndex >= session.kanji.length) {
-                 const percentage = Math.round((session.correct / session.total) * 100);
-                 alert(`Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%)`);
-                 loadScene('cramScene');
-             } else {
-                 displayCramQuestion();
-             }
-         }
+    const session = gameState.cramSession;
+    if (isCorrect) {
+        session.correct++;
+    }
+    
+    // Clear the canvas for next question
+    clearCramCanvas();
+    
+    session.currentIndex++;
+    if (session.currentIndex >= session.kanji.length) {
+        const percentage = Math.round((session.correct / session.total) * 100);
+        alert(`Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%)`);
+        loadScene('cramScene');
+    } else {
+        displayCramQuestion();
+    }
+}
+      function showCramKanjiDetailsModal() {
+    const session = gameState.cramSession;
+    if (!session || !session.kanji || session.currentIndex >= session.kanji.length) return;
+    
+    const currentKanji = session.kanji[session.currentIndex];
+    if (!currentKanji) return;
 
+    // Use the existing modal function but pass the current cram kanji
+    const originalSelectedKanji = gameState.selectedKanji;
+    gameState.selectedKanji = currentKanji;
+    showKanjiDetailsModal();
+    gameState.selectedKanji = originalSelectedKanji;
+}
          function saveProfileName() {
              const name = document.getElementById('profileName').value;
              gameState.settings.profileName = name;
@@ -25417,11 +25436,42 @@ function redrawCanvas() {
              btn.disabled = count === 0;
          }
 
-         function displayCramQuestion() {
+         async function displayCramQuestion() {
     const session = gameState.cramSession;
-    const currentKanji = session.kanji[session.currentIndex];
+    if (!session.kanji || session.kanji.length === 0) {
+        alert('No kanji in cram session!');
+        loadScene('cramScene');
+        return;
+    }
+    if (session.currentIndex >= session.kanji.length) {
+        const percentage = Math.round((session.correct / session.total) * 100);
+        alert(`Cram session complete!\nScore: ${session.correct}/${session.total} (${percentage}%)`);
+        loadScene('cramScene');
+        return;
+    }
     
-    if (!currentKanji) return;
+    const currentKanji = session.kanji[session.currentIndex];
+    session.currentKanji = currentKanji;
+    
+    const filteredVariations = await getFilteredVariations(currentKanji, gameState.settings.jlptLevel);
+    
+    if (filteredVariations.length === 0) {
+        session.currentIndex++;
+        displayCramQuestion();
+        return;
+    }
+    const randomVariation = filteredVariations[Math.floor(Math.random() * filteredVariations.length)];
+    
+    let questionText, answerText;
+    if (session.questionMode === 'meaning-first') {
+        questionText = `${randomVariation.reading}\n${randomVariation.meaning}`;
+        answerText = randomVariation.word;
+    } else {
+        questionText = randomVariation.word;
+        answerText = `${randomVariation.reading}\n${randomVariation.meaning}`;
+    }
+    
+    session.currentAnswerText = answerText;
     
     // Update progress display
     const progressText = document.getElementById('cramProgress');
@@ -25437,40 +25487,12 @@ function redrawCanvas() {
         progressBar.style.width = `${progressPercent}%`;
     }
     
-    // Show question based on mode
-    const questionText = document.getElementById('cramQuestionText');
-    const answerText = document.getElementById('cramAnswerText');
-    
-    if (session.questionMode === 'meaning-first') {
-        questionText.innerHTML = `
-            <div style="font-size: 24px; margin-bottom: 20px;">
-                Reading: ${currentKanji.readings.join(', ')}<br>
-                Meaning: ${currentKanji.meanings.join(', ')}
-            </div>
-            <div style="color: var(--text-secondary);">What kanji matches this reading and meaning?</div>
-        `;
-        answerText.innerHTML = `
-            <div style="font-size: 72px; margin: 20px 0; color: var(--primary-color);">
-                ${currentKanji.character}
-            </div>
-        `;
-    } else {
-        questionText.innerHTML = `
-            <div style="font-size: 72px; margin: 20px 0;">
-                ${currentKanji.character}
-            </div>
-            <div style="color: var(--text-secondary);">What are the reading and meaning?</div>
-        `;
-        answerText.innerHTML = `
-            <div style="font-size: 24px; margin: 20px 0;">
-                <div><strong>Reading:</strong> ${currentKanji.readings.join(', ')}</div>
-                <div><strong>Meaning:</strong> ${currentKanji.meanings.join(', ')}</div>
-            </div>
-        `;
-    }
+    // Display question and answer
+    document.getElementById('cramQuestionText').innerHTML = questionText.replace(/\n/g, '<br>');
+    document.getElementById('cramAnswerText').innerHTML = answerText.replace(/\n/g, '<br>');
     
     // Reset UI state
-    answerText.style.display = 'none';
+    document.getElementById('cramAnswerText').style.display = 'none';
     document.getElementById('cramShowAnswerBtn').style.display = 'block';
     document.getElementById('cramAnswerButtons').style.display = 'none';
     document.getElementById('cramShowDetailsBtn').style.display = 'none';
@@ -25481,7 +25503,6 @@ function redrawCanvas() {
         setTimeout(initCramCanvas, 100);
     }
 }
-
          function updateCramProgress() {
              const session = gameState.cramSession;
              const progress = ((session.currentIndex + 1) / session.total) * 100;
