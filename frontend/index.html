@@ -24083,7 +24083,6 @@ function getSceneFromPath(path) {
     if (session.currentIndex >= session.kanji.length) {
         alert(`Study session complete! Score: ${session.correct}/${session.total}`);
         saveGameData();
-        updateDailyStreak()
         loadScene('dashboardScene');
         return;
     }
@@ -24528,6 +24527,7 @@ window.addEventListener("popstate", (event) => {
          function submitAnswer(difficulty) {
              const session = gameState.studySession;
              const currentKanji = session.kanji[session.currentIndex];
+             updateDailyStreak();
              updateKanjiAfterReview(currentKanji, difficulty);
              if (difficulty >= 3) {
                  session.correct++;
