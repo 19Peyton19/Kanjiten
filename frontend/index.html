@@ -1577,7 +1577,7 @@
     <div style="display: flex; justify-content: flex-end; padding: 0 20px; margin-bottom: 15px;">
         <div style="display: flex; gap: 8px; z-index: 100; position: relative;">
             <button class="btn btn-secondary" onclick="clearMainCanvas()" style="padding: 6px 10px; font-size: 12px;">Clear</button>
-            <button class="btn btn-secondary" id="eraserToggleBtn" onclick="toggleMainEraser()" style="padding: 6px 10px; font-size: 12px;">Eraser</button>
+            <button class="btn btn-secondary" id="eraserToggleBtn" onclick="undoLastLine()" style="padding: 6px 10px; font-size: 12px;">Eraser</button>
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
@@ -1713,7 +1713,7 @@
     <div class="drawing-controls">
         <button class="btn btn-secondary" onclick="clearDrawingCanvas()"> Clear Canvas </button>
         <button class="btn btn-secondary" onclick="toggleDrawingEraser()"> Toggle Eraser </button>
-        <button class="btn btn-secondary" onclick="toggleBackground()"> Toggle Guidelines </button>
+        <button class="btn btn-secondary" onclick="undoDrawingLastLine()"> Toggle Guidelines </button>
     </div>
 </div>
          <!-- Cram Scene -->
@@ -1747,7 +1747,7 @@
     <div style="display: flex; justify-content: flex-end; padding: 0 20px; margin-bottom: 15px;">
         <div style="display: flex; gap: 8px; z-index: 100; position: relative;">
             <button class="btn btn-secondary" onclick="clearCramCanvas()" style="padding: 6px 10px; font-size: 12px;">Clear</button>
-            <button class="btn btn-secondary" id="cramEraserToggleBtn" onclick="toggleCramEraser()" style="padding: 6px 10px; font-size: 12px;">Eraser</button>
+            <button class="btn btn-secondary" id="cramEraserToggleBtn" onclick="undoCramLastLine() style="padding: 6px 10px; font-size: 12px;">Eraser</button>
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
@@ -22412,19 +22412,30 @@
          };
 
       let cramCanvas, cramCtx, cramIsDrawing = false, cramIsErasing = false, cramLastX = 0, cramLastY = 0;
-         let drawingState = {
-             isDrawing: false,
-             isErasing: false,
-             lastX: 0,
-             lastY: 0,
-         };
+        let drawingState = {
+    isDrawing: false,
+    lastX: 0,
+    lastY: 0,
+    currentPath: [],
+    allPaths: []
+};
 
-      let drawingCanvas, drawingCtx;
+// For cram canvas
+let cramDrawingState = {
+    isDrawing: false,
+    lastX: 0,
+    lastY: 0,
+    currentPath: [],
+    allPaths: []
+};
+
+// For drawing scene canvas
 let drawingCanvasState = {
     isDrawing: false,
-    isErasing: false,
     lastX: 0,
-    lastY: 0
+    lastY: 0,
+    currentPath: [],
+    allPaths: []
 };
          // Application State
          let gameState = {
@@ -24843,6 +24854,7 @@ function startCramDrawing(e) {
     const rect = cramCanvas.getBoundingClientRect();
     cramLastX = (e.clientX || e.touches[0].clientX) - rect.left;
     cramLastY = (e.clientY || e.touches[0].clientY) - rect.top;
+    cramDrawingState.currentPath = [{x: cramLastX, y: cramLastY}];
 }
 
 function cramDraw(e) {
@@ -24853,18 +24865,23 @@ function cramDraw(e) {
     const currentY = (e.clientY || e.touches[0].clientY) - rect.top;
     
     cramCtx.beginPath();
-    cramCtx.globalCompositeOperation = cramIsErasing ? 'destination-out' : 'source-over';
-    cramCtx.lineWidth = cramIsErasing ? 20 : 3;
+    cramCtx.globalCompositeOperation = 'source-over';
+    cramCtx.lineWidth = 3;
     cramCtx.moveTo(cramLastX, cramLastY);
     cramCtx.lineTo(currentX, currentY);
     cramCtx.stroke();
     
+    cramDrawingState.currentPath.push({x: currentX, y: currentY});
     cramLastX = currentX;
     cramLastY = currentY;
 }
 
 function stopCramDrawing() {
+    if (cramIsDrawing && cramDrawingState.currentPath.length > 0) {
+        cramDrawingState.allPaths.push([...cramDrawingState.currentPath]);
+    }
     cramIsDrawing = false;
+    cramDrawingState.currentPath = [];
 }
 
 function handleCramTouchStart(e) {
@@ -24883,11 +24900,33 @@ function clearCramCanvas() {
     }
 }
 
-function toggleCramEraser() {
-    cramIsErasing = !cramIsErasing;
-    const btn = document.getElementById('cramEraserToggleBtn');
-    btn.textContent = cramIsErasing ? 'Draw' : 'Eraser';
-    btn.style.backgroundColor = cramIsErasing ? '#ff6b6b' : '';
+function undoCramLastLine() {
+    if (cramDrawingState.allPaths.length === 0) return;
+    
+    cramDrawingState.allPaths.pop();
+    redrawCramCanvas();
+}
+
+function redrawCramCanvas() {
+    if (!cramCanvas || !cramCtx) return;
+    
+    cramCtx.clearRect(0, 0, cramCanvas.width, cramCanvas.height);
+    
+    cramCtx.strokeStyle = '#333';
+    cramCtx.lineWidth = 3;
+    cramCtx.lineCap = 'round';
+    cramCtx.globalCompositeOperation = 'source-over';
+    
+    cramDrawingState.allPaths.forEach(path => {
+        if (path.length > 0) {
+            cramCtx.beginPath();
+            cramCtx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                cramCtx.lineTo(path[i].x, path[i].y);
+            }
+            cramCtx.stroke();
+        }
+    });
 }
 
 function showCramKanjiDetailsModal() {
@@ -24959,6 +24998,7 @@ function startDrawingSceneDrawing(e) {
     const rect = e.target.getBoundingClientRect();
     drawingCanvasState.lastX = e.clientX - rect.left;
     drawingCanvasState.lastY = e.clientY - rect.top;
+    drawingCanvasState.currentPath = [{x: drawingCanvasState.lastX, y: drawingCanvasState.lastY}];
 }
 
 function drawingSceneDraw(e) {
@@ -24968,26 +25008,26 @@ function drawingSceneDraw(e) {
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
     
-    if (drawingCanvasState.isErasing) {
-        drawingCtx.globalCompositeOperation = 'destination-out';
-        drawingCtx.lineWidth = 20;
-    } else {
-        drawingCtx.globalCompositeOperation = 'source-over';
-        drawingCtx.lineWidth = 3;
-        drawingCtx.strokeStyle = getDrawingColor();
-    }
+    drawingCtx.globalCompositeOperation = 'source-over';
+    drawingCtx.lineWidth = 3;
+    drawingCtx.strokeStyle = getDrawingColor();
     
     drawingCtx.beginPath();
     drawingCtx.moveTo(drawingCanvasState.lastX, drawingCanvasState.lastY);
     drawingCtx.lineTo(currentX, currentY);
     drawingCtx.stroke();
     
+    drawingCanvasState.currentPath.push({x: currentX, y: currentY});
     drawingCanvasState.lastX = currentX;
     drawingCanvasState.lastY = currentY;
 }
 
 function stopDrawingSceneDrawing() {
+    if (drawingCanvasState.isDrawing && drawingCanvasState.currentPath.length > 0) {
+        drawingCanvasState.allPaths.push([...drawingCanvasState.currentPath]);
+    }
     drawingCanvasState.isDrawing = false;
+    drawingCanvasState.currentPath = [];
 }
 
 function handleDrawingSceneTouch(e) {
@@ -25010,11 +25050,33 @@ function clearDrawingCanvas() {
     }
 }
 
-function toggleDrawingEraser() {
-    drawingCanvasState.isErasing = !drawingCanvasState.isErasing;
-    const btn = event.target;
-    btn.textContent = drawingCanvasState.isErasing ? 'Drawing Mode' : 'Toggle Eraser';
-    btn.classList.toggle('btn-warning', drawingCanvasState.isErasing);
+function undoDrawingLastLine() {
+    if (drawingCanvasState.allPaths.length === 0) return;
+    
+    drawingCanvasState.allPaths.pop();
+    redrawDrawingCanvas();
+}
+
+function redrawDrawingCanvas() {
+    if (!drawingCtx) return;
+    
+    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    
+    drawingCtx.strokeStyle = getDrawingColor();
+    drawingCtx.lineWidth = 3;
+    drawingCtx.lineCap = 'round';
+    drawingCtx.globalCompositeOperation = 'source-over';
+    
+    drawingCanvasState.allPaths.forEach(path => {
+        if (path.length > 0) {
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                drawingCtx.lineTo(path[i].x, path[i].y);
+            }
+            drawingCtx.stroke();
+        }
+    });
 }
 
 function toggleBackground() {
@@ -25255,12 +25317,37 @@ function handleTouch(e) {
              ctx.clearRect(0, 0, canvas.width, canvas.height);
          }
 
-         function toggleMainEraser() {
-             drawingState.isErasing = !drawingState.isErasing;
-             const btn = event.target;
-             btn.textContent = drawingState.isErasing ? 'Drawing Mode' : 'Toggle Eraser';
-             btn.classList.toggle('btn-warning', drawingState.isErasing);
-         }
+         function undoLastLine() {
+    if (drawingState.allPaths.length === 0) return;
+    
+    drawingState.allPaths.pop(); // Remove last path
+    redrawCanvas(); // Redraw all remaining paths
+}
+
+function redrawCanvas() {
+    const canvas = document.getElementById('mainDrawingCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Redraw all paths
+    ctx.strokeStyle = getDrawingColor();
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.globalCompositeOperation = 'source-over';
+    
+    drawingState.allPaths.forEach(path => {
+        if (path.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x, path[i].y);
+            }
+            ctx.stroke();
+        }
+    });
+}
 
          function toggleBackground() {
              const canvas = document.getElementById('mainDrawingCanvas');
@@ -25424,37 +25511,42 @@ function handleTouch(e) {
          }
 
          function startDrawing(e) {
-             drawingState.isDrawing = true;
-             const rect = e.target.getBoundingClientRect();
-             drawingState.lastX = e.clientX - rect.left;
-             drawingState.lastY = e.clientY - rect.top;
-         }
+    drawingState.isDrawing = true;
+    const rect = e.target.getBoundingClientRect();
+    drawingState.lastX = e.clientX - rect.left;
+    drawingState.lastY = e.clientY - rect.top;
+    drawingState.currentPath = [{x: drawingState.lastX, y: drawingState.lastY}];
+}
 
          function draw(e) {
-             if (!drawingState.isDrawing) return;
-             const canvas = e.target;
-             const ctx = canvas.getContext('2d');
-             const rect = canvas.getBoundingClientRect();
-             const currentX = e.clientX - rect.left;
-             const currentY = e.clientY - rect.top;
-             if (drawingState.isErasing) {
-                 ctx.globalCompositeOperation = 'destination-out';
-                 ctx.lineWidth = 20;
-             } else {
-                 ctx.globalCompositeOperation = 'source-over';
-                 ctx.lineWidth = 3;
-             }
-             ctx.beginPath();
-             ctx.moveTo(drawingState.lastX, drawingState.lastY);
-             ctx.lineTo(currentX, currentY);
-             ctx.stroke();
-             drawingState.lastX = currentX;
-             drawingState.lastY = currentY;
-         }
+    if (!drawingState.isDrawing) return;
+    const canvas = e.target;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = getDrawingColor();
+    
+    ctx.beginPath();
+    ctx.moveTo(drawingState.lastX, drawingState.lastY);
+    ctx.lineTo(currentX, currentY);
+    ctx.stroke();
+    
+    drawingState.currentPath.push({x: currentX, y: currentY});
+    drawingState.lastX = currentX;
+    drawingState.lastY = currentY;
+}
 
          function stopDrawing() {
-             drawingState.isDrawing = false;
-         }
+    if (drawingState.isDrawing && drawingState.currentPath.length > 0) {
+        drawingState.allPaths.push([...drawingState.currentPath]);
+    }
+    drawingState.isDrawing = false;
+    drawingState.currentPath = [];
+}
 
          function toggleLevel(level) {
              gameState.expandedLevel = gameState.expandedLevel === level ? null : level;
