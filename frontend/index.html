@@ -1750,6 +1750,7 @@
         <div style="display: flex; gap: 8px; z-index: 100; position: relative;">
             <button class="btn btn-secondary" onclick="clearCramCanvas()" style="padding: 6px 10px; font-size: 12px;">Clear</button>
             <button class="btn btn-secondary" id="cramEraserToggleBtn" onclick="undoCramLastLine()" style="padding: 6px 10px; font-size: 12px;">Eraser</button>
+         <button class="btn btn-secondary" onclick="displayCramQuestion()" style="padding: 6px 10px; font-size: 12px;">Change Word</button>
         </div>
     </div>
     <div class="study-interface" style="background: none; padding: 0;">
@@ -26965,10 +26966,7 @@ function handleTouch(e) {
              gameState.cramSession.questionMode = mode;
          }
 
-         function updateCramQuestionMode() {
-             const mode = document.getElementById('cramQuestionMode').value;
-             gameState.cramSession.questionMode = mode;
-         }
+         
 
          function showCramAnswer() {
     const session = gameState.cramSession;
