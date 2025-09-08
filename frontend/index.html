@@ -1756,16 +1756,7 @@
     <div class="study-interface" style="background: none; padding: 0;">
         <div style="background: none; padding: 20px 0; box-shadow: none; border-radius: 0; min-height: auto; display: flex; flex-direction: column; justify-content: flex-start;">
             <div id="cramQuestionText" class="question-text">Loading...</div>
-                        <div id="answerDisplayContainer" style="display: none; margin: 20px 0;">
-                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 20px;">
-                    <div style="text-align: center;">
-                        <div id="cramAnswerText" style="font-size: 124px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div id="cramAnswerStroke" style="font-family: 'KanjiStrokeOrders', serif; font-size: 144px; font-weight: normal; color: var(--text-primary); margin: 5px 0;"></div>
-                    </div>
-                </div>
-            </div>
+            <div id="cramAnswerText" class="answer-text" style="display: none"></div>
             <button class="btn btn-primary fixed-bottom-button" id="cramShowAnswerBtn" onclick="showCramAnswer()" style="z-index: 100;">Show Answer</button>
             <div class="answer-buttons" id="cramAnswerButtons" style="display: none; position: relative; z-index: 100;">
                 <button class="btn btn-danger" onclick="submitCramAnswer(false)">Incorrect</button>
@@ -27402,9 +27393,7 @@ function handleTouch(e) {
     const answerText = session.currentAnswerText;
     
     document.getElementById('cramAnswerText').innerHTML = answerText.replace(/\n/g, '<br>');
-    document.getElementById('cramAnswerStroke').innerHTML = answerText.replace(/\n/g, '<br>');
     document.getElementById('cramAnswerText').style.display = 'block';
-    document.getElementById('cramAnswerStroke').style.display = 'block';
     document.getElementById('cramShowAnswerBtn').style.display = 'none';
     document.getElementById('cramAnswerButtons').style.display = 'flex';
     document.getElementById('cramShowDetailsBtn').style.display = 'block';
@@ -27652,12 +27641,10 @@ function redrawCanvas() {
     
     // Display question and answer
     document.getElementById('cramQuestionText').innerHTML = questionText.replace(/\n/g, '<br>');
-    document.getElementById('cramAnswerStroke').innerHTML = answerText.replace(/\n/g, '<br>');
     document.getElementById('cramAnswerText').innerHTML = answerText.replace(/\n/g, '<br>');
     
     // Reset UI state
     document.getElementById('cramAnswerText').style.display = 'none';
-    document.getElementById('cramAnswerStroke').style.display = 'none';
     document.getElementById('cramShowAnswerBtn').style.display = 'block';
     document.getElementById('cramAnswerButtons').style.display = 'none';
     document.getElementById('cramShowDetailsBtn').style.display = 'none';
