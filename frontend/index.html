@@ -1769,17 +1769,17 @@
 
       <!-Settings-Scene->
    <div class="scene" id="settingsScene">
-    <h2>Settings</h2>
+    <h2 data-translate="settings.title">Settings</h2>
     <div style="max-width: 600px; margin: 0 auto">
         <div class="input-group">
-            <label for="profileName">Profile Name</label>
-            <input type="text" id="profileName" placeholder="Enter your name" />
-            <button class="btn btn-primary" onclick="saveProfileName()">Save Name</button>
+            <label for="profileName" data-translate="settings.profileName">Profile Name</label>
+            <input type="text" id="profileName" data-translate-placeholder="settings.profileNamePlaceholder" placeholder="Enter your name" />
+            <button class="btn btn-primary" onclick="saveProfileName()" data-translate="settings.saveName">Save Name</button>
         </div>
         <div class="input-group">
-            <label for="jlptLevel">JLPT Level</label>
+            <label for="jlptLevel" data-translate="settings.jlptLevel">JLPT Level</label>
             <select id="jlptLevel">
-                <option value="all">Set Level</option>
+                <option value="all" data-translate="settings.setLevel">Set Level</option>
                 <option value="N5">N5</option>
                 <option value="N4">N4</option>
                 <option value="N3">N3</option>
@@ -1788,29 +1788,38 @@
             </select>
         </div>
         <div class="input-group">
-            <label for="defaultQuestionMode">Question Mode</label>
+            <label for="defaultQuestionMode" data-translate="settings.questionMode">Question Mode</label>
             <select id="defaultQuestionMode">
-                <option value="meaning-first">Show Reading + Meaning → Word</option>
-                <option value="kanji-first">Show Word → Reading + Meaning</option>
+                <option value="meaning-first" data-translate="cram.meaningFirst">Show Reading + Meaning → Word</option>
+                <option value="kanji-first" data-translate="cram.kanjiFirst">Show Word → Reading + Meaning</option>
             </select>
         </div>
         <div class="input-group">
-            <label for="maxInterval">Maximum SRS Interval (days)</label>
+            <label for="maxInterval" data-translate="settings.maxInterval">Maximum SRS Interval (days)</label>
             <input type="number" id="maxInterval" min="1" max="365" value="180" />
         </div>
         <div class="input-group">
+            <label for="languageSelect" data-translate="settings.language">Language</label>
+            <select id="languageSelect" onchange="changeLanguage(this.value)">
+                <option value="en" data-translate="settings.english">English</option>
+                <option value="ja" data-translate="settings.japanese">Japanese</option>
+            </select>
+        </div>
+        <div class="input-group">
             <label>
-                <input type="checkbox" id="showStudyProgress" onchange="toggleStudyProgress()" /> Show Study progress info
+                <input type="checkbox" id="showStudyProgress" onchange="toggleStudyProgress()" />
+                <span data-translate="settings.showStudyProgress">Show Study progress info</span>
             </label>
         </div>
         <div class="input-group">
             <label>
-                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" /> Enable dark mode
+                <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()" />
+                <span data-translate="settings.enableDarkMode">Enable dark mode</span>
             </label>
         </div>
         <div style="text-align: center; margin-top: 40px">
-            <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-            <button class="btn btn-danger" onclick="signOut()">Sign Out</button>
+            <button class="btn btn-primary" onclick="saveSettingsWithLanguage()" data-translate="settings.saveSettings">Save Settings</button>
+            <button class="btn btn-danger" onclick="signOut()" data-translate="nav.signOut">Sign Out</button>
         </div>
     </div>
 </div>
@@ -26665,17 +26674,49 @@ function showAnswer() {
 }
 
 function updateStudyProgressDisplay() {
-    const progressContainer = document.querySelector('#studyScene .study-progress-info');
-    const cramProgressContainer = document.querySelector('#cramStudyScene .study-progress-info');
+    if (!gameState.studySession) return;
     
-    if (progressContainer) {
-        progressContainer.style.display = gameState.settings.showStudyProgress ? 'flex' : 'none';
+    const progressElement = document.getElementById('studyProgress');
+    const levelElement = document.getElementById('currentKanjiLevel');
+    const remainingElement = document.getElementById('reviewsRemaining');
+    
+    if (progressElement) {
+        const current = gameState.studySession.currentIndex + 1;
+        const total = gameState.studySession.total;
+        progressElement.textContent = `${current}/${total}`;
+        
+        // Update the label text
+        const progressSpan = progressElement.closest('span');
+        if (progressSpan) {
+            progressSpan.innerHTML = `${t('study.progress')} <strong id="studyProgress">${current}/${total}</strong>`;
+        }
     }
     
-    if (cramProgressContainer) {
-        cramProgressContainer.style.display = gameState.settings.showStudyProgress ? 'flex' : 'none';
+    if (levelElement && gameState.studySession.kanji[gameState.studySession.currentIndex]) {
+        const level = gameState.studySession.kanji[gameState.studySession.currentIndex].level;
+        levelElement.textContent = level;
+        
+        // Update the label text
+        const levelSpan = levelElement.closest('span');
+        if (levelSpan) {
+            levelSpan.innerHTML = `${t('study.level')} <strong id="currentKanjiLevel">${level}</strong>`;
+        }
+    }
+    
+    if (remainingElement) {
+        const remaining = gameState.studySession.total - gameState.studySession.currentIndex - 1;
+        remainingElement.textContent = remaining;
+        
+        // Update the label text
+        const remainingSpan = remainingElement.closest('span');
+        if (remainingSpan) {
+            remainingSpan.innerHTML = `${t('study.remaining')} <strong id="reviewsRemaining">${remaining}</strong>`;
+        }
     }
 }
+
+// Call initializeApp when the page loads
+document.addEventListener('DOMContentLoaded', initializeApp);
 
         function showKanjiDetailsModal() {
     const session = gameState.studySession;
@@ -27270,15 +27311,122 @@ window.addEventListener("popstate", (event) => {
     }
 }
 
-         function updateSettingsScene() {
-    const settings = gameState.settings;
+         
+// Update settings scene when it loads
+function updateSettingsScene() {
+    const profileNameInput = document.getElementById('profileName');
+    const jlptLevelSelect = document.getElementById('jlptLevel');
+    const defaultQuestionModeSelect = document.getElementById('defaultQuestionMode');
+    const maxIntervalInput = document.getElementById('maxInterval');
+    const showStudyProgressCheckbox = document.getElementById('showStudyProgress');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const languageSelect = document.getElementById('languageSelect');
+
+    if (profileNameInput) profileNameInput.value = gameState.settings.profileName || '';
+    if (jlptLevelSelect) jlptLevelSelect.value = gameState.settings.jlptLevel || 'all';
+    if (defaultQuestionModeSelect) defaultQuestionModeSelect.value = gameState.settings.defaultQuestionMode || 'meaning-first';
+    if (maxIntervalInput) maxIntervalInput.value = gameState.settings.maxInterval || 180;
+    if (showStudyProgressCheckbox) showStudyProgressCheckbox.checked = gameState.settings.showStudyProgress !== false;
+    if (darkModeToggle) darkModeToggle.checked = gameState.settings.darkMode || false;
+    if (languageSelect) languageSelect.value = gameState.settings.language || 'en';
     
-    document.getElementById('profileName').value = settings.profileName || '';
-    document.getElementById('jlptLevel').value = settings.jlptLevel || 'all';
-    document.getElementById('defaultQuestionMode').value = settings.defaultQuestionMode || 'meaning-first';
-    document.getElementById('maxInterval').value = settings.maxInterval || 180;
-    document.getElementById('showStudyProgress').checked = settings.showStudyProgress !== false; // Default to true
-    document.getElementById('darkModeToggle').checked = localStorage.getItem('darkMode') === 'enabled';
+    // Update UI text for current language
+    updateAllUIText();
+}
+
+// Apply settings on app load
+function applySettingsOnLoad() {
+    // Apply dark mode
+    if (gameState.settings.darkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    
+    // Apply language
+    if (gameState.settings.language) {
+        currentLanguage = gameState.settings.language;
+        updateAllUIText();
+    }
+    
+    // Apply other settings...
+    toggleStudyProgress();
+}
+
+// Enhanced language change function
+function changeLanguage(newLanguage) {
+    if (newLanguage === currentLanguage) return;
+    
+    const oldLanguage = currentLanguage;
+    currentLanguage = newLanguage;
+    gameState.settings.language = newLanguage;
+    
+    console.log(`Language changed from ${oldLanguage} to ${newLanguage}`);
+    
+    // Update all UI text
+    updateAllUIText();
+    
+    // Update any dynamic content that might have been missed
+    updateDynamicContent();
+    
+    // Update charts if on dashboard
+    if (gameState.currentScene === 'dashboardScene') {
+        setTimeout(() => {
+            updateReviewCharts();
+        }, 100);
+    }
+    
+    // Show language change confirmation
+    showSettingsStatus(t('general.languageChanged', 'Language changed successfully!'), 'success');
+}
+
+// Update dynamic content that changes based on state
+function updateDynamicContent() {
+    // Update welcome message
+    const welcomeSpan = document.getElementById('welcomeName');
+    if (welcomeSpan) {
+        const currentName = welcomeSpan.textContent;
+        const welcomeElement = welcomeSpan.closest('h1');
+        if (welcomeElement) {
+            welcomeElement.innerHTML = `${t('dashboard.welcome')} <span id="welcomeName">${currentName}</span>`;
+        }
+    }
+    
+    // Update guest notice
+    const guestNotice = document.getElementById('guestNotice');
+    if (guestNotice && guestNotice.style.display !== 'none') {
+        guestNotice.innerHTML = `${t('dashboard.guestNotice')} <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">${t('dashboard.signUpToSave')}</a>`;
+    }
+    
+    // Update loading text if visible
+    const loadingText = document.querySelector('.loading-text');
+    if (loadingText) {
+        loadingText.textContent = t('general.loading');
+    }
+    
+    // Update progress info if in study mode
+    updateStudyProgressDisplay();
+}
+
+// Settings status message helper
+function showSettingsStatus(message, type) {
+    let statusDiv = document.querySelector('#settingsScene .status-message');
+    
+    if (!statusDiv) {
+        statusDiv = document.createElement('div');
+        const settingsScene = document.getElementById('settingsScene');
+        const saveBtn = settingsScene.querySelector('button[onclick="saveSettingsWithLanguage()"]');
+        if (saveBtn && saveBtn.parentElement) {
+            saveBtn.parentElement.insertBefore(statusDiv, saveBtn);
+        }
+    }
+    
+    statusDiv.className = `status-message status-${type}`;
+    statusDiv.textContent = message;
+    
+    setTimeout(() => {
+        if (statusDiv.parentElement) {
+            statusDiv.remove();
+        }
+    }, 3000);
 }
 
          function toggleKanjiVisibility() {
@@ -27749,50 +27897,65 @@ function handleTouch(e) {
              alert('Profile name saved!');
              saveGameData();
          }
-       async function saveSettings() {
-    const profileName = document.getElementById('profileName').value;
+       async function saveSettingsWithLanguage() {
+    const profileName = document.getElementById('profileName').value.trim();
     const jlptLevel = document.getElementById('jlptLevel').value;
     const defaultQuestionMode = document.getElementById('defaultQuestionMode').value;
-    const maxInterval = parseInt(document.getElementById('maxInterval').value);
+    const maxInterval = parseInt(document.getElementById('maxInterval').value) || 180;
     const showStudyProgress = document.getElementById('showStudyProgress').checked;
     const darkMode = document.getElementById('darkModeToggle').checked;
-    
+    const language = document.getElementById('languageSelect').value;
+
+    // Update gameState
     gameState.settings = {
         ...gameState.settings,
         profileName,
         jlptLevel,
         defaultQuestionMode,
         maxInterval,
-        showStudyProgress
+        showStudyProgress,
+        darkMode,
+        language
     };
-    
-    // Save dark mode preference to localStorage
-    if (darkMode) {
-        localStorage.setItem('darkMode', 'enabled');
-    } else {
-        localStorage.setItem('darkMode', 'disabled');
+
+    // Apply settings immediately
+    if (profileName) {
+        document.getElementById('welcomeName').textContent = profileName;
     }
-    
+
+    // Apply dark mode
+    if (darkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+
+    // Apply language change
+    if (language !== currentLanguage) {
+        changeLanguage(language);
+    }
+
+    // Apply study progress visibility
+    toggleStudyProgress();
+
     try {
-        if (gameState.isSignedIn && !gameState.isAnonymous) {
+        if (!gameState.isAnonymous && gameState.authToken) {
             await apiCall('/settings', 'PUT', gameState.settings);
+            showSettingsStatus(t('general.saveSuccess', 'Settings saved successfully!'), 'success');
+        } else {
+            // Save to localStorage for anonymous users
+            localStorage.setItem('kanjiMasterSettings', JSON.stringify(gameState.settings));
+            showSettingsStatus(t('general.saveLocalSuccess', 'Settings saved locally!'), 'success');
         }
         
-        // Also save to localStorage as backup
-        const saveData = {
-            settings: gameState.settings,
-            kanjiData: Array.from(gameState.kanjiData.entries()),
-            lastSave: new Date().toISOString(),
-        };
-        localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-        
-        alert('Settings saved successfully!');
-        updateStudyProgressDisplay(); // Update UI after saving
+        // Also save to the main save data
+        await saveGameData();
     } catch (error) {
         console.error('Failed to save settings:', error);
-        alert('Failed to save settings: ' + error.message);
+        showSettingsStatus(t('general.saveError', 'Failed to save settings:') + ' ' + error.message, 'error');
     }
 }
+
 
          function clearMainCanvas() {
              const canvas = document.getElementById('mainDrawingCanvas');
@@ -28065,6 +28228,893 @@ function redrawCanvas() {
              });
              startStudySession(kanjiToStudy);
          }
+
+      // Language System for Kanjiten App
+
+// Translation object containing all UI text
+const translations = {
+    en: {
+        // Navigation
+        'nav.back': 'Back',
+        'nav.settings': 'Settings',
+        'nav.signIn': 'Sign In',
+        'nav.signOut': 'Sign Out',
+        
+        // Login Scene
+        'login.title': 'Kanjiten',
+        'login.subtitle': 'Japanese kanji SRS App',
+        'login.email': 'Email',
+        'login.emailPlaceholder': 'Enter email',
+        'login.username': 'Username',
+        'login.usernamePlaceholder': 'Enter username',
+        'login.password': 'Password',
+        'login.passwordPlaceholder': 'Enter password',
+        'login.signIn': 'Sign In',
+        'login.signUp': 'Sign Up',
+        
+        // Email Confirmation
+        'confirmation.title': 'Confirm Your Email',
+        'confirmation.message': 'We\'ve sent a confirmation email to:',
+        'confirmation.instruction': 'Please click the link in the email to activate your account, then click the button below to continue.',
+        'confirmation.confirmed': 'I\'ve Confirmed My Email',
+        'confirmation.resend': 'Resend Email',
+        'confirmation.backToLogin': 'Back to Login',
+        'confirmation.help': 'Can\'t find the email? Check your spam folder.',
+        
+        // Dashboard
+        'dashboard.welcome': 'Welcome back,',
+        'dashboard.guest': 'Guest',
+        'dashboard.kanjiInReview': 'Kanji in Review',
+        'dashboard.reviewsDue': 'Reviews Due',
+        'dashboard.dayStreak': 'Day Streak',
+        'dashboard.upcomingReviews': 'Upcoming Reviews',
+        'dashboard.reviewHistory': 'Review History',
+        'dashboard.decks': 'Decks',
+        'dashboard.browseDecs': 'Browse Decks',
+        'dashboard.study': 'Study',
+        'dashboard.startReview': 'Start Review',
+        'dashboard.cram': 'Cram',
+        'dashboard.cramSession': 'Cram Session',
+        'dashboard.settings': 'Settings',
+        'dashboard.levelProgress': 'Level Progress',
+        'dashboard.guestNotice': 'You\'re in guest mode. Your progress won\'t be saved permanently.',
+        'dashboard.signUpToSave': 'Sign up to save your progress!',
+        
+        // Decks Scene
+        'decks.title': 'Kanji Decks',
+        'decks.searchPlaceholder': 'Search by character, meaning, or reading...',
+        'decks.studyAmount': 'Study Amount:',
+        'decks.5cards': '5 cards',
+        'decks.10cards': '10 cards',
+        'decks.20cards': '20 cards',
+        'decks.allCards': 'All cards',
+        
+        // Study Scene
+        'study.progress': 'Progress:',
+        'study.level': 'Level:',
+        'study.remaining': 'Remaining:',
+        'study.clear': 'Clear',
+        'study.eraser': 'Eraser',
+        'study.changeWord': 'Change Word',
+        'study.loading': 'Loading',
+        'study.showAnswer': 'Show Answer',
+        'study.wrong': 'Wrong',
+        'study.hard': 'Hard',
+        'study.good': 'Good',
+        'study.easy': 'Easy',
+        'study.showDetails': 'Show Details',
+        
+        // Kanji Detail Scene
+        'detail.standard': 'Standard',
+        'detail.strokeOrder': 'Stroke Order',
+        'detail.details': 'Details',
+        'detail.level': 'Level:',
+        'detail.jlpt': 'JLPT:',
+        'detail.status': 'Status:',
+        'detail.notLearned': 'Not learned',
+        'detail.accuracy': 'Accuracy:',
+        'detail.nextReview': 'Next Review:',
+        'detail.actions': 'Actions',
+        'detail.addToReview': 'Add to Review',
+        'detail.removeFromReview': 'Remove from Review',
+        'detail.practiceWriting': 'Practice Writing',
+        'detail.mnemonic': 'Mnemonic',
+        'detail.mnemonicPlaceholder': 'Enter your memory aid here...',
+        'detail.saveMnemonic': 'Save Mnemonic',
+        'detail.wordsUsingKanji': 'Words using this kanji',
+        'detail.addWord': 'Add Word',
+        'detail.addCustomWord': 'Add Custom Word',
+        'detail.word': 'Word:',
+        'detail.reading': 'Reading:',
+        'detail.meaning': 'Meaning:',
+        'detail.type': 'Type:',
+        'detail.onyomi': 'On\'yomi',
+        'detail.kunyomi': 'Kun\'yomi',
+        'detail.jlptLevel': 'JLPT Level:',
+        'detail.add': 'Add Word',
+        'detail.cancel': 'Cancel',
+        'detail.builtInWords': 'Built-in Words',
+        'detail.customWords': 'Your Custom Words',
+        'detail.delete': 'Delete',
+        
+        // Drawing Scene
+        'drawing.title': 'Practice Writing',
+        'drawing.hideKanji': 'Hide Kanji',
+        'drawing.clearCanvas': 'Clear Canvas',
+        'drawing.toggleEraser': 'Toggle Eraser',
+        'drawing.toggleGuidelines': 'Toggle Guidelines',
+        
+        // Cram Scene
+        'cram.title': 'Cram Session Setup',
+        'cram.questionMode': 'Question Mode:',
+        'cram.meaningFirst': 'Show Reading + Meaning → Word',
+        'cram.kanjiFirst': 'Show Word → Reading + Meaning',
+        'cram.selectAll': 'Select All',
+        'cram.deselectAll': 'Deselect All',
+        'cram.startCram': 'Start Cram',
+        'cram.selected': 'selected',
+        'cram.correct': 'Correct:',
+        'cram.incorrect': 'Incorrect',
+        
+        // Settings Scene
+        'settings.title': 'Settings',
+        'settings.profileName': 'Profile Name',
+        'settings.profileNamePlaceholder': 'Enter your name',
+        'settings.saveName': 'Save Name',
+        'settings.jlptLevel': 'JLPT Level',
+        'settings.setLevel': 'Set Level',
+        'settings.questionMode': 'Question Mode',
+        'settings.maxInterval': 'Maximum SRS Interval (days)',
+        'settings.showStudyProgress': 'Show Study progress info',
+        'settings.enableDarkMode': 'Enable dark mode',
+        'settings.language': 'Language',
+        'settings.english': 'English',
+        'settings.japanese': 'Japanese',
+        'settings.saveSettings': 'Save Settings',
+        
+        // General
+        'general.today': 'Today',
+        'general.tomorrow': 'Tomorrow',
+        'general.yesterday': 'Yesterday',
+        'general.loading': 'Loading...',
+        'general.close': 'Close',
+        'general.save': 'Save',
+        'general.cancel': 'Cancel',
+        'general.delete': 'Delete',
+        'general.ok': 'OK',
+        'general.yes': 'Yes',
+        'general.no': 'No'
+    },
+    ja: {
+        // Navigation
+        'nav.back': '戻る',
+        'nav.settings': '設定',
+        'nav.signIn': 'サインイン',
+        'nav.signOut': 'サインアウト',
+        
+        // Login Scene
+        'login.title': 'Kanjiten',
+        'login.subtitle': '日本語漢字SRSアプリ',
+        'login.email': 'メールアドレス',
+        'login.emailPlaceholder': 'メールアドレスを入力',
+        'login.username': 'ユーザー名',
+        'login.usernamePlaceholder': 'ユーザー名を入力',
+        'login.password': 'パスワード',
+        'login.passwordPlaceholder': 'パスワードを入力',
+        'login.signIn': 'サインイン',
+        'login.signUp': 'サインアップ',
+        
+        // Email Confirmation
+        'confirmation.title': 'メール認証',
+        'confirmation.message': '認証メールを送信しました：',
+        'confirmation.instruction': 'メール内のリンクをクリックしてアカウントを有効化し、下のボタンをクリックして続行してください。',
+        'confirmation.confirmed': 'メールを確認しました',
+        'confirmation.resend': 'メール再送信',
+        'confirmation.backToLogin': 'ログインに戻る',
+        'confirmation.help': 'メールが見つかりませんか？迷惑メールフォルダをご確認ください。',
+        
+        // Dashboard
+        'dashboard.welcome': 'おかえりなさい、',
+        'dashboard.guest': 'ゲスト',
+        'dashboard.kanjiInReview': '復習中の漢字',
+        'dashboard.reviewsDue': '復習予定',
+        'dashboard.dayStreak': '継続日数',
+        'dashboard.upcomingReviews': '今後の復習',
+        'dashboard.reviewHistory': '復習履歴',
+        'dashboard.decks': 'デッキ',
+        'dashboard.browseDecs': 'デッキを見る',
+        'dashboard.study': '学習',
+        'dashboard.startReview': '復習開始',
+        'dashboard.cram': '詰め込み学習',
+        'dashboard.cramSession': '詰め込みセッション',
+        'dashboard.settings': '設定',
+        'dashboard.levelProgress': 'レベル進捗',
+        'dashboard.guestNotice': 'ゲストモードです。進捗は永続的に保存されません。',
+        'dashboard.signUpToSave': '進捗を保存するにはサインアップしてください！',
+        
+        // Decks Scene
+        'decks.title': '漢字デッキ',
+        'decks.searchPlaceholder': '文字、意味、読み方で検索...',
+        'decks.studyAmount': '学習数：',
+        'decks.5cards': '5枚',
+        'decks.10cards': '10枚',
+        'decks.20cards': '20枚',
+        'decks.allCards': 'すべて',
+        
+        // Study Scene
+        'study.progress': '進捗：',
+        'study.level': 'レベル：',
+        'study.remaining': '残り：',
+        'study.clear': 'クリア',
+        'study.eraser': '消去',
+        'study.changeWord': '単語変更',
+        'study.loading': '読み込み中',
+        'study.showAnswer': '答えを見る',
+        'study.wrong': '不正解',
+        'study.hard': '難しい',
+        'study.good': '良い',
+        'study.easy': '簡単',
+        'study.showDetails': '詳細を見る',
+        
+        // Kanji Detail Scene
+        'detail.standard': '標準',
+        'detail.strokeOrder': '筆順',
+        'detail.details': '詳細',
+        'detail.level': 'レベル：',
+        'detail.jlpt': 'JLPT：',
+        'detail.status': 'ステータス：',
+        'detail.notLearned': '未学習',
+        'detail.accuracy': '正答率：',
+        'detail.nextReview': '次の復習：',
+        'detail.actions': 'アクション',
+        'detail.addToReview': '復習に追加',
+        'detail.removeFromReview': '復習から削除',
+        'detail.practiceWriting': '書字練習',
+        'detail.mnemonic': '記憶法',
+        'detail.mnemonicPlaceholder': '記憶のヒントを入力してください...',
+        'detail.saveMnemonic': '記憶法を保存',
+        'detail.wordsUsingKanji': 'この漢字を使う言葉',
+        'detail.addWord': '単語追加',
+        'detail.addCustomWord': 'カスタム単語追加',
+        'detail.word': '単語：',
+        'detail.reading': '読み：',
+        'detail.meaning': '意味：',
+        'detail.type': '種類：',
+        'detail.onyomi': '音読み',
+        'detail.kunyomi': '訓読み',
+        'detail.jlptLevel': 'JLPTレベル：',
+        'detail.add': '単語追加',
+        'detail.cancel': 'キャンセル',
+        'detail.builtInWords': '組み込み単語',
+        'detail.customWords': 'あなたのカスタム単語',
+        'detail.delete': '削除',
+        
+        // Drawing Scene
+        'drawing.title': '書字練習',
+        'drawing.hideKanji': '漢字を隠す',
+        'drawing.clearCanvas': 'キャンバスをクリア',
+        'drawing.toggleEraser': '消しゴム切替',
+        'drawing.toggleGuidelines': 'ガイドライン切替',
+        
+        // Cram Scene
+        'cram.title': '詰め込み学習セットアップ',
+        'cram.questionMode': '問題モード：',
+        'cram.meaningFirst': '読み＋意味を見せる → 単語',
+        'cram.kanjiFirst': '単語を見せる → 読み＋意味',
+        'cram.selectAll': 'すべて選択',
+        'cram.deselectAll': 'すべて解除',
+        'cram.startCram': '詰め込み開始',
+        'cram.selected': '選択済み',
+        'cram.correct': '正解：',
+        'cram.incorrect': '不正解',
+        
+        // Settings Scene
+        'settings.title': '設定',
+        'settings.profileName': 'プロフィール名',
+        'settings.profileNamePlaceholder': '名前を入力してください',
+        'settings.saveName': '名前を保存',
+        'settings.jlptLevel': 'JLPTレベル',
+        'settings.setLevel': 'レベル設定',
+        'settings.questionMode': '問題モード',
+        'settings.maxInterval': '最大SRS間隔（日）',
+        'settings.showStudyProgress': '学習進捗情報を表示',
+        'settings.enableDarkMode': 'ダークモード',
+        'settings.language': '言語',
+        'settings.english': 'English',
+        'settings.japanese': '日本語',
+        'settings.saveSettings': '設定を保存',
+        
+        // General
+        'general.today': '今日',
+        'general.tomorrow': '明日',
+        'general.yesterday': '昨日',
+        'general.loading': '読み込み中...',
+        'general.close': '閉じる',
+        'general.save': '保存',
+        'general.cancel': 'キャンセル',
+        'general.delete': '削除',
+        'general.ok': 'OK',
+        'general.yes': 'はい',
+        'general.no': 'いいえ'
+    }
+};
+
+// Language system state
+let currentLanguage = 'en';
+
+// Translation function
+function t(key, fallback = null) {
+    const translation = translations[currentLanguage]?.[key] || translations['en']?.[key] || fallback || key;
+    return translation;
+}
+
+// Initialize language system
+function initializeLanguageSystem() {
+    // Add language setting to gameState
+    if (!gameState.settings.language) {
+        gameState.settings.language = 'en';
+    }
+    
+    currentLanguage = gameState.settings.language;
+    updateAllUIText();
+}
+
+// Update all UI text based on current language
+function updateAllUIText() {
+    // Update navigation
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.textContent = t('nav.back');
+    
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) settingsBtn.textContent = t('nav.settings');
+    
+    const signInBtn = document.getElementById('signInBtn');
+    if (signInBtn) signInBtn.textContent = t('nav.signIn');
+    
+    const signOutBtn = document.getElementById('signOutBtn');
+    if (signOutBtn) signOutBtn.textContent = t('nav.signOut');
+    
+    // Update login scene
+    updateLoginSceneText();
+    
+    // Update confirmation scene
+    updateConfirmationSceneText();
+    
+    // Update dashboard scene
+    updateDashboardSceneText();
+    
+    // Update decks scene
+    updateDecksSceneText();
+    
+    // Update study scene
+    updateStudySceneText();
+    
+    // Update kanji detail scene
+    updateKanjiDetailSceneText();
+    
+    // Update drawing scene
+    updateDrawingSceneText();
+    
+    // Update cram scene
+    updateCramSceneText();
+    
+    // Update settings scene
+    updateSettingsSceneText();
+}
+
+// Update specific scene text functions
+function updateLoginSceneText() {
+    const loginScene = document.getElementById('loginScene');
+    if (!loginScene) return;
+    
+    const title = loginScene.querySelector('h1');
+    if (title) title.textContent = t('login.title');
+    
+    const subtitle = loginScene.querySelector('p');
+    if (subtitle) subtitle.textContent = t('login.subtitle');
+    
+    const emailLabel = loginScene.querySelector('label[for="email"]');
+    if (emailLabel) emailLabel.textContent = t('login.email');
+    
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.placeholder = t('login.emailPlaceholder');
+    
+    const usernameLabel = loginScene.querySelector('label[for="username"]');
+    if (usernameLabel) usernameLabel.textContent = t('login.username');
+    
+    const usernameInput = document.getElementById('username');
+    if (usernameInput) usernameInput.placeholder = t('login.usernamePlaceholder');
+    
+    const passwordLabel = loginScene.querySelector('label[for="password"]');
+    if (passwordLabel) passwordLabel.textContent = t('login.password');
+    
+    const passwordInput = document.getElementById('password');
+    if (passwordInput) passwordInput.placeholder = t('login.passwordPlaceholder');
+    
+    const signInBtn = loginScene.querySelector('button[onclick="signIn()"]');
+    if (signInBtn) signInBtn.textContent = t('login.signIn');
+    
+    const signUpBtn = loginScene.querySelector('button[onclick="signUp()"]');
+    if (signUpBtn) signUpBtn.textContent = t('login.signUp');
+}
+
+function updateConfirmationSceneText() {
+    const confirmationScene = document.getElementById('confirmationScene');
+    if (!confirmationScene) return;
+    
+    const title = confirmationScene.querySelector('h1');
+    if (title) title.textContent = t('confirmation.title');
+    
+    const message = confirmationScene.querySelector('.confirmation-message p:first-child');
+    if (message) message.textContent = t('confirmation.message');
+    
+    const instruction = confirmationScene.querySelector('.confirmation-message p:last-child');
+    if (instruction) instruction.textContent = t('confirmation.instruction');
+    
+    const confirmBtn = document.getElementById('checkConfirmBtn');
+    if (confirmBtn) confirmBtn.textContent = t('confirmation.confirmed');
+    
+    const resendBtn = document.getElementById('resendBtn');
+    if (resendBtn) resendBtn.textContent = t('confirmation.resend');
+    
+    const backBtn = confirmationScene.querySelector('button[onclick="backToLogin()"]');
+    if (backBtn) backBtn.textContent = t('confirmation.backToLogin');
+    
+    const help = confirmationScene.querySelector('.confirmation-help small');
+    if (help) help.textContent = t('confirmation.help');
+}
+
+function updateDashboardSceneText() {
+    const dashboardScene = document.getElementById('dashboardScene');
+    if (!dashboardScene) return;
+    
+    const welcome = dashboardScene.querySelector('h1');
+    if (welcome) {
+        const name = document.getElementById('welcomeName').textContent || t('dashboard.guest');
+        welcome.innerHTML = `${t('dashboard.welcome')} <span id="welcomeName">${name}</span>`;
+    }
+    
+    const kanjiLabel = dashboardScene.querySelector('.stat-label');
+    if (kanjiLabel) kanjiLabel.textContent = t('dashboard.kanjiInReview');
+    
+    const reviewsLabel = dashboardScene.querySelectorAll('.stat-label')[1];
+    if (reviewsLabel) reviewsLabel.textContent = t('dashboard.reviewsDue');
+    
+    const streakLabel = dashboardScene.querySelectorAll('.stat-label')[2];
+    if (streakLabel) streakLabel.textContent = t('dashboard.dayStreak');
+    
+    const upcomingTitle = dashboardScene.querySelector('h3');
+    if (upcomingTitle) upcomingTitle.textContent = t('dashboard.upcomingReviews');
+    
+    const historyTitle = dashboardScene.querySelectorAll('h3')[1];
+    if (historyTitle) historyTitle.textContent = t('dashboard.reviewHistory');
+    
+    const decksTitle = dashboardScene.querySelectorAll('h3')[2];
+    if (decksTitle) decksTitle.textContent = t('dashboard.decks');
+    
+    const browseDecksBtn = dashboardScene.querySelector('button[onclick="loadScene(\'decksScene\')"]');
+    if (browseDecksBtn) browseDecksBtn.textContent = t('dashboard.browseDecs');
+    
+    const studyTitle = dashboardScene.querySelectorAll('h3')[3];
+    if (studyTitle) studyTitle.textContent = t('dashboard.study');
+    
+    const startReviewBtn = dashboardScene.querySelector('button[onclick="startReview()"]');
+    if (startReviewBtn) startReviewBtn.textContent = t('dashboard.startReview');
+    
+    const cramTitle = dashboardScene.querySelectorAll('h3')[4];
+    if (cramTitle) cramTitle.textContent = t('dashboard.cram');
+    
+    const cramBtn = dashboardScene.querySelector('button[onclick="loadScene(\'cramScene\')"]');
+    if (cramBtn) cramBtn.textContent = t('dashboard.cramSession');
+    
+    const settingsTitle = dashboardScene.querySelectorAll('h3')[5];
+    if (settingsTitle) settingsTitle.textContent = t('dashboard.settings');
+    
+    const settingsBtn = dashboardScene.querySelector('button[onclick="loadScene(\'settingsScene\')"]');
+    if (settingsBtn) settingsBtn.textContent = t('dashboard.settings');
+    
+    const levelProgressTitle = dashboardScene.querySelectorAll('h3')[6];
+    if (levelProgressTitle) levelProgressTitle.textContent = t('dashboard.levelProgress');
+    
+    const guestNotice = document.getElementById('guestNotice');
+    if (guestNotice) {
+        guestNotice.innerHTML = `${t('dashboard.guestNotice')} <a href="#" onclick="loadScene('loginScene')" style="color: #495057; font-weight: bold;">${t('dashboard.signUpToSave')}</a>`;
+    }
+}
+
+function updateDecksSceneText() {
+    const decksScene = document.getElementById('decksScene');
+    if (!decksScene) return;
+    
+    const title = decksScene.querySelector('h2');
+    if (title) title.textContent = t('decks.title');
+    
+    const searchInput = document.getElementById('kanjiSearch');
+    if (searchInput) searchInput.placeholder = t('decks.searchPlaceholder');
+    
+    const studyAmountLabel = decksScene.querySelector('label[for="studyAmount"]');
+    if (studyAmountLabel) studyAmountLabel.textContent = t('decks.studyAmount');
+    
+    const studyAmountSelect = document.getElementById('studyAmount');
+    if (studyAmountSelect) {
+        const options = studyAmountSelect.querySelectorAll('option');
+        if (options[0]) options[0].textContent = t('decks.5cards');
+        if (options[1]) options[1].textContent = t('decks.10cards');
+        if (options[2]) options[2].textContent = t('decks.20cards');
+        if (options[3]) options[3].textContent = t('decks.allCards');
+    }
+}
+
+function updateStudySceneText() {
+    const studyScene = document.getElementById('studyScene');
+    if (!studyScene) return;
+    
+    const progressInfo = studyScene.querySelector('.study-progress-info');
+    if (progressInfo) {
+        const spans = progressInfo.querySelectorAll('span');
+        if (spans[0]) spans[0].innerHTML = `${t('study.progress')} <strong id="studyProgress">0/0</strong>`;
+        if (spans[1]) spans[1].innerHTML = `${t('study.level')} <strong id="currentKanjiLevel">-</strong>`;
+        if (spans[2]) spans[2].innerHTML = `${t('study.remaining')} <strong id="reviewsRemaining">0</strong>`;
+    }
+    
+    const clearBtn = studyScene.querySelector('button[onclick="clearMainCanvas()"]');
+    if (clearBtn) clearBtn.textContent = t('study.clear');
+    
+    const eraserBtn = studyScene.querySelector('button[onclick="undoLastLine()"]');
+    if (eraserBtn) eraserBtn.textContent = t('study.eraser');
+    
+    const changeWordBtn = studyScene.querySelector('button[onclick="displayCurrentQuestion()"]');
+    if (changeWordBtn) changeWordBtn.textContent = t('study.changeWord');
+    
+    const showAnswerBtn = document.getElementById('showAnswerBtn');
+    if (showAnswerBtn) showAnswerBtn.textContent = t('study.showAnswer');
+    
+    const answerBtns = studyScene.querySelectorAll('.answer-buttons button');
+    if (answerBtns[0]) answerBtns[0].textContent = t('study.wrong');
+    if (answerBtns[1]) answerBtns[1].textContent = t('study.hard');
+    if (answerBtns[2]) answerBtns[2].textContent = t('study.good');
+    if (answerBtns[3]) answerBtns[3].textContent = t('study.easy');
+    
+    const showDetailsBtn = document.getElementById('showDetailsBtn');
+    if (showDetailsBtn) showDetailsBtn.textContent = t('study.showDetails');
+}
+
+function updateKanjiDetailSceneText() {
+    const kanjiDetailScene = document.getElementById('kanjiDetailScene');
+    if (!kanjiDetailScene) return;
+    
+    const standardLabel = kanjiDetailScene.querySelectorAll('.kanji-display-label')[0];
+    if (standardLabel) standardLabel.textContent = t('detail.standard');
+    
+    const strokeLabel = kanjiDetailScene.querySelectorAll('.kanji-display-label')[1];
+    if (strokeLabel) strokeLabel.textContent = t('detail.strokeOrder');
+    
+    const detailsTitle = kanjiDetailScene.querySelector('h3');
+    if (detailsTitle) detailsTitle.textContent = t('detail.details');
+    
+    const actionsTitle = kanjiDetailScene.querySelectorAll('h3')[1];
+    if (actionsTitle) actionsTitle.textContent = t('detail.actions');
+    
+    const addToReviewBtn = document.getElementById('addToReviewBtn');
+    if (addToReviewBtn) addToReviewBtn.textContent = t('detail.addToReview');
+    
+    const removeFromReviewBtn = document.getElementById('removeFromReviewBtn');
+    if (removeFromReviewBtn) removeFromReviewBtn.textContent = t('detail.removeFromReview');
+    
+    const practiceBtn = kanjiDetailScene.querySelector('button[onclick="openDrawingScene()"]');
+    if (practiceBtn) practiceBtn.textContent = t('detail.practiceWriting');
+    
+    const mnemonicTitle = kanjiDetailScene.querySelectorAll('h3')[2];
+    if (mnemonicTitle) mnemonicTitle.textContent = t('detail.mnemonic');
+    
+    const mnemonicText = document.getElementById('mnemonicText');
+    if (mnemonicText) mnemonicText.placeholder = t('detail.mnemonicPlaceholder');
+    
+    const saveMnemonicBtn = kanjiDetailScene.querySelector('button[onclick="saveMnemonic()"]');
+    if (saveMnemonicBtn) saveMnemonicBtn.textContent = t('detail.saveMnemonic');
+    
+    const wordsTitle = kanjiDetailScene.querySelectorAll('h3')[3];
+    if (wordsTitle) wordsTitle.textContent = t('detail.wordsUsingKanji');
+    
+    const addWordBtn = document.getElementById('addWordBtn');
+    if (addWordBtn) addWordBtn.textContent = t('detail.addWord');
+}
+
+function updateDrawingSceneText() {
+    const drawingScene = document.getElementById('drawingScene');
+    if (!drawingScene) return;
+    
+    const title = drawingScene.querySelector('h2');
+    if (title) title.textContent = t('drawing.title');
+    
+    const hideKanjiBtn = drawingScene.querySelector('button[onclick="toggleKanjiVisibility()"]');
+    if (hideKanjiBtn) hideKanjiBtn.textContent = t('drawing.hideKanji');
+    
+    const clearBtn = drawingScene.querySelector('button[onclick="clearDrawingCanvas()"]');
+    if (clearBtn) clearBtn.textContent = t('drawing.clearCanvas');
+    
+    const eraserBtn = drawingScene.querySelector('button[onclick="undoDrawingLastLine()"]');
+    if (eraserBtn) eraserBtn.textContent = t('drawing.toggleEraser');
+    
+    const guidelinesBtn = drawingScene.querySelector('button[onclick="toggleBackground()"]');
+    if (guidelinesBtn) guidelinesBtn.textContent = t('drawing.toggleGuidelines');
+}
+
+function updateCramSceneText() {
+    const cramScene = document.getElementById('cramScene');
+    if (!cramScene) return;
+    
+    const title = cramScene.querySelector('h2');
+    if (title) title.textContent = t('cram.title');
+    
+    const questionModeLabel = cramScene.querySelector('label[for="cramQuestionMode"]');
+    if (questionModeLabel) questionModeLabel.textContent = t('cram.questionMode');
+    
+    const questionModeSelect = document.getElementById('cramQuestionMode');
+    if (questionModeSelect) {
+        const options = questionModeSelect.querySelectorAll('option');
+        if (options[0]) options[0].textContent = t('cram.meaningFirst');
+        if (options[1]) options[1].textContent = t('cram.kanjiFirst');
+    }
+    
+    const selectAllBtn = cramScene.querySelector('button[onclick="selectAllKanji()"]');
+    if (selectAllBtn) selectAllBtn.textContent = t('cram.selectAll');
+    
+    const deselectAllBtn = cramScene.querySelector('button[onclick="deselectAllKanji()"]');
+    if (deselectAllBtn) deselectAllBtn.textContent = t('cram.deselectAll');
+    
+    const startCramBtn = document.getElementById('startCramBtn');
+    if (startCramBtn) {
+        const selectedCount = startCramBtn.textContent.match(/\((\d+)/)?.[1] || '0';
+        startCramBtn.textContent = `${t('cram.startCram')} (${selectedCount} ${t('cram.selected')})`;
+    }
+}
+
+function updateSettingsSceneText() {
+    const settingsScene = document.getElementById('settingsScene');
+    if (!settingsScene) return;
+    
+    const title = settingsScene.querySelector('h2');
+    if (title) title.textContent = t('settings.title');
+    
+    const profileNameLabel = settingsScene.querySelector('label[for="profileName"]');
+    if (profileNameLabel) profileNameLabel.textContent = t('settings.profileName');
+    
+    const profileNameInput = document.getElementById('profileName');
+    if (profileNameInput) profileNameInput.placeholder = t('settings.profileNamePlaceholder');
+    
+    const saveNameBtn = settingsScene.querySelector('button[onclick="saveProfileName()"]');
+    if (saveNameBtn) saveNameBtn.textContent = t('settings.saveName');
+    
+    const jlptLevelLabel = settingsScene.querySelector('label[for="jlptLevel"]');
+    if (jlptLevelLabel) jlptLevelLabel.textContent = t('settings.jlptLevel');
+    
+    const jlptLevelSelect = document.getElementById('jlptLevel');
+    if (jlptLevelSelect) {
+        const firstOption = jlptLevelSelect.querySelector('option[value="all"]');
+        if (firstOption) firstOption.textContent = t('settings.setLevel');
+    }
+    
+    const questionModeLabel = settingsScene.querySelector('label[for="defaultQuestionMode"]');
+    if (questionModeLabel) questionModeLabel.textContent = t('settings.questionMode');
+    
+    const defaultQuestionModeSelect = document.getElementById('defaultQuestionMode');
+    if (defaultQuestionModeSelect) {
+        const options = defaultQuestionModeSelect.querySelectorAll('option');
+        if (options[0]) options[0].textContent = t('cram.meaningFirst');
+        if (options[1]) options[1].textContent = t('cram.kanjiFirst');
+    }
+    
+    const maxIntervalLabel = settingsScene.querySelector('label[for="maxInterval"]');
+    if (maxIntervalLabel) maxIntervalLabel.textContent = t('settings.maxInterval');
+    
+    const showStudyProgressLabel = settingsScene.querySelector('label[for="showStudyProgress"]');
+    if (showStudyProgressLabel) {
+        const text = showStudyProgressLabel.childNodes[1];
+        if (text) text.textContent = ` ${t('settings.showStudyProgress')}`;
+    }
+    
+    const darkModeLabel = settingsScene.querySelector('label[for="darkModeToggle"]');
+    if (darkModeLabel) {
+        const text = darkModeLabel.childNodes[1];
+        if (text) text.textContent = ` ${t('settings.enableDarkMode')}`;
+    }
+    
+    const saveSettingsBtn = settingsScene.querySelector('button[onclick="saveSettings()"]');
+    if (saveSettingsBtn) saveSettingsBtn.textContent = t('settings.saveSettings');
+    
+    const signOutBtn = settingsScene.querySelector('button[onclick="signOut()"]');
+    if (signOutBtn) signOutBtn.textContent = t('nav.signOut');
+}
+
+// Language change handler
+function changeLanguage(newLanguage) {
+    if (newLanguage === currentLanguage) return;
+    
+    currentLanguage = newLanguage;
+    gameState.settings.language = newLanguage;
+    
+    // Update all UI text
+    updateAllUIText();
+    
+    // Save settings to database
+    saveSettingsWithLanguage()
+}
+
+// Add language selector to settings
+function addLanguageSelector() {
+    const settingsScene = document.getElementById('settingsScene');
+    if (!settingsScene) return;
+    
+    const settingsForm = settingsScene.querySelector('div[style*="max-width: 600px"]');
+    if (!settingsForm) return;
+    
+    // Create language selector HTML
+    const languageSelector = document.createElement('div');
+    languageSelector.className = 'input-group';
+    languageSelector.innerHTML = `
+        <label for="languageSelect">${t('settings.language')}</label>
+        <select id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="en">${t('settings.english')}</option>
+            <option value="ja">${t('settings.japanese')}</option>
+        </select>
+    `;
+    
+    // Insert before the dark mode toggle
+    const darkModeGroup = settingsForm.querySelector('label[for="darkModeToggle"]').parentElement;
+    settingsForm.insertBefore(languageSelector, darkModeGroup);
+    
+    // Set current value
+    document.getElementById('languageSelect').value = currentLanguage;
+}
+
+// Initialize language system when app loads
+function initLanguageSystem() {
+    // Set up default language
+    if (gameState.settings.language) {
+        currentLanguage = gameState.settings.language;
+    }
+    
+    // Add language selector to settings
+    setTimeout(() => {
+        addLanguageSelector();
+        updateAllUIText();
+    }, 100);
+}
+
+// Enhanced saveSettings function to include language
+async function saveSettingsWithLanguage() {
+    const profileName = document.getElementById('profileName').value.trim();
+    const jlptLevel = document.getElementById('jlptLevel').value;
+    const defaultQuestionMode = document.getElementById('defaultQuestionMode').value;
+    const maxInterval = parseInt(document.getElementById('maxInterval').value) || 180;
+    const showStudyProgress = document.getElementById('showStudyProgress').checked;
+    const darkMode = document.getElementById('darkModeToggle').checked;
+    const language = document.getElementById('languageSelect')?.value || 'en';
+
+    // Update gameState
+    gameState.settings = {
+        ...gameState.settings,
+        profileName,
+        jlptLevel,
+        defaultQuestionMode,
+        maxInterval,
+        showStudyProgress,
+        darkMode,
+        language
+    };
+
+    // Apply settings immediately
+    if (profileName) {
+        document.getElementById('welcomeName').textContent = profileName;
+    }
+
+    // Apply dark mode
+    if (darkMode) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+
+    // Apply language
+    if (language !== currentLanguage) {
+        currentLanguage = language;
+        updateAllUIText();
+    }
+
+    // Apply study progress visibility
+    toggleStudyProgress();
+
+    try {
+        if (!gameState.isAnonymous && gameState.authToken) {
+            await apiCall('/settings', 'PUT', gameState.settings);
+            showSettingsStatus('Settings saved successfully!', 'success');
+        } else {
+            // Save to localStorage for anonymous users
+            localStorage.setItem('kanjiMasterSettings', JSON.stringify(gameState.settings));
+            showSettingsStatus('Settings saved locally!', 'success');
+        }
+        
+        // Also save to the main save data
+        await saveGameData();
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+        showSettingsStatus('Failed to save settings: ' + error.message, 'error');
+    }
+}
+
+// Settings status message helper
+function showSettingsStatus(message, type) {
+    const statusDiv = document.querySelector('#settingsScene .status-message') || 
+                     document.createElement('div');
+    statusDiv.className = `status-message status-${type}`;
+    statusDiv.textContent = message;
+    
+    if (!statusDiv.parentElement) {
+        const settingsScene = document.getElementById('settingsScene');
+        const saveBtn = settingsScene.querySelector('button[onclick="saveSettingsWithLanguage()"]');
+        if (saveBtn && saveBtn.parentElement) {
+            saveBtn.parentElement.insertBefore(statusDiv, saveBtn);
+        }
+    }
+    
+    setTimeout(() => {
+        if (statusDiv.parentElement) {
+            statusDiv.remove();
+        }
+    }, 3000);
+}
+
+// Update the main saveSettings function to use the new enhanced version
+function updateSaveSettingsFunction() {
+    // Replace the onclick handler for the save settings button
+    const saveBtn = document.querySelector('button[onclick="saveSettingsWithLanguage()"]');
+    if (saveBtn) {
+        saveBtn.setAttribute('onclick', 'saveSettingsWithLanguage()');
+    }
+}
+
+// Enhanced loadGameData function to load language preference
+async function loadLanguagePreference() {
+    if (gameState.settings.language) {
+        currentLanguage = gameState.settings.language;
+        
+        // Update language selector if it exists
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+            languageSelect.value = currentLanguage;
+        }
+        
+        // Update all UI text
+        updateAllUIText();
+    }
+}
+
+// Chart label updates for different languages
+function getChartLabelsForLanguage() {
+    const today = t('general.today');
+    const tomorrow = t('general.tomorrow');
+    const yesterday = t('general.yesterday');
+    
+    return { today, tomorrow, yesterday };
+}
+
+// Update chart functions to use translated labels
+function updateChartsWithLanguage() {
+    // This function should be called after language changes to update chart labels
+    if (gameState.currentScene === 'dashboardScene') {
+        updateReviewCharts();
+    }
+}
+
+// Export the language system functions
+window.languageSystem = {
+    initializeLanguageSystem,
+    changeLanguage,
+    t,
+    updateAllUIText,
+    getCurrentLanguage: () => currentLanguage
+};
 
          function handleTouch(e) {
              e.preventDefault();
