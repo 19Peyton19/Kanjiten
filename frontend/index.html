@@ -27638,37 +27638,71 @@ function redrawCramCanvas() {
     
     gameState.selectedKanji = kanji;
     
+    // Set basic kanji info
     document.getElementById('detailKanjiChar').textContent = kanji.character;
     document.getElementById('detailKanjiStroke').textContent = kanji.character;
     document.getElementById('detailKanjiReading').textContent = kanji.readings.join(', ');
     document.getElementById('detailKanjiMeaning').textContent = kanji.meanings.join(', ');
-    document.getElementById('detailLevel').textContent = kanji.level;
-    document.getElementById('detailJLPT').textContent = kanji.jlpt;
     
-    // Use translations for status
-    let statusText;
-    if (kanji.learned) {
-        statusText = currentLanguage === 'ja' ? '学習済み' : 'Learned';
-    } else if (kanji.inReview) {
-        statusText = currentLanguage === 'ja' ? '復習中' : 'In Review';
-    } else {
-        statusText = t('detail.notLearned');
+    // Get the detail paragraphs container
+    const detailsContainer = document.querySelector('#kanjiDetailScene div div');
+    if (detailsContainer) {
+        // Use translations for status
+        let statusText;
+        if (kanji.learned) {
+            statusText = t('detail.learned');
+        } else if (kanji.inReview) {
+            statusText = t('detail.inReview');
+        } else {
+            statusText = t('detail.notLearned');
+        }
+        
+        // Calculate accuracy
+        const accuracy = kanji.totalReviews > 0 
+            ? Math.round((kanji.correctReviews / kanji.totalReviews) * 100) + '%' 
+            : '0%';
+        
+        // Format next review date
+        const nextReview = kanji.nextReview 
+            ? kanji.nextReview.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US') 
+            : 'N/A';
+        
+        // Generate the detail HTML with current values
+        const detailParagraphs = detailsContainer.querySelectorAll('p');
+        if (detailParagraphs.length >= 5) {
+            detailParagraphs[0].innerHTML = `<strong>${t('detail.level')}</strong> <span id="detailLevel">${kanji.level}</span>`;
+            detailParagraphs[1].innerHTML = `<strong>${t('detail.jlpt')}</strong> <span id="detailJLPT">${kanji.jlpt}</span>`;
+            detailParagraphs[2].innerHTML = `<strong>${t('detail.status')}</strong> <span id="detailStatus">${statusText}</span>`;
+            detailParagraphs[3].innerHTML = `<strong>${t('detail.accuracy')}</strong> <span id="detailAccuracy">${accuracy}</span>`;
+            detailParagraphs[4].innerHTML = `<strong>${t('detail.nextReview')}</strong> <span id="detailNextReview">${nextReview}</span>`;
+        } else {
+            // Fallback: create the elements if they don't exist
+            detailsContainer.innerHTML = `
+                <p><strong>${t('detail.level')}</strong> <span id="detailLevel">${kanji.level}</span></p>
+                <p><strong>${t('detail.jlpt')}</strong> <span id="detailJLPT">${kanji.jlpt}</span></p>
+                <p><strong>${t('detail.status')}</strong> <span id="detailStatus">${statusText}</span></p>
+                <p><strong>${t('detail.accuracy')}</strong> <span id="detailAccuracy">${accuracy}</span></p>
+                <p><strong>${t('detail.nextReview')}</strong> <span id="detailNextReview">${nextReview}</span></p>
+            `;
+        }
     }
-    document.getElementById('detailStatus').textContent = statusText;
     
-    document.getElementById('detailAccuracy').textContent = kanji.totalReviews > 0 
-        ? Math.round((kanji.correctReviews / kanji.totalReviews) * 100) + '%' 
-        : '0%';
-    
-    document.getElementById('detailNextReview').textContent = kanji.nextReview 
-        ? kanji.nextReview.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US') 
-        : 'N/A';
-    
-    document.getElementById('mnemonicText').value = kanji.mnemonic || '';
+    // Set mnemonic text
+    const mnemonicText = document.getElementById('mnemonicText');
+    if (mnemonicText) {
+        mnemonicText.value = kanji.mnemonic || '';
+    }
     
     // Update buttons
-    document.getElementById('addToReviewBtn').style.display = kanji.inReview ? 'none' : 'block';
-    document.getElementById('removeFromReviewBtn').style.display = kanji.inReview ? 'block' : 'none';
+    const addToReviewBtn = document.getElementById('addToReviewBtn');
+    const removeFromReviewBtn = document.getElementById('removeFromReviewBtn');
+    
+    if (addToReviewBtn) {
+        addToReviewBtn.style.display = kanji.inReview ? 'none' : 'block';
+    }
+    if (removeFromReviewBtn) {
+        removeFromReviewBtn.style.display = kanji.inReview ? 'block' : 'none';
+    }
     
     // Display variations
     displayVariations(kanji);
@@ -28413,6 +28447,8 @@ const translations = {
         'detail.accuracy': 'Accuracy:',
         'detail.nextReview': 'Next Review:',
         'detail.actions': 'Actions',
+        'detail.learned': 'Learned',
+        'detail.inReview': 'In Review',
         'detail.addToReview': 'Add to Review',
         'detail.removeFromReview': 'Remove from Review',
         'detail.practiceWriting': 'Practice Writing',
@@ -28579,6 +28615,8 @@ const translations = {
         'detail.reading': '読み：',
         'detail.meaning': '意味：',
         'detail.type': '種類：',
+        'detail.learned': 'Learned',
+        'detail.inReview': 'In Review',
         'detail.onyomi': '音読み',
         'detail.kunyomi': '訓読み',
         'detail.jlptLevel': 'JLPTレベル：',
