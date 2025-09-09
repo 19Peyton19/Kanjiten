@@ -25051,9 +25051,6 @@ let drawingCanvasState = {
                      gameState.isAnonymous = response.user?.isAnonymous || false;
                      gameState.authToken = response.session.access_token; // Use access_token from session
                      gameState.settings.profileName = gameState.user.username;
-                     if (gameState.authToken) {
-                         localStorage.setItem('authToken', gameState.authToken);
-                     }
                      showAuthStatus('Sign in successful!', 'success');
                      // Update UI
                      document.getElementById('signOutBtn').style.display = 'block';
@@ -25296,9 +25293,6 @@ function backToLogin() {
                      gameState.isAnonymous = true;
                      gameState.authToken = response.session.access_token; // Use access_token from session
                      gameState.settings.profileName = 'Guest';
-                     if (gameState.authToken) {
-                         localStorage.setItem('authToken', gameState.authToken);
-                     }
                      showAuthStatus('Signed in as guest!', 'success');
                      // Update UI
                      document.getElementById('signOutBtn').style.display = 'block';
@@ -25341,7 +25335,6 @@ function backToLogin() {
     } catch (error) {
         console.error('Token validation failed:', error);
         updateLoadingProgress('Session expired, please sign in...');
-        localStorage.removeItem('authToken');
         
         gameState.authToken = null;
         gameState.isSignedIn = false;
@@ -25380,8 +25373,7 @@ function backToLogin() {
     } catch (error) {
         console.error('Error during sign out:', error);
     } finally {
-        // Reset to anonymous mode instead of fully signing out
-        localStorage.removeItem('authToken');
+        gameState.authToken = null;
         
         // Reset to anonymous guest mode
         gameState.user = {
@@ -25912,38 +25904,7 @@ function updateLoadingProgress(message) {
         if (settingsBtn) settingsBtn.style.display = 'none';
     }
 }
-         async function handleAuthFallback(email, username, password, isSignUp = false) {
-             // This is a fallback for development/testing when server is not available
-             console.warn('Using fallback authentication - not suitable for production');
-             if (isSignUp) {
-                 // For signup, just create a new user
-                 const userId = 'user_' + Date.now();
-                 localStorage.setItem('fallback_user', JSON.stringify({
-                     id: userId,
-                     username: username,
-                     password: password, // In real app, this would be hashed
-                 }));
-             } else {
-                 // For signin, check if user exists
-                 const storedUser = localStorage.getItem('fallback_user');
-                 if (!storedUser) {
-                     throw new Error('No account found. Please sign up first.');
-                 }
-                 const user = JSON.parse(storedUser);
-                 if (user.username !== username || user.password !== password) {
-                     throw new Error('Invalid username or password');
-                 }
-             }
-             // Return mock successful response
-             return {
-                 success: true,
-                 user: {
-                     id: 'user_' + Date.now(),
-                     username: username,
-                 },
-                 token: 'fallback_token_' + Date.now(),
-             };
-         }
+         
 
       async function handleAuthSuccess(response, isAnonymous = false) {
     gameState.user = {
@@ -26375,77 +26336,36 @@ function getSceneFromPath(path) {
 }
          // Data Management
          async function saveGameData() {
-             if (gameState.isAnonymous || !gameState.authToken) return;
-             try {
-                 // Prepare kanji progress data
-                 const kanjiProgressData = Array.from(gameState.kanjiData.entries()).map(([id, kanji]) => [
-                     id, {
-                         learned: kanji.learned,
-                         inReview: kanji.inReview,
-                         interval: kanji.interval,
-                         ease: kanji.ease,
-                         consecutiveCorrect: kanji.consecutiveCorrect,
-                         totalReviews: kanji.totalReviews,
-                         correctReviews: kanji.correctReviews,
-                         lastReview: kanji.lastReview ? kanji.lastReview.toISOString() : null,
-                         nextReview: kanji.nextReview ? kanji.nextReview.toISOString() : null,
-                         mnemonic: kanji.mnemonic || '',
-                     },
-                 ]);
-                 await apiCall('/progress/bulk-update', 'POST', {
-                     kanjiProgressData,
-                 });
-                 // Save settings
-                 await apiCall('/settings', 'PUT', gameState.settings);
-                 // Also save to localStorage as backup
-                 const saveData = {
-                     settings: gameState.settings,
-                     kanjiData: Array.from(gameState.kanjiData.entries()),
-                     lastSave: new Date().toISOString(),
-                 };
-                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-             } catch (error) {
-                 console.error('Failed to save to server:', error);
-                 // Fall back to localStorage only
-                 const saveData = {
-                     settings: gameState.settings,
-                     kanjiData: Array.from(gameState.kanjiData.entries()),
-                     lastSave: new Date().toISOString(),
-                 };
-                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
-             }
-         }
+    if (gameState.isAnonymous || !gameState.authToken) return;
+    try {
+        // Prepare kanji progress data
+        const kanjiProgressData = Array.from(gameState.kanjiData.entries()).map(([id, kanji]) => [
+            id, {
+                learned: kanji.learned,
+                inReview: kanji.inReview,
+                interval: kanji.interval,
+                ease: kanji.ease,
+                consecutiveCorrect: kanji.consecutiveCorrect,
+                totalReviews: kanji.totalReviews,
+                correctReviews: kanji.correctReviews,
+                lastReview: kanji.lastReview ? kanji.lastReview.toISOString() : null,
+                nextReview: kanji.nextReview ? kanji.nextReview.toISOString() : null,
+                mnemonic: kanji.mnemonic || '',
+            },
+        ]);
+        await apiCall('/progress/bulk-update', 'POST', {
+            kanjiProgressData,
+        });
+        // Save settings
+        await apiCall('/settings', 'PUT', gameState.settings);
+    } catch (error) {
+        console.error('Failed to save to server:', error);
+        throw error; // Re-throw instead of falling back to localStorage
+    }
+}
         async function loadGameData() {
     if (gameState.isAnonymous || !gameState.authToken) {
-        updateLoadingProgress('Loading local data...');
-        const savedData = localStorage.getItem('kanjiMasterSave');
-        if (savedData) {
-            try {
-                const data = JSON.parse(savedData);
-                if (data.settings) {
-                    gameState.settings = {
-                        ...gameState.settings,
-                        ...data.settings
-                    };
-                }
-                if (data.kanjiData) {
-                    data.kanjiData.forEach(([id, kanjiData]) => {
-                        if (gameState.kanjiData.has(id)) {
-                            const existingKanji = gameState.kanjiData.get(id);
-                            gameState.kanjiData.set(id, {
-                                ...existingKanji,
-                                ...kanjiData,
-                                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
-                            });
-                        }
-                    });
-                }
-            } catch (e) {
-                console.error('Failed to load local save data:', e);
-            }
-        }
-        
+        updateLoadingProgress('Creating Guest Mode...');
         handleIntendedURL();
         return;
     }
@@ -26507,34 +26427,8 @@ function getSceneFromPath(path) {
     } catch (error) {
         console.error('Failed to load from database:', error);
         updateLoadingProgress('Loading backup data...');
-        
-        const savedData = localStorage.getItem('kanjiMasterSave');
-        if (savedData) {
-            try {
-                const data = JSON.parse(savedData);
-                if (data.settings) {
-                    gameState.settings = {
-                        ...gameState.settings,
-                        ...data.settings
-                    };
-                }
-                if (data.kanjiData) {
-                    data.kanjiData.forEach(([id, kanjiData]) => {
-                        if (gameState.kanjiData.has(id)) {
-                            const existingKanji = gameState.kanjiData.get(id);
-                            gameState.kanjiData.set(id, {
-                                ...existingKanji,
-                                ...kanjiData,
-                                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
-                                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
-                            });
-                        }
-                    });
-                }
-                console.log('Data loaded from localStorage backup');
-            } catch (e) {
-                console.error('Failed to load local save data:', e);
-            }
+        throw error;
+
         }
         
         handleIntendedURL();
