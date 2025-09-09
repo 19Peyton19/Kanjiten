@@ -26662,15 +26662,6 @@ function showAnswer() {
     
     // Update the UI immediately
     updateStudyProgressDisplay();
-    
-    // Save to server
-    saveSettingsWithLanguage().catch(error => {
-        console.error('Failed to save study progress setting:', error);
-        // Revert checkbox if save failed
-        checkbox.checked = !checkbox.checked;
-        gameState.settings.showStudyProgress = checkbox.checked;
-        alert('Failed to save setting. Please try again.');
-    });
 }
 
 function updateStudyProgressDisplay() {
@@ -27992,7 +27983,7 @@ function handleTouch(e) {
     }
 
     // Apply study progress visibility
-    toggleStudyProgress();
+ updateStudyProgressDisplay();
 
     try {
         if (!gameState.isAnonymous && gameState.authToken) {
