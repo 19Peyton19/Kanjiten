@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
  <html lang="en">
 
@@ -26405,7 +26406,7 @@ function getSceneFromPath(path) {
                      kanjiData: Array.from(gameState.kanjiData.entries()),
                      lastSave: new Date().toISOString(),
                  };
-                
+                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
              } catch (error) {
                  console.error('Failed to save to server:', error);
                  // Fall back to localStorage only
@@ -26414,7 +26415,7 @@ function getSceneFromPath(path) {
                      kanjiData: Array.from(gameState.kanjiData.entries()),
                      lastSave: new Date().toISOString(),
                  };
-                 
+                 localStorage.setItem('kanjiMasterSave', JSON.stringify(saveData));
              }
          }
         async function loadGameData() {
@@ -28122,6 +28123,10 @@ function handleTouch(e) {
         if (!gameState.isAnonymous && gameState.authToken) {
             await apiCall('/settings', 'PUT', gameState.settings);
             showSettingsStatus(t('general.saveSuccess', 'Settings saved successfully!'), 'success');
+        } else {
+            // Save to localStorage for anonymous users
+            localStorage.setItem('kanjiMasterSettings', JSON.stringify(gameState.settings));
+            showSettingsStatus(t('general.saveLocalSuccess', 'Settings saved locally!'), 'success');
         }
         
         // Also save to the main save data
