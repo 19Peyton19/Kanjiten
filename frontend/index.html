@@ -1640,7 +1640,7 @@
                          <strong>Accuracy:</strong> <span id="detailAccuracy">0%</span>
                      </p>
                      <p>
-                         <strong>Next Review:</strong>
+                         <strong>Next Review:</strong> <span id="DetailNextReview">0%</span>
                          <span id="detailNextReview">N/A</span>
                      </p>
                  </div>
@@ -1767,7 +1767,7 @@
     </div>
 </div>
 
-      <!-Settings-Scene->
+     
    <div class="scene" id="settingsScene">
     <h2 data-translate="settings.title">Settings</h2>
     <div style="max-width: 600px; margin: 0 auto">
@@ -25741,54 +25741,105 @@ function getUpcomingReviewsData() {
                  return [];
              }
          }
-         async function displayVariations(kanji) {
-             const variationsDiv = document.getElementById('variationsList');
-             // Get built-in variations
-             const builtInVariations = kanji.variations || [];
-             // Get custom variations
-             const customWords = await getCustomWords(kanji.id);
-             if (builtInVariations.length === 0 && customWords.length === 0) {
-                 variationsDiv.innerHTML = '<p>No variations available for this kanji.</p>';
-                 return;
-             }
-             let html = '';
-             // Display built-in variations
-             if (builtInVariations.length > 0) {
-                 html += '<h4>Built-in Words</h4>';
-                 html += builtInVariations.map(variation => `
-      <div class="variation-item">
-        <div style="font-size: 20px; font-weight: bold;">${variation.word}</div>
-        <div style="color: #666;">${variation.reading}</div>
-        <div>${variation.meaning}</div>
-        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-          <span style="font-size: 12px; color: #999;">${variation.type === 'on' ? "On'yomi" : "Kun'yomi"}</span>
-          <span style="font-size: 12px; color: #667eea; font-weight: bold;">${variation.jlpt}</span>
-        </div>
-      </div>
-    `).join('');
-             }
-             // Display custom variations
-             if (customWords.length > 0) {
-                 html += '<h4>Your Custom Words</h4>';
-                 html += customWords.map(word => `
-      <div class="variation-item" style="border-left: 4px solid #28a745;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div style="flex: 1;">
-            <div style="font-size: 20px; font-weight: bold;">${word.word}</div>
-            <div style="color: #666;">${word.reading}</div>
-            <div>${word.meaning}</div>
-            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-              <span style="font-size: 12px; color: #999;">${word.word_type === 'on' ? "On'yomi" : "Kun'yomi"}</span>
-              <span style="font-size: 12px; color: #667eea; font-weight: bold;">${word.jlpt_level}</span>
+         // Add these language strings to your existing language object
+const languages = {
+    en: {
+        // Navigation
+        'nav.back': 'Back',
+        'nav.settings': 'Settings',
+        'nav.signIn': 'Sign In',
+        'nav.signOut': 'Sign Out',
+        
+        // Variation headers and types
+        'variations.builtIn': 'Built-in Words',
+        'variations.custom': 'Your Custom Words',
+        'variations.onyomi': "On'yomi",
+        'variations.kunyomi': "Kun'yomi"
+    },
+    jp: {
+        // Navigation
+        'nav.back': '戻る',
+        'nav.settings': '設定',
+        'nav.signIn': 'ログイン',
+        'nav.signOut': 'ログアウト',
+        
+        // Variation headers and types
+        'variations.builtIn': '内蔵単語',
+        'variations.custom': 'カスタム単語',
+        'variations.onyomi': '音読み',
+        'variations.kunyomi': '訓読み'
+    }
+};
+
+// Update your navigation HTML to use data attributes for translation
+const navigationHTML = `
+<div class="top-nav">
+    <div class="nav-logo">🌸 Kanjiten</div>
+    <div class="nav-buttons">
+        <button class="nav-btn" id="backBtn" onclick="goBack()" style="display: none" data-translate="nav.back">Back</button>
+        <button class="nav-btn" id="settingsBtn" onclick="loadScene('settingsScene')" style="display: none" data-translate="nav.settings">Settings</button>
+        <button class="nav-btn" id="signInBtn" onclick="loadScene('loginScene')" style="display: none" data-translate="nav.signIn">Sign In</button>
+        <button class="nav-btn primary" id="signOutBtn" onclick="signOut()" style="display: none" data-translate="nav.signOut">Sign Out</button>
+    </div>
+</div>
+`;
+
+// Updated displayVariations function with dynamic language
+async function displayVariations(kanji) {
+    const variationsDiv = document.getElementById('variationsList');
+    const currentLang = getCurrentLanguage(); // Assuming you have this function
+    
+    // Get built-in variations
+    const builtInVariations = kanji.variations || [];
+    // Get custom variations
+    const customWords = await getCustomWords(kanji.id);
+    
+    if (builtInVariations.length === 0 && customWords.length === 0) {
+        variationsDiv.innerHTML = '<p>No variations available for this kanji.</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    // Display built-in variations
+    if (builtInVariations.length > 0) {
+        html += `<h4>${languages[currentLang]['variations.builtIn']}</h4>`;
+        html += builtInVariations.map(variation => `
+            <div class="variation-item">
+                <div style="font-size: 20px; font-weight: bold;">${variation.word}</div>
+                <div style="color: #666;">${variation.reading}</div>
+                <div>${variation.meaning}</div>
+                <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                    <span style="font-size: 12px; color: #999;">${variation.type === 'on' ? languages[currentLang]['variations.onyomi'] : languages[currentLang]['variations.kunyomi']}</span>
+                    <span style="font-size: 12px; color: #667eea; font-weight: bold;">${variation.jlpt}</span>
+                </div>
             </div>
-          </div>
-          <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 10px;" onclick="deleteCustomWord('${word.id}')">Delete</button>
-        </div>
-      </div>
-    `).join('');
-             }
-             variationsDiv.innerHTML = html;
-         }
+        `).join('');
+    }
+    
+    // Display custom variations
+    if (customWords.length > 0) {
+        html += `<h4>${languages[currentLang]['variations.custom']}</h4>`;
+        html += customWords.map(word => `
+            <div class="variation-item" style="border-left: 4px solid #28a745;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 20px; font-weight: bold;">${word.word}</div>
+                        <div style="color: #666;">${word.reading}</div>
+                        <div>${word.meaning}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                            <span style="font-size: 12px; color: #999;">${word.word_type === 'on' ? languages[currentLang]['variations.onyomi'] : languages[currentLang]['variations.kunyomi']}</span>
+                            <span style="font-size: 12px; color: #667eea; font-weight: bold;">${word.jlpt_level}</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px; margin-left: 10px;" onclick="deleteCustomWord('${word.id}')">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    variationsDiv.innerHTML = html;
+}
 
       function addLoadingCSS() {
     const style = document.createElement('style');
@@ -28439,6 +28490,7 @@ const translations = {
         'detail.status': 'Status:',
         'detail.notLearned': 'Not learned',
         'detail.accuracy': 'Accuracy:',
+        'detail.DetailNextReview': 'Next Review:',
         'detail.nextReview': 'Next Review:',
         'detail.actions': 'Actions',
         'detail.learned': 'Learned',
@@ -28464,6 +28516,10 @@ const translations = {
         'detail.builtInWords': 'Built-in Words',
         'detail.customWords': 'Your Custom Words',
         'detail.delete': 'Delete',
+        'variations.builtIn': 'Built-in Words',
+        'variations.custom': 'Your Custom Words',
+        'variations.onyomi': "On'yomi",
+        'variations.kunyomi': "Kun'yomi"
         
         // Drawing Scene
         'drawing.title': 'Practice Writing',
@@ -28569,7 +28625,11 @@ const translations = {
         'decks.10cards': '10枚',
         'decks.20cards': '20枚',
         'decks.allCards': 'すべて',
-        
+        'variations.builtIn': '内蔵単語',
+        'variations.custom': 'カスタム単語',
+        'variations.onyomi': '音読み',
+        'variations.kunyomi': '訓読み'
+ 
         // Study Scene
         'study.progress': '進捗：',
         'study.level': 'レベル：',
