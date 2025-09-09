@@ -25918,7 +25918,7 @@ function updateLoadingProgress(message) {
              console.warn('Using fallback authentication - not suitable for production');
              if (isSignUp) {
                  // For signup, just create a new user
-                 const userId = 'user_' + Date.now();
+                 const userId = '' + Date.now();
                  localStorage.setItem('fallback_user', JSON.stringify({
                      id: userId,
                      username: username,
