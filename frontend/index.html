@@ -27635,47 +27635,75 @@ function redrawCramCanvas() {
           function showKanjiDetail(kanjiId) {
     const kanji = gameState.kanjiData.get(kanjiId);
     if (!kanji) return;
-
+    
     gameState.selectedKanji = kanji;
-
+    
     document.getElementById('detailKanjiChar').textContent = kanji.character;
     document.getElementById('detailKanjiStroke').textContent = kanji.character;
     document.getElementById('detailKanjiReading').textContent = kanji.readings.join(', ');
     document.getElementById('detailKanjiMeaning').textContent = kanji.meanings.join(', ');
-    document.getElementById('detailLevel').textContent = kanji.level;
-    document.getElementById('detailJLPT').textContent = kanji.jlpt;
-
+    
+    // Try to find existing elements first, if they don't exist, skip safely
+    const detailLevel = document.getElementById('detailLevel');
+    if (detailLevel) {
+        detailLevel.textContent = kanji.level;
+    }
+    
+    const detailJLPT = document.getElementById('detailJLPT');
+    if (detailJLPT) {
+        detailJLPT.textContent = kanji.jlpt;
+    }
+    
     // Use translations for status
     let statusText;
     if (kanji.learned) {
-        statusText = currentLanguage === 'ja' ? '学習済み' : 'Learned';
+        statusText = t('detail.learned');
     } else if (kanji.inReview) {
-        statusText = currentLanguage === 'ja' ? '復習中' : 'In Review';
+        statusText = t('detail.inReview');
     } else {
         statusText = t('detail.notLearned');
     }
-    document.getElementById('detailStatus').textContent = statusText;
-
-    document.getElementById('detailAccuracy').textContent = kanji.totalReviews > 0 
-        ? Math.round((kanji.correctReviews / kanji.totalReviews) * 100) + '%' 
-        : '0%';
-
-    document.getElementById('detailNextReview').textContent = kanji.nextReview 
-        ? kanji.nextReview.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US') 
-        : 'N/A';
-
-    document.getElementById('mnemonicText').value = kanji.mnemonic || '';
-
+    
+    const detailStatus = document.getElementById('detailStatus');
+    if (detailStatus) {
+        detailStatus.textContent = statusText;
+    }
+    
+    const detailAccuracy = document.getElementById('detailAccuracy');
+    if (detailAccuracy) {
+        detailAccuracy.textContent = kanji.totalReviews > 0 
+            ? Math.round((kanji.correctReviews / kanji.totalReviews) * 100) + '%' 
+            : '0%';
+    }
+    
+    const detailNextReview = document.getElementById('detailNextReview');
+    if (detailNextReview) {
+        detailNextReview.textContent = kanji.nextReview 
+            ? kanji.nextReview.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US') 
+            : 'N/A';
+    }
+    
+    const mnemonicText = document.getElementById('mnemonicText');
+    if (mnemonicText) {
+        mnemonicText.value = kanji.mnemonic || '';
+    }
+    
     // Update buttons
-    document.getElementById('addToReviewBtn').style.display = kanji.inReview ? 'none' : 'block';
-    document.getElementById('removeFromReviewBtn').style.display = kanji.inReview ? 'block' : 'none';
-
+    const addToReviewBtn = document.getElementById('addToReviewBtn');
+    const removeFromReviewBtn = document.getElementById('removeFromReviewBtn');
+    
+    if (addToReviewBtn) {
+        addToReviewBtn.style.display = kanji.inReview ? 'none' : 'block';
+    }
+    if (removeFromReviewBtn) {
+        removeFromReviewBtn.style.display = kanji.inReview ? 'block' : 'none';
+    }
+    
     // Display variations
     displayVariations(kanji);
-
+    
     loadScene('kanjiDetailScene');
 }
-
 function initializeDrawingScene() {
     drawingCanvas = document.getElementById('drawingCanvas');
     if (!drawingCanvas) return;
