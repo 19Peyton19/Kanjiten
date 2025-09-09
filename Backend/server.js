@@ -80,7 +80,29 @@ const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10
 });
-
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Access token required' 
+    });
+  }
+  
+  // If using Supabase, verify the JWT
+  jwt.verify(token, process.env.SUPABASE_JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Invalid or expired token' 
+      });
+    }
+    req.user = user;
+    next();
+  });
+}
 // Authentication middleware
 async function authenticateUser(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -129,6 +151,44 @@ async function authenticateUser(req, res, next) {
     }
 }
 
+app.get('/auth/verify', authenticateToken, async (req, res) => {
+  try {
+    // If we get here, the token is valid (authenticateToken middleware passed)
+    const userId = req.user.id;
+    
+    // Optionally fetch fresh user data
+    const { data: user, error } = await supabase
+      .from('profiles')
+      .select('username, created_at')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User profile not found' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      valid: true,
+      user: {
+        id: userId,
+        username: user.username,
+        isAnonymous: user.username.startsWith('guest_')
+      }
+    });
+    
+  } catch (error) {
+    console.error('Token verification error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Token verification failed' 
+    });
+  }
+});
 // Register endpoint using Supabase Auth
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     log('INFO', 'Registration attempt started');
