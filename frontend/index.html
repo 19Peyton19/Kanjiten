@@ -25901,6 +25901,8 @@ function updateLoadingProgress(message) {
         
         if (gameState.isAnonymous) {
             if (guestNotice) guestNotice.style.display = 'block';
+            if (signOutBtn) signOutBtn.style.display = 'none';
+            if (signInBtn) signInBtn.style.display = 'block';
         } else {
             if (guestNotice) guestNotice.style.display = 'none';
         }
