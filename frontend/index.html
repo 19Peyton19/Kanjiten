@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
  <html lang="en">
 
@@ -25387,7 +25386,7 @@ function backToLogin() {
         
         // Reset to anonymous guest mode
         gameState.user = {
-            username: '',
+            username: 'Guest User',
             id: 'guest_' + Date.now(),
             isAnonymous: true,
         };
@@ -25403,7 +25402,6 @@ function backToLogin() {
         if (gameState.currentScene === 'loginScene') {
             loadScene('dashboardScene');
         }
-     loadScene('dashboardScene');
     }
 }
 
@@ -25920,7 +25918,7 @@ function updateLoadingProgress(message) {
              console.warn('Using fallback authentication - not suitable for production');
              if (isSignUp) {
                  // For signup, just create a new user
-                 const userId = '' + Date.now();
+                 const userId = 'user_' + Date.now();
                  localStorage.setItem('fallback_user', JSON.stringify({
                      id: userId,
                      username: username,
@@ -27227,13 +27225,13 @@ window.addEventListener("popstate", (event) => {
         
         // Set up anonymous user by default
         gameState.user = {
-            username: '',
+            username: 'Guest User',
             id: 'guest_' + Date.now(),
             isAnonymous: true,
         };
         gameState.isSignedIn = true;
         gameState.isAnonymous = true;
-        gameState.settings.profileName = '';
+        gameState.settings.profileName = 'Guest User';
         
         // Update navigation UI for anonymous mode
         updateNavigationUI();
@@ -27272,7 +27270,7 @@ window.addEventListener("popstate", (event) => {
                     gameState.settings = { ...gameState.settings, ...data.settings };
                     // Keep the guest username unless user specifically changed it
                     if (!data.settings.profileName || data.settings.profileName === 'User') {
-                        gameState.settings.profileName = '';
+                        gameState.settings.profileName = 'Guest User';
                     }
                     // Initialize language from saved settings
                     if (data.settings.language) {
@@ -28599,7 +28597,7 @@ const translations = {
         
         // Dashboard
         'dashboard.welcome': 'ようこそ、',
-        'dashboard.guest': '',
+        'dashboard.guest': 'ゲスト',
         'dashboard.kanjiInReview': '復習中の漢字',
         'dashboard.reviewsDue': '復習予定',
         'dashboard.dayStreak': '継続日数',
