@@ -25364,38 +25364,50 @@ function backToLogin() {
     }
 }
          async function signOut() {
-             try {
-                 if (gameState.authToken) {
-                     // Save data before signing out (if not anonymous)
-                     if (!gameState.isAnonymous) {
-                         await saveGameData();
-                     }
-                     // Call logout endpoint
-                     try {
-                         await apiCall('/auth/logout', 'POST');
-                     } catch (error) {
-                         console.log('Logout API call failed:', error);
-                         // Continue with local logout even if API call fails
-                     }
-                 }
-             } catch (error) {
-                 console.error('Error during sign out:', error);
-             } finally {
-                 // Always perform local cleanup
-                 localStorage.removeItem('authToken');
-                 // Reset game state
-                 gameState.user = null;
-                 gameState.isSignedIn = false;
-                 gameState.isAnonymous = false;
-                 gameState.authToken = null;
-                 // Update UI
-                 document.getElementById('signOutBtn').style.display = 'none';
-                 document.getElementById('signInBtn').style.display = 'block';
-                 document.getElementById('backBtn').style.display = 'none';
-                 document.getElementById('guestNotice').style.display = 'none';
-                 loadScene('loginScene');
-             }
-         }
+    try {
+        if (gameState.authToken) {
+            // Save data before signing out (if not anonymous)
+            if (!gameState.isAnonymous) {
+                await saveGameData();
+            }
+            // Call logout endpoint
+            try {
+                await apiCall('/auth/logout', 'POST');
+            } catch (error) {
+                console.log('Logout API call failed:', error);
+                // Continue with local logout even if API call fails
+            }
+        }
+    } catch (error) {
+        console.error('Error during sign out:', error);
+    } finally {
+        // Reset to anonymous mode instead of fully signing out
+        localStorage.removeItem('authToken');
+        
+        // Reset to anonymous guest mode
+        gameState.user = {
+            username: 'Guest User',
+            id: 'guest_' + Date.now(),
+            isAnonymous: true,
+        };
+        gameState.isSignedIn = true;
+        gameState.isAnonymous = true;
+        gameState.authToken = null;
+        gameState.settings.profileName = 'Guest User';
+        
+        // Update UI
+        updateNavigationUI();
+        
+        // Stay on dashboard instead of going to login
+        if (gameState.currentScene === 'loginScene') {
+            loadScene('dashboardScene');
+        }
+    }
+}
+
+      function goToLogin() {
+    loadScene('loginScene');
+}
          async function toggleAddWordForm() {
              const form = document.getElementById('addWordForm');
              const btn = document.getElementById('addWordBtn');
@@ -25876,23 +25888,29 @@ function updateLoadingProgress(message) {
     }
 }
          // 7. Add a new function to update dashboard UI:
-         function updateNavigationUI() {
-             if (gameState.isSignedIn) {
-                 document.getElementById('signOutBtn').style.display = 'block';
-                 document.getElementById('signInBtn').style.display = 'none';
-                 document.getElementById('settingsBtn').style.display = 'none';
-                 if (gameState.isAnonymous) {
-                     document.getElementById('guestNotice').style.display = 'block';
-                 } else {
-                     document.getElementById('guestNotice').style.display = 'none';
-                 }
-             } else {
-                 document.getElementById('signOutBtn').style.display = 'none';
-                 document.getElementById('signInBtn').style.display = 'block';
-                 document.getElementById('guestNotice').style.display = 'none';
-                 document.getElementById('settingsBtn').style.display = 'none';
-             }
-         }
+        function updateNavigationUI() {
+    const signOutBtn = document.getElementById('signOutBtn');
+    const signInBtn = document.getElementById('signInBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const guestNotice = document.getElementById('guestNotice');
+    
+    if (gameState.isSignedIn) {
+        if (signOutBtn) signOutBtn.style.display = 'block';
+        if (signInBtn) signInBtn.style.display = 'none';
+        if (settingsBtn) settingsBtn.style.display = 'block';
+        
+        if (gameState.isAnonymous) {
+            if (guestNotice) guestNotice.style.display = 'block';
+        } else {
+            if (guestNotice) guestNotice.style.display = 'none';
+        }
+    } else {
+        if (signOutBtn) signOutBtn.style.display = 'none';
+        if (signInBtn) signInBtn.style.display = 'block';
+        if (guestNotice) guestNotice.style.display = 'none';
+        if (settingsBtn) settingsBtn.style.display = 'none';
+    }
+}
          async function handleAuthFallback(email, username, password, isSignUp = false) {
              // This is a fallback for development/testing when server is not available
              console.warn('Using fallback authentication - not suitable for production');
@@ -26085,11 +26103,11 @@ function loadScene(sceneName, pushState = true) {
 function getSceneConfig(sceneName) {
     const configs = {
         'loginScene': {
-            url: '/',
+            url: '/login',  // Changed from '/' to '/login'
             title: 'Login'
         },
         'dashboardScene': {
-            url: '/dashboard',
+            url: '/',       // Dashboard is now the home page
             title: 'Dashboard'
         },
         'decksScene': {
@@ -26113,9 +26131,9 @@ function getSceneConfig(sceneName) {
             title: 'Settings'
         },
         'kanjiDetailScene': {
-    url: '/kanji/' + (gameState.selectedKanji ? encodeURIComponent(gameState.selectedKanji.character) : ''),
-    title: (gameState.selectedKanji ? gameState.selectedKanji.character + ' Details' : 'Kanji Details')
-},
+            url: '/kanji/' + (gameState.selectedKanji ? encodeURIComponent(gameState.selectedKanji.character) : ''),
+            title: (gameState.selectedKanji ? gameState.selectedKanji.character + ' Details' : 'Kanji Details')
+        },
         'drawingScene': {
             url: '/drawing',
             title: 'Drawing Practice'
@@ -26124,7 +26142,7 @@ function getSceneConfig(sceneName) {
     
     return configs[sceneName] || {
         url: '/' + sceneName.replace('Scene', ''),
-        title: 'Kanji Master'
+        title: 'Kanjiten'
     };
 }
 
@@ -26173,14 +26191,14 @@ function getSceneConfig(sceneName) {
              showKanjiDetail(kanjiId);
          }
 
-         // Enhanced goBack function with proper navigation
-function goBack() {
+        function goBack() {
     // Define navigation hierarchy
     const navigationMap = {
         'decksScene': 'dashboardScene',
         'cramScene': 'dashboardScene',
         'settingsScene': 'dashboardScene',
         'studyScene': 'dashboardScene',
+        'loginScene': 'dashboardScene',    // Login goes back to dashboard
         'kanjiDetailScene': 'decksScene',
         'drawingScene': () => {
             return gameState.selectedKanji ? 'kanjiDetailScene' : 'decksScene';
@@ -26221,8 +26239,9 @@ function initializeURLHandling() {
       // Map URL paths to scene names
 function getSceneFromPath(path) {
     const pathMappings = {
-        '/': 'loginScene',
-        '/dashboard': 'dashboardScene',
+        '/': 'dashboardScene',          // Home now goes to dashboard
+        '/dashboard': 'dashboardScene',  // Keep explicit dashboard route
+        '/login': 'loginScene',         // Login moved to /login
         '/decks': 'decksScene',
         '/study': 'studyScene',
         '/cram': 'cramScene',
@@ -26231,13 +26250,13 @@ function getSceneFromPath(path) {
         '/drawing': 'drawingScene'
     };
     
-    // Handle kanji detail URLs - redirect to decks on reload
+    // Handle kanji detail URLs
     if (path.startsWith('/kanji/')) {
         console.log('Kanji detail URL detected on reload, redirecting to decks');
         return 'decksScene';
     }
     
-    return pathMappings[path] || 'loginScene';
+    return pathMappings[path] || 'dashboardScene'; // Default to dashboard instead of login
 }
 
       function handleIntendedURL() {
@@ -27182,7 +27201,7 @@ window.addEventListener("popstate", (event) => {
     try {
         // Initialize kanji data
         updateLoadingProgress('Loading kanji data...');
-        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to show progress
+        await new Promise(resolve => setTimeout(resolve, 100));
         if (gameState.kanjiData.size === 0) {
             initializeKanjiData();
         }
@@ -27202,15 +27221,29 @@ window.addEventListener("popstate", (event) => {
         await new Promise(resolve => setTimeout(resolve, 100));
         startAutoSave();
         
-        // Check for existing auth token
+        // Set up anonymous user by default
+        gameState.user = {
+            username: 'Guest User',
+            id: 'guest_' + Date.now(),
+            isAnonymous: true,
+        };
+        gameState.isSignedIn = true;
+        gameState.isAnonymous = true;
+        gameState.settings.profileName = 'Guest User';
+        
+        // Update navigation UI for anonymous mode
+        updateNavigationUI();
+        
+        // Check for existing auth token (optional login)
         const storedToken = localStorage.getItem('authToken');
         if (storedToken) {
-            updateLoadingProgress('Validating session...');
+            updateLoadingProgress('Checking for saved account...');
             gameState.authToken = storedToken;
             
             try {
                 const response = await apiCall('/auth/verify', 'GET');
                 if (response.success) {
+                    // User has a valid account, switch from anonymous to authenticated
                     await handleAuthSuccess({ 
                         user: response.user, 
                         session: { access_token: storedToken } 
@@ -27219,29 +27252,42 @@ window.addEventListener("popstate", (event) => {
                     return;
                 }
             } catch (error) {
-                console.log('Token verification failed:', error);
+                console.log('Token verification failed, continuing as guest:', error);
                 localStorage.removeItem('authToken');
                 gameState.authToken = null;
             }
         }
         
-        // If no valid token, prepare for anonymous mode or login
-        updateLoadingProgress('Loading interface...');
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        updateNavigationUI();
-        
         // Load from local storage for anonymous users
+        updateLoadingProgress('Loading saved progress...');
         const savedData = localStorage.getItem('kanjiMasterSave');
         if (savedData) {
             try {
                 const data = JSON.parse(savedData);
                 if (data.settings) {
                     gameState.settings = { ...gameState.settings, ...data.settings };
+                    // Keep the guest username unless user specifically changed it
+                    if (!data.settings.profileName || data.settings.profileName === 'User') {
+                        gameState.settings.profileName = 'Guest User';
+                    }
                     // Initialize language from saved settings
                     if (data.settings.language) {
                         currentLanguage = data.settings.language;
                     }
+                }
+                // Load kanji progress
+                if (data.kanjiData) {
+                    data.kanjiData.forEach(([id, kanjiData]) => {
+                        if (gameState.kanjiData.has(id)) {
+                            const existingKanji = gameState.kanjiData.get(id);
+                            gameState.kanjiData.set(id, {
+                                ...existingKanji,
+                                ...kanjiData,
+                                lastReview: kanjiData.lastReview ? new Date(kanjiData.lastReview) : null,
+                                nextReview: kanjiData.nextReview ? new Date(kanjiData.nextReview) : null,
+                            });
+                        }
+                    });
                 }
             } catch (e) {
                 console.error('Failed to load local settings:', e);
@@ -27253,38 +27299,43 @@ window.addEventListener("popstate", (event) => {
         await new Promise(resolve => setTimeout(resolve, 100));
         applySettingsOnLoad();
         
-        // Determine target scene
-        const path = window.location.pathname;
-        let targetScene;
+        // Determine target scene - default to dashboard
+        let targetScene = 'dashboardScene';
         
+        const path = window.location.pathname;
         if (gameState.intendedPath && gameState.intendedPath !== '/') {
-            targetScene = getSceneFromPath(gameState.intendedPath);
-        } else if (path === '/' || path === '') {
-            targetScene = 'loginScene';
-        } else {
-            gameState.intendedPath = path;
-            targetScene = 'loginScene';
+            const intendedScene = getSceneFromPath(gameState.intendedPath);
+            // Allow navigation to other scenes, but avoid login scene unless specifically requested
+            if (intendedScene !== 'loginScene') {
+                targetScene = intendedScene;
+            }
+        } else if (path && path !== '/' && path !== '') {
+            const pathScene = getSceneFromPath(path);
+            if (pathScene !== 'loginScene') {
+                targetScene = pathScene;
+            }
         }
         
         // Final setup
         updateLoadingProgress('Finishing setup...');
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Load the appropriate scene
+        // Load the target scene
         loadScene(targetScene);
         
     } catch (error) {
         console.error('Error during app initialization:', error);
-        updateLoadingProgress('Error loading app. Retrying...');
+        updateLoadingProgress('Error loading app. Loading dashboard...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Fallback to login scene on error
+        // Fallback to dashboard scene on error
         loadScene('dashboardScene');
     } finally {
         // Hide loading screen
         hideLoadingScene();
     }
 }
+
 
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
