@@ -27165,61 +27165,117 @@ window.addEventListener("popstate", (event) => {
     return filteredVariations.length > 0 ? filteredVariations : allVariations;
 }
 
-   async function initializeApp() {
-    // Add loading CSS
+  async function initializeApp() {
+    // Add loading CSS and show loading screen immediately
     addLoadingCSS();
-    
-    // Show loading screen immediately
     showLoadingScene('Initializing application...');
     
     try {
         // Initialize kanji data
         updateLoadingProgress('Loading kanji data...');
         await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to show progress
-        initializeKanjiData();
+        if (gameState.kanjiData.size === 0) {
+            initializeKanjiData();
+        }
         
         // Initialize URL handling
         updateLoadingProgress('Setting up navigation...');
         await new Promise(resolve => setTimeout(resolve, 100));
         initializeURLHandling();
         
+        // Initialize language system
+        updateLoadingProgress('Initializing language system...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        initializeLanguageSystem();
+        
         // Start auto-save
         updateLoadingProgress('Starting auto-save...');
         await new Promise(resolve => setTimeout(resolve, 100));
         startAutoSave();
         
+        // Check for existing auth token
         const storedToken = localStorage.getItem('authToken');
         if (storedToken) {
             updateLoadingProgress('Validating session...');
-            await validateTokenAndAutoLogin(storedToken);
-        } else {
-            updateLoadingProgress('Loading interface...');
-            await new Promise(resolve => setTimeout(resolve, 200));
+            gameState.authToken = storedToken;
             
-            const path = window.location.pathname;
-            if (path === '/' || path === '') {
-                loadScene('loginScene');
-            } else {
-                gameState.intendedPath = path;
-                loadScene('loginScene');
+            try {
+                const response = await apiCall('/auth/verify', 'GET');
+                if (response.success) {
+                    await handleAuthSuccess({ 
+                        user: response.user, 
+                        session: { access_token: storedToken } 
+                    }, false);
+                    hideLoadingScene();
+                    return;
+                }
+            } catch (error) {
+                console.log('Token verification failed:', error);
+                localStorage.removeItem('authToken');
+                gameState.authToken = null;
             }
-            updateNavigationUI();
+        }
+        
+        // If no valid token, prepare for anonymous mode or login
+        updateLoadingProgress('Loading interface...');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        updateNavigationUI();
+        
+        // Load from local storage for anonymous users
+        const savedData = localStorage.getItem('kanjiMasterSave');
+        if (savedData) {
+            try {
+                const data = JSON.parse(savedData);
+                if (data.settings) {
+                    gameState.settings = { ...gameState.settings, ...data.settings };
+                    // Initialize language from saved settings
+                    if (data.settings.language) {
+                        currentLanguage = data.settings.language;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load local settings:', e);
+            }
+        }
+        
+        // Apply saved settings
+        updateLoadingProgress('Applying settings...');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        applySettingsOnLoad();
+        
+        // Determine target scene
+        const path = window.location.pathname;
+        let targetScene;
+        
+        if (gameState.intendedPath && gameState.intendedPath !== '/') {
+            targetScene = getSceneFromPath(gameState.intendedPath);
+        } else if (path === '/' || path === '') {
+            targetScene = 'loginScene';
+        } else {
+            gameState.intendedPath = path;
+            targetScene = 'loginScene';
         }
         
         // Final setup
         updateLoadingProgress('Finishing setup...');
         await new Promise(resolve => setTimeout(resolve, 300));
         
+        // Load the appropriate scene
+        loadScene(targetScene);
+        
     } catch (error) {
         console.error('Error during app initialization:', error);
         updateLoadingProgress('Error loading app. Retrying...');
         await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Fallback to login scene on error
+        loadScene('loginScene');
     } finally {
         // Hide loading screen
         hideLoadingScene();
     }
 }
-
 
          // Replace all placeholder functions with these implementations:
          function updateDecksScene() {
