@@ -27279,7 +27279,7 @@ window.addEventListener("popstate", (event) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Fallback to login scene on error
-        loadScene('loginScene');
+        loadScene('dashboardScene');
     } finally {
         // Hide loading screen
         hideLoadingScene();
