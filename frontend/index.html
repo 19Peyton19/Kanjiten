@@ -25386,7 +25386,7 @@ function backToLogin() {
         
         // Reset to anonymous guest mode
         gameState.user = {
-            username: 'Guest User',
+            username: '',
             id: 'guest_' + Date.now(),
             isAnonymous: true,
         };
@@ -27225,13 +27225,13 @@ window.addEventListener("popstate", (event) => {
         
         // Set up anonymous user by default
         gameState.user = {
-            username: 'Guest User',
+            username: '',
             id: 'guest_' + Date.now(),
             isAnonymous: true,
         };
         gameState.isSignedIn = true;
         gameState.isAnonymous = true;
-        gameState.settings.profileName = 'Guest User';
+        gameState.settings.profileName = '';
         
         // Update navigation UI for anonymous mode
         updateNavigationUI();
@@ -27270,7 +27270,7 @@ window.addEventListener("popstate", (event) => {
                     gameState.settings = { ...gameState.settings, ...data.settings };
                     // Keep the guest username unless user specifically changed it
                     if (!data.settings.profileName || data.settings.profileName === 'User') {
-                        gameState.settings.profileName = 'Guest User';
+                        gameState.settings.profileName = '';
                     }
                     // Initialize language from saved settings
                     if (data.settings.language) {
