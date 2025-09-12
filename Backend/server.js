@@ -92,7 +92,6 @@ const authLimiter = rateLimit({
     req.user = user;
     next();
   });
-}
 // Authentication middleware
 async function authenticateUser(req, res, next) {
     const authHeader = req.headers.authorization;
