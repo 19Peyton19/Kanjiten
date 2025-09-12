@@ -81,17 +81,6 @@ const authLimiter = rateLimit({
     max: 10
 });
   
-  // If using Supabase, verify the JWT
-  jwt.verify(token, process.env.SUPABASE_JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ 
-        success: false, 
-        error: 'Invalid or expired token' 
-      });
-    }
-    req.user = user;
-    next();
-  });
 // Authentication middleware
 async function authenticateUser(req, res, next) {
     const authHeader = req.headers.authorization;
