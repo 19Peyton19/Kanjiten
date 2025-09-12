@@ -26925,7 +26925,7 @@ function getSceneFromPath(path) {
                         learned: userKanji.learned || false,
                         inReview: userKanji.in_review || false,
                         interval: userKanji.srs_interval || 1,
-                        ease: userKanji.ease_factor || 2.5,
+                        ease: userKanji.ease_factor || 2,
                         consecutiveCorrect: userKanji.consecutive_correct || 0,
                         totalReviews: userKanji.total_reviews || 0,
                         correctReviews: userKanji.correct_reviews || 0,
@@ -27563,7 +27563,7 @@ window.addEventListener("popstate", (event) => {
             kanji.interval = Math.round(kanji.interval * kanji.ease);
         } else if (difficulty === 4) {
             kanji.ease += 0.1;
-            kanji.interval = Math.round(kanji.interval * kanji.ease * 1.2);
+            kanji.interval = Math.round(kanji.interval * kanji.ease * 1.1);
         }
     }
     
