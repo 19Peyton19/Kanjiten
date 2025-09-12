@@ -1438,7 +1438,7 @@
          <div class="scene" id="loginScene">
              <div class="auth-form">
                  <h1>Kanjiten</h1>
-                 <p style="text-align: center; margin-bottom: 30px; color: #666"> Japanese kanji SRS App </p>
+                 <p style="text-align: center; margin-bottom: 10px; color: #666"> Japanese kanji SRS App </p>
                  <div class="input-group">
                      <label for="email">Email</label>
                      <input type="email" id="email" placeholder="Enter email" />
@@ -27130,27 +27130,59 @@ window.addEventListener("popstate", (event) => {
         
         // Check for existing auth token (optional login)
         const storedToken = localStorage.getItem('authToken');
-        if (storedToken) {
-            updateLoadingProgress('Checking for saved account...');
-            gameState.authToken = storedToken;
+if (storedToken) {
+    updateLoadingProgress('Checking for saved account...');
+    gameState.authToken = storedToken;
+    
+    try {
+        const response = await apiCall('/auth/verify', 'GET');
+        if (response.success) {
+            // User has a valid account, switch from anonymous to authenticated
+            gameState.user = {
+                username: response.user?.username || 'User',
+                id: response.user?.id,
+                isAnonymous: false,
+            };
+            gameState.isSignedIn = true;
+            gameState.isAnonymous = false;
+            gameState.settings.profileName = gameState.user.username;
             
-            try {
-                const response = await apiCall('/auth/verify', 'GET');
-                if (response.success) {
-                    // User has a valid account, switch from anonymous to authenticated
-                    await handleAuthSuccess({ 
-                        user: response.user, 
-                        session: { access_token: storedToken } 
-                    }, false);
-                    hideLoadingScene();
-                    return;
+            // Update UI for authenticated user
+            updateNavigationUI();
+            
+            // Load game data from server
+            updateLoadingProgress('Loading your saved progress...');
+            await loadGameData();
+            
+            // Continue with normal initialization flow
+            updateLoadingProgress('Finishing setup...');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Load the target scene
+            let targetScene = 'dashboardScene';
+            const path = window.location.pathname;
+            if (gameState.intendedPath && gameState.intendedPath !== '/') {
+                const intendedScene = getSceneFromPath(gameState.intendedPath);
+                if (intendedScene !== 'loginScene') {
+                    targetScene = intendedScene;
                 }
-            } catch (error) {
-                console.log('Token verification failed, continuing as guest:', error);
-                localStorage.removeItem('authToken');
-                gameState.authToken = null;
+            } else if (path && path !== '/' && path !== '') {
+                const pathScene = getSceneFromPath(path);
+                if (pathScene !== 'loginScene') {
+                    targetScene = pathScene;
+                }
             }
+            
+            loadScene(targetScene);
+            hideLoadingScene();
+            return;
         }
+    } catch (error) {
+        console.log('Token verification failed, continuing as guest:', error);
+        localStorage.removeItem('authToken');
+        gameState.authToken = null;
+    }
+}
         
         // Load from local storage for anonymous users
         updateLoadingProgress('Loading saved progress...');
