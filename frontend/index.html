@@ -25080,6 +25080,7 @@ let drawingCanvasState = {
                      // Update UI
                      document.getElementById('signOutBtn').style.display = 'block';
                      document.getElementById('signInBtn').style.display = 'none';
+                     document.getElementById('guestNotice').style.display = 'none';
                      setTimeout(async () => {
                          loadScene('dashboardScene');
                          await loadGameData();
