@@ -1438,7 +1438,7 @@
          <div class="scene" id="loginScene">
              <div class="auth-form">
                  <h1>Kanjiten</h1>
-                 <p style="text-align: center; margin-bottom: 10px; color: #666"> Japanese kanji SRS App </p>
+                 <p style="text-align: center; margin-bottom: 0px; color: #666"> Japanese kanji SRS App </p>
                  <div class="input-group">
                      <label for="email">Email</label>
                      <input type="email" id="email" placeholder="Enter email" />
@@ -25049,7 +25049,8 @@ let drawingCanvasState = {
                      };
                      gameState.isSignedIn = true;
                      gameState.isAnonymous = response.user?.isAnonymous || false;
-                     gameState.authToken = response.session.access_token; // Use access_token from session
+                     gameState.authToken = response.session.access_token;
+                     localStorage.setItem('authToken', gameState.authToken);
                      gameState.settings.profileName = gameState.user.username;
                      showAuthStatus('Sign in successful!', 'success');
                      // Update UI
@@ -25206,6 +25207,7 @@ async function checkConfirmation() {
         
         if (response.success && response.confirmed) {
             showConfirmationStatus('Email confirmed! Signing you in...', 'success');
+            localStorage.setItem('authToken', gameState.authToken);
             
             // Clear pending user data
             gameState.pendingUser = null;
@@ -25291,7 +25293,7 @@ function backToLogin() {
                      };
                      gameState.isSignedIn = true;
                      gameState.isAnonymous = true;
-                     gameState.authToken = response.session.access_token; // Use access_token from session
+                     gameState.authToken = response.session.access_token;
                      gameState.settings.profileName = 'Guest';
                      showAuthStatus('Signed in as guest!', 'success');
                      // Update UI
@@ -25915,6 +25917,7 @@ function updateLoadingProgress(message) {
     gameState.isSignedIn = true;
     gameState.isAnonymous = isAnonymous;
     gameState.authToken = response.session.access_token;
+    localStorage.setItem('authToken', gameState.authToken);
     gameState.settings.profileName = gameState.user.username;
     
     if (gameState.authToken) {
