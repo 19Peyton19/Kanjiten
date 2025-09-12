@@ -27130,13 +27130,20 @@ window.addEventListener("popstate", (event) => {
         
         // Check for existing auth token (optional login)
         const storedToken = localStorage.getItem('authToken');
+console.log('Stored token found:', !!storedToken); // Debug log
+
 if (storedToken) {
     updateLoadingProgress('Checking for saved account...');
     gameState.authToken = storedToken;
     
     try {
+        console.log('Attempting to verify token...'); // Debug log
         const response = await apiCall('/auth/verify', 'GET');
+        console.log('Token verification response:', response); // Debug log
+        
         if (response.success) {
+            console.log('Token verified successfully, logging in...'); // Debug log
+            
             // User has a valid account, switch from anonymous to authenticated
             gameState.user = {
                 username: response.user?.username || 'User',
@@ -27151,14 +27158,21 @@ if (storedToken) {
             updateNavigationUI();
             
             // Load game data from server
-            updateLoadingProgress('Loading your saved progress...');
-            await loadGameData();
+            try {
+                updateLoadingProgress('Loading your saved progress...');
+                await loadGameData();
+                console.log('Game data loaded successfully'); // Debug log
+            } catch (loadError) {
+                console.error('Failed to load game data:', loadError);
+                // Continue anyway, user is still logged in
+            }
             
-            // Continue with normal initialization flow
-            updateLoadingProgress('Finishing setup...');
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Apply saved settings
+            updateLoadingProgress('Applying settings...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            applySettingsOnLoad();
             
-            // Load the target scene
+            // Determine target scene
             let targetScene = 'dashboardScene';
             const path = window.location.pathname;
             if (gameState.intendedPath && gameState.intendedPath !== '/') {
@@ -27173,14 +27187,28 @@ if (storedToken) {
                 }
             }
             
+            updateLoadingProgress('Finishing setup...');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            console.log('Loading scene:', targetScene); // Debug log
             loadScene(targetScene);
             hideLoadingScene();
             return;
         }
     } catch (error) {
-        console.log('Token verification failed, continuing as guest:', error);
+        console.log('Token verification failed:', error);
         localStorage.removeItem('authToken');
         gameState.authToken = null;
+        
+        // Reset to anonymous mode
+        gameState.user = {
+            username: 'Guest User',
+            id: 'guest_' + Date.now(),
+            isAnonymous: true,
+        };
+        gameState.isSignedIn = true;
+        gameState.isAnonymous = true;
+        gameState.settings.profileName = 'Guest User';
     }
 }
         
