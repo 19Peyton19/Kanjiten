@@ -80,16 +80,6 @@ const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10
 });
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
-  if (!token) {
-    return res.status(401).json({ 
-      success: false, 
-      error: 'Access token required' 
-    });
-  }
   
   // If using Supabase, verify the JWT
   jwt.verify(token, process.env.SUPABASE_JWT_SECRET, (err, user) => {
@@ -112,30 +102,39 @@ async function authenticateUser(req, res, next) {
     
     if (!token) {
         log('WARN', 'No session token provided');
-        return res.status(401).json({ error: 'No session token provided' });
+        return res.status(401).json({ 
+            success: false, 
+            error: 'Access token required' 
+        });
     }
-
+    
     try {
         // Verify JWT token with Supabase
         const { data: { user }, error } = await supabase.auth.getUser(token);
         
         if (error || !user) {
             log('WARN', 'Invalid or expired session token', error);
-            return res.status(401).json({ error: 'Invalid or expired session' });
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid or expired session' 
+            });
         }
-
+        
         // Get user profile
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .single();
-
+            
         if (profileError) {
             log('ERROR', 'Failed to get user profile', profileError);
-            return res.status(500).json({ error: 'Failed to get user profile' });
+            return res.status(500).json({ 
+                success: false, 
+                error: 'Failed to get user profile' 
+            });
         }
-
+        
         req.user = {
             id: user.id,
             email: user.email,
@@ -145,39 +144,29 @@ async function authenticateUser(req, res, next) {
         
         log('DEBUG', 'User authenticated successfully:', { userId: req.user.id, username: req.user.username });
         next();
+        
     } catch (error) {
         log('ERROR', 'Authentication middleware error', error);
-        res.status(500).json({ error: 'Authentication failed' });
+        res.status(500).json({ 
+            success: false, 
+            error: 'Authentication failed' 
+        });
     }
 }
 
-app.get('/api/auth/verify', authenticateToken, async (req, res) => {
+app.get('/api/auth/verify', authenticateUser, async (req, res) => {
   try {
-    // If we get here, the token is valid (authenticateToken middleware passed)
-    const userId = req.user.id;
-    
-    // Optionally fetch fresh user data
-    const { data: user, error } = await supabase
-      .from('profiles')
-      .select('username, created_at')
-      .eq('user_id', userId)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching user profile:', error);
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User profile not found' 
-      });
-    }
+    // If we get here, the token is valid (authenticateUser middleware passed)
+    const user = req.user;
     
     res.json({
       success: true,
       valid: true,
       user: {
-        id: userId,
+        id: user.id,
         username: user.username,
-        isAnonymous: user.username.startsWith('guest_')
+        email: user.email,
+        isAnonymous: user.username?.startsWith('guest_') || false
       }
     });
     
