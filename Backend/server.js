@@ -151,7 +151,7 @@ async function authenticateUser(req, res, next) {
     }
 }
 
-app.get('/auth/verify', authenticateToken, async (req, res) => {
+app.get('/api/auth/verify', authenticateToken, async (req, res) => {
   try {
     // If we get here, the token is valid (authenticateToken middleware passed)
     const userId = req.user.id;
